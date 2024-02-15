@@ -16,16 +16,22 @@ import java.util.Collection;
 @NoArgsConstructor
 @Getter
 @Setter
-@Table (name = "userDb")
+@Table (name = "user_db")
 public class UserEnitiy implements UserDetails {
         @Id
         @GeneratedValue(strategy = GenerationType.AUTO)
         private long id;
+
+        @Column(name = "name", unique = false,nullable = true)
         private String name;
 
-        @Column(unique = true,nullable = false)
+        @Column(name = "email", unique = true,nullable = false)
         private String email;
+
+        @Column(name = "password", unique = false,nullable = false)
         private String password;
+
+        @Column(name = "about_me", unique = false,nullable = true)
         private String aboutMe;
 
         @Override

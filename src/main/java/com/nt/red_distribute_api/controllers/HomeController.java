@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class HomeController {
     @GetMapping("/home")
     public String get(){
-        return "Welcome to distribute api!";
+        return "Welcome to red sms api!";
     }
 }

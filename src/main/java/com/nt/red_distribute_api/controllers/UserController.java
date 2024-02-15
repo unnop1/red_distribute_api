@@ -1,8 +1,6 @@
 package com.nt.red_distribute_api.controllers;
 
-import com.nt.red_distribute_api.dto.req.UserRequestDto;
-import com.nt.red_distribute_api.dto.resp.UserResponseDto;
-import com.nt.red_distribute_api.enitiy.UserEnitiy;
+import com.nt.red_distribute_api.dto.resp.LoginResp;
 import com.nt.red_distribute_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +15,7 @@ public class UserController {
     @Autowired
     private UserService userService;
     @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getAllUser(){
+    public ResponseEntity<List<LoginResp>> getAllUser(){
         return new ResponseEntity<>( userService.getAllUser(), HttpStatus.OK);
     }
 

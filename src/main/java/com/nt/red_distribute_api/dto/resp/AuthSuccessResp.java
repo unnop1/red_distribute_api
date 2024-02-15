@@ -8,6 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @ToString
-public class JwtResponse {
+public class AuthSuccessResp {
     private String token;
 }
