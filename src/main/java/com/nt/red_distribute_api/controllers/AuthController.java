@@ -9,6 +9,9 @@ import com.nt.red_distribute_api.dto.resp.JwtErrorResp;
 import com.nt.red_distribute_api.dto.resp.LoginResp;
 import com.nt.red_distribute_api.exp.UserAlreadyExistsException;
 import com.nt.red_distribute_api.service.UserService;
+
+import java.util.HashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +32,8 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
-    private AuthConfig authConfig;
-    @Autowired
-    private UserDetailsService userDetailsService;
-    @Autowired
     private AuthenticationManager manager;
+
     @Autowired
     private JwtHelper helper;
 
@@ -46,7 +46,7 @@ public class AuthController {
     public ResponseEntity<AuthSuccessResp> createUser(@RequestBody UserRequestDto userRequestDto) {
         try {
             LoginResp userResponseDto = userService.createUser(userRequestDto);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userResponseDto.getEmail());
+            UserDetails userDetails = userService.loadUserByUsername(userResponseDto.getEmail());
             System.out.println("from db info");
             System.out.println(userDetails.getUsername());
             System.out.println(userDetails.getPassword());
@@ -63,9 +63,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest) {
         this.doAuthenticate(jwtRequest.getEmail(), jwtRequest.getPassword());
-        UserDetails userDetails = userDetailsService.loadUserByUsername(jwtRequest.getEmail());
+        UserDetails userDetails = userService.loadUserByUsername(jwtRequest.getEmail());
         String token = this.helper.generateToken(userDetails);
-        // JwtResponse jwtResponse = JwtResponse.builder().token(token).build();
+
+        HashMap<String, Object> updateInfo = new HashMap<String, Object>();
+        updateInfo.put("currentToken", token);
+        this.userService.updateUser(userDetails.getUsername(), updateInfo);
+
         LoginResp userResp = new LoginResp();
         userResp.setEmail(userDetails.getUsername());
         userResp.setJwtToken(token);

@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -28,8 +30,8 @@ public class UserImp implements UserService {
     @Autowired
     private AuthConfig authConfig;
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEnitiy user = userRepo.findByEmail(username).orElseThrow(()->new RuntimeException("User not found"));
+    public UserEnitiy loadUserByUsername(String username) throws UsernameNotFoundException {
+        UserEnitiy user = userRepo.findByEmail(username);
         // System.out.println("Retrived Data");
         // System.out.println(user.getPassword()+"Retrived Password");
         // System.out.println(user.getUsername());
@@ -49,8 +51,8 @@ public class UserImp implements UserService {
     }
     @Override
     public LoginResp createUser(UserRequestDto userRequestDto) {
-        Optional<UserEnitiy> foundUser = this.userRepo.findByEmail(userRequestDto.getEmail());
-        if (foundUser.isEmpty()) {
+        UserEnitiy foundUser = this.userRepo.findByEmail(userRequestDto.getEmail());
+        if (foundUser.getEmail() != null) {
             UserEnitiy user = this.userReqDtoToUserEntity(userRequestDto);
             user.setPassword(authConfig.passwordEncoder().encode(user.getPassword()));
             UserEnitiy createdUser = userRepo.save(user);
@@ -58,6 +60,30 @@ public class UserImp implements UserService {
         } else {
             // User already exists, throw an exception
             throw new UserAlreadyExistsException("User with email " + userRequestDto.getEmail() + " already exists");
+        }
+    }
+
+    @Override
+    public void updateUser(String email, HashMap<String, Object> updateInfo) {
+        UserEnitiy foundUser = this.userRepo.findByEmail(email);
+        System.out.println("foundUser:"+foundUser.getEmail());
+        if (foundUser.getEmail() != null) {
+            for (Map.Entry<String, Object> entry : updateInfo.entrySet()) {
+                String fieldName = entry.getKey();
+                Object fieldValue = entry.getValue();
+                System.out.println("before fieldName:"+fieldName+" value:"+fieldValue);
+                // Update the field if it exists in the UserEntity class
+                try {
+                    Field field = foundUser.getClass().getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    field.set(foundUser, fieldValue);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    e.printStackTrace(); // Handle the exception appropriately
+                }
+                System.out.println("after fieldName:"+fieldName+" value:"+fieldValue);
+            }
+            
+            userRepo.save(foundUser);
         }
     }
 
@@ -70,4 +96,6 @@ public class UserImp implements UserService {
         LoginResp userRespDto = this.modelMapper.map(user,LoginResp.class);
         return userRespDto;
     }
+
+    
 }

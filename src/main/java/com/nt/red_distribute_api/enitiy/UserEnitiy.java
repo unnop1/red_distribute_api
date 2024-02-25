@@ -31,6 +31,9 @@ public class UserEnitiy implements UserDetails {
         @Column(name = "password", unique = false,nullable = false)
         private String password;
 
+        @Column(name = "currentToken", unique = true,nullable = true)
+        private String currentToken;
+
         @Column(name = "about_me", unique = false,nullable = true)
         private String aboutMe;
 
