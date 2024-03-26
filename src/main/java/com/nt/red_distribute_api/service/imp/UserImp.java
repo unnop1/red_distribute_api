@@ -3,6 +3,7 @@ package com.nt.red_distribute_api.service.imp;
 import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.dto.req.UserRequestDto;
 import com.nt.red_distribute_api.dto.resp.LoginResp;
+import com.nt.red_distribute_api.dto.resp.UserResp;
 import com.nt.red_distribute_api.enitiy.UserEnitiy;
 import com.nt.red_distribute_api.exp.UserAlreadyExistsException;
 import com.nt.red_distribute_api.repo.UserRepo;
@@ -42,32 +43,32 @@ public class UserImp implements UserService {
     }
 
     @Override
-    public List<LoginResp> getAllUser() {
+    public List<UserResp> getAllUser() {
         List<UserEnitiy> userEnitiys = userRepo.findAll();
-        List<LoginResp> userResponseDtoList = userEnitiys.stream().map(user->this.userEntityToUserRespDto(user)).collect(Collectors.toList());
+        List<UserResp> userResponseDtoList = userEnitiys.stream().map(user->this.userEntityToUserRespDto(user)).collect(Collectors.toList());
         return userResponseDtoList;
 
 
     }
     @Override
-    public LoginResp createUser(UserRequestDto userRequestDto) {
-        UserEnitiy foundUser = this.userRepo.findByEmail(userRequestDto.getEmail());
-        if (foundUser.getEmail() != null) {
+    public UserResp createUser(UserRequestDto userRequestDto) {
+        UserEnitiy foundUser = this.userRepo.findByEmail(userRequestDto.getUsername());
+        if (foundUser.getUsername() != null) {
             UserEnitiy user = this.userReqDtoToUserEntity(userRequestDto);
             user.setPassword(authConfig.passwordEncoder().encode(user.getPassword()));
             UserEnitiy createdUser = userRepo.save(user);
             return this.userEntityToUserRespDto(createdUser);
         } else {
             // User already exists, throw an exception
-            throw new UserAlreadyExistsException("User with email " + userRequestDto.getEmail() + " already exists");
+            throw new UserAlreadyExistsException("User with email " + userRequestDto.getUsername() + " already exists");
         }
     }
 
     @Override
     public void updateUser(String email, HashMap<String, Object> updateInfo) {
         UserEnitiy foundUser = this.userRepo.findByEmail(email);
-        System.out.println("foundUser:"+foundUser.getEmail());
-        if (foundUser.getEmail() != null) {
+        System.out.println("foundUser:"+foundUser.getUsername());
+        if (foundUser.getUsername() != null) {
             for (Map.Entry<String, Object> entry : updateInfo.entrySet()) {
                 String fieldName = entry.getKey();
                 Object fieldValue = entry.getValue();
@@ -92,10 +93,9 @@ public class UserImp implements UserService {
         UserEnitiy user = this.modelMapper.map(userReqDto,UserEnitiy.class);
         return user;
     }
-    public LoginResp userEntityToUserRespDto(UserEnitiy user){
-        LoginResp userRespDto = this.modelMapper.map(user,LoginResp.class);
+    public UserResp userEntityToUserRespDto(UserEnitiy user){
+        UserResp userRespDto = this.modelMapper.map(user,UserResp.class);
         return userRespDto;
     }
-
     
 }

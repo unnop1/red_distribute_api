@@ -7,9 +7,17 @@ import com.nt.red_distribute_api.dto.req.UserRequestDto;
 import com.nt.red_distribute_api.dto.resp.AuthSuccessResp;
 import com.nt.red_distribute_api.dto.resp.JwtErrorResp;
 import com.nt.red_distribute_api.dto.resp.LoginResp;
+import com.nt.red_distribute_api.dto.resp.UserResp;
+import com.nt.red_distribute_api.enitiy.PermissionMenuEntity;
+import com.nt.red_distribute_api.enitiy.UserEnitiy;
 import com.nt.red_distribute_api.exp.UserAlreadyExistsException;
+import com.nt.red_distribute_api.service.PermissionMenuService;
 import com.nt.red_distribute_api.service.UserService;
 
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.HashMap;
 
 import org.slf4j.Logger;
@@ -41,11 +49,14 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private PermissionMenuService permissionMenuService; 
+
 
     @PostMapping("/create")
     public ResponseEntity<AuthSuccessResp> createUser(@RequestBody UserRequestDto userRequestDto) {
         try {
-            LoginResp userResponseDto = userService.createUser(userRequestDto);
+            UserResp userResponseDto = userService.createUser(userRequestDto);
             UserDetails userDetails = userService.loadUserByUsername(userResponseDto.getEmail());
             System.out.println("from db info");
             System.out.println(userDetails.getUsername());
@@ -59,24 +70,44 @@ public class AuthController {
         }
     }
 
-
     @PostMapping("/login")
-    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest) {
-        this.doAuthenticate(jwtRequest.getEmail(), jwtRequest.getPassword());
-        UserDetails userDetails = userService.loadUserByUsername(jwtRequest.getEmail());
-        String token = this.helper.generateToken(userDetails);
+    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) {
+    // Get the IP address from the request
+    String ipAddress = request.getRemoteAddr();
+    System.out.println("IP Address: " + ipAddress);
 
-        HashMap<String, Object> updateInfo = new HashMap<String, Object>();
-        updateInfo.put("currentToken", token);
-        this.userService.updateUser(userDetails.getUsername(), updateInfo);
+    this.doAuthenticate(jwtRequest.getUsername(), jwtRequest.getPassword());
+    UserEnitiy userDetails = userService.loadUserByUsername(jwtRequest.getUsername());
+    String token = this.helper.generateToken(userDetails);
 
-        LoginResp userResp = new LoginResp();
-        userResp.setEmail(userDetails.getUsername());
-        userResp.setJwtToken(token);
-        System.out.println("token:"+token);
+    HashMap<String, Object> updateInfo = new HashMap<String, Object>();
+    updateInfo.put("currentToken", token);
+    updateInfo.put("last_login", new Timestamp(Instant.now().toEpochMilli()));
+    updateInfo.put("last_login_ipaddress", ipAddress);
 
-        return new ResponseEntity<>(userResp, HttpStatus.OK);
-    }
+    this.userService.updateUser(userDetails.getUsername(), updateInfo);
+
+    LoginResp userResp = new LoginResp();
+    UserResp userInfo = new UserResp();
+    // PermissionMenu permissionMenu = 
+
+    // User
+    userInfo.setId(userDetails.getId());
+    userInfo.setAboutMe(userDetails.getAboutMe());
+    userInfo.setName(userDetails.getName());
+    userInfo.setEmail(userDetails.getUsername());
+    userResp.setUserLogin(userInfo);
+    userResp.setJwtToken(token);
+
+    // permissionMenu
+    PermissionMenuEntity permissionMenuEntity = permissionMenuService.getAll().get(0);
+    userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
+    userResp.setPermissionName(permissionMenuEntity.getPermissionName());
+
+    System.out.println("token:"+token);
+
+    return new ResponseEntity<>(userResp, HttpStatus.OK);
+}
 
     private void doAuthenticate(String email, String password) {
         System.out.println("Login Info");
