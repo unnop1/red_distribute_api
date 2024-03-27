@@ -5,14 +5,11 @@ import lombok.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @ToString
 public class JwtRequest {
     private String username;
     private String password;
-    private String device;
-    private String system;
-    private String browser;
+    private String device="Unknown device";
+    private String system="Unknown system";
+    private String browser="Unknown browser";
 }

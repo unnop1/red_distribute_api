@@ -8,9 +8,11 @@ import com.nt.red_distribute_api.dto.resp.AuthSuccessResp;
 import com.nt.red_distribute_api.dto.resp.JwtErrorResp;
 import com.nt.red_distribute_api.dto.resp.LoginResp;
 import com.nt.red_distribute_api.dto.resp.UserResp;
+import com.nt.red_distribute_api.enitiy.LogLoginEntity;
 import com.nt.red_distribute_api.enitiy.PermissionMenuEntity;
 import com.nt.red_distribute_api.enitiy.UserEnitiy;
 import com.nt.red_distribute_api.exp.UserAlreadyExistsException;
+import com.nt.red_distribute_api.service.LogLoginService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
 import com.nt.red_distribute_api.service.UserService;
 
@@ -34,6 +36,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/auth")
 public class AuthController {
 
@@ -48,6 +51,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LogLoginService logloginService;
 
     @Autowired
     private PermissionMenuService permissionMenuService; 
@@ -70,19 +76,87 @@ public class AuthController {
         }
     }
 
+    private String parseUserAgent(String userAgent) {
+        // Logic to parse user agent string and extract device information
+        // You can use libraries like UADetector or DeviceDetector for more accurate parsing
+        // For simplicity, let's assume a basic parsing logic here
+        if (userAgent.contains("Android")) {
+            return "Android Device";
+        } else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) {
+            return "iOS Device";
+        } else if (userAgent.contains("Windows Phone")) {
+            return "Windows Phone";
+        } else if (userAgent.contains("Windows") || userAgent.contains("Win")) {
+            return "Windows PC";
+        } else if (userAgent.contains("Macintosh") || userAgent.contains("Mac OS")) {
+            return "Macintosh PC";
+        } else if (userAgent.contains("Linux")) {
+            return "Linux PC";
+        } else {
+            return "Unknown Device";
+        }
+    }
+
+    private String parseUserAgentForSystem(String userAgent) {
+        // Logic to parse user agent string and extract system information
+        if (userAgent.contains("Windows")) {
+            return "Windows";
+        } else if (userAgent.contains("Macintosh") || userAgent.contains("Mac OS")) {
+            return "Mac OS";
+        } else if (userAgent.contains("Linux")) {
+            return "Linux";
+        } else {
+            return "Unknown System";
+        }
+    }
+
+    private String parseUserAgentForBrowser(String userAgent) {
+        // Logic to parse user agent string and extract browser information
+        if (userAgent.contains("Chrome")) {
+            return "Google Chrome";
+        } else if (userAgent.contains("Firefox")) {
+            return "Mozilla Firefox";
+        } else if (userAgent.contains("Safari")) {
+            return "Apple Safari";
+        } else if (userAgent.contains("Edge")) {
+            return "Microsoft Edge";
+        } else if (userAgent.contains("Opera")) {
+            return "Opera";
+        } else if (userAgent.contains("IE")) {
+            return "Internet Explorer";
+        } else {
+            return "Unknown Browser";
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) {
     // Get the IP address from the request
     String ipAddress = request.getRemoteAddr();
+    // String userAgent = request.getHeader("User-Agent");
+    // String deviceInfo = parseUserAgent(userAgent);
+    // String systemInfo = parseUserAgentForSystem(userAgent);
+    // String browserInfo = parseUserAgentForBrowser(userAgent);
     System.out.println("IP Address: " + ipAddress);
-
-    this.doAuthenticate(jwtRequest.getUsername(), jwtRequest.getPassword());
+  
+    // Log login
+    Timestamp loginDateTime = new Timestamp(Instant.now().toEpochMilli());
+    LogLoginEntity loglogin = new LogLoginEntity();
+    loglogin.setBrowser(jwtRequest.getBrowser());
+    loglogin.setDevice(jwtRequest.getDevice());
+    loglogin.setSystem(jwtRequest.getSystem());
+    loglogin.setIp_address(ipAddress);
+    loglogin.setLogin_datetime(loginDateTime);
+    loglogin.setCreate_date(loginDateTime);
+    loglogin.setUsername(jwtRequest.getUsername());
+    this.doAuthenticate(jwtRequest.getUsername(), jwtRequest.getPassword(), loglogin);
     UserEnitiy userDetails = userService.loadUserByUsername(jwtRequest.getUsername());
+
     String token = this.helper.generateToken(userDetails);
 
     HashMap<String, Object> updateInfo = new HashMap<String, Object>();
     updateInfo.put("currentToken", token);
-    updateInfo.put("last_login", new Timestamp(Instant.now().toEpochMilli()));
+    updateInfo.put("last_login", loginDateTime);
     updateInfo.put("last_login_ipaddress", ipAddress);
 
     this.userService.updateUser(userDetails.getUsername(), updateInfo);
@@ -95,12 +169,21 @@ public class AuthController {
     userInfo.setId(userDetails.getId());
     userInfo.setAboutMe(userDetails.getAboutMe());
     userInfo.setName(userDetails.getName());
+    userInfo.setPhoneNumber(userDetails.getPhoneNumber());
     userInfo.setEmail(userDetails.getUsername());
+    userInfo.setLast_login(userDetails.getLast_login());
+    userInfo.setLast_login_ipaddress(ipAddress);
+    userInfo.setCreated_by(userDetails.getCreated_by());
+    userInfo.setCreatedDate(userDetails.getCreatedDate());
+    userInfo.setIsDelete_by(userDetails.getIsDelete_by());
+    userInfo.setIsDelete(userDetails.getIsDelete());
+    userInfo.setUpdatedDate(userDetails.getUpdatedDate());
+    userInfo.setUpdated_by(userDetails.getUpdated_by());
     userResp.setUserLogin(userInfo);
     userResp.setJwtToken(token);
 
     // permissionMenu
-    PermissionMenuEntity permissionMenuEntity = permissionMenuService.getAll().get(0);
+    PermissionMenuEntity permissionMenuEntity = permissionMenuService.getUserMenuPermission(userDetails.getId());
     userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
     userResp.setPermissionName(permissionMenuEntity.getPermissionName());
 
@@ -109,22 +192,23 @@ public class AuthController {
     return new ResponseEntity<>(userResp, HttpStatus.OK);
 }
 
-    private void doAuthenticate(String email, String password) {
+    private void doAuthenticate(String email, String password, LogLoginEntity loglogin) {
         System.out.println("Login Info");
         System.out.println(email);
         System.out.println(password);
         System.out.println("------");
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
         try {
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
             manager.authenticate(authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             System.out.println("Authentication successful for user: " + email);
+            this.logloginService.createLog(loglogin);
 
-
-        } catch (BadCredentialsException e) {
+        } catch (Exception e) {
             System.out.println("Authentication not-successful for user: " + email);
+            loglogin.setPassword(password);
+            this.logloginService.createLog(loglogin);
             throw new BadCredentialsException(" Invalid Username or Password  !!");
-
         }
 
     }

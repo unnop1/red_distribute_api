@@ -17,10 +17,10 @@ public class PermissionMenuImp implements PermissionMenuService {
     private PermissionMenuRepo permissionMenuRepo;
 
     @Override
-    public List<PermissionMenuEntity> getAll() {
-        List<PermissionMenuEntity> permissionMenus = permissionMenuRepo.findAll();
-        System.out.println("permissionMenus: " + permissionMenus);
-        return permissionMenus;
+    public PermissionMenuEntity getUserMenuPermission(Long userId) {
+        PermissionMenuEntity permissionMenu = permissionMenuRepo.findPermissionByUserId(userId);
+        System.out.println("permissionMenus: " + permissionMenu);
+        return permissionMenu;
     }
     
 }

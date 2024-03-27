@@ -1,7 +1,7 @@
 package com.nt.red_distribute_api.dto.resp;
 
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,11 +11,12 @@ import lombok.Setter;
 public class UserResp {
     private long id;
     private String name;
+    private String phoneNumber;
     private String email;
     private String aboutMe;
     private Timestamp last_login;
     private String last_login_ipaddress;
-    private boolean isDelete;
+    private Integer isDelete;
     private String isDelete_by;
     private Timestamp isDelete_date;
     private Timestamp createdDate;
