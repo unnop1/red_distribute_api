@@ -13,8 +13,6 @@ import java.sql.Timestamp;
 import java.util.Collection;
 
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
 @Table (name = "user_db")
