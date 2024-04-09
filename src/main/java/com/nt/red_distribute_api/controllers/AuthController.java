@@ -76,59 +76,6 @@ public class AuthController {
         }
     }
 
-    private String parseUserAgent(String userAgent) {
-        // Logic to parse user agent string and extract device information
-        // You can use libraries like UADetector or DeviceDetector for more accurate parsing
-        // For simplicity, let's assume a basic parsing logic here
-        if (userAgent.contains("Android")) {
-            return "Android Device";
-        } else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) {
-            return "iOS Device";
-        } else if (userAgent.contains("Windows Phone")) {
-            return "Windows Phone";
-        } else if (userAgent.contains("Windows") || userAgent.contains("Win")) {
-            return "Windows PC";
-        } else if (userAgent.contains("Macintosh") || userAgent.contains("Mac OS")) {
-            return "Macintosh PC";
-        } else if (userAgent.contains("Linux")) {
-            return "Linux PC";
-        } else {
-            return "Unknown Device";
-        }
-    }
-
-    private String parseUserAgentForSystem(String userAgent) {
-        // Logic to parse user agent string and extract system information
-        if (userAgent.contains("Windows")) {
-            return "Windows";
-        } else if (userAgent.contains("Macintosh") || userAgent.contains("Mac OS")) {
-            return "Mac OS";
-        } else if (userAgent.contains("Linux")) {
-            return "Linux";
-        } else {
-            return "Unknown System";
-        }
-    }
-
-    private String parseUserAgentForBrowser(String userAgent) {
-        // Logic to parse user agent string and extract browser information
-        if (userAgent.contains("Chrome")) {
-            return "Google Chrome";
-        } else if (userAgent.contains("Firefox")) {
-            return "Mozilla Firefox";
-        } else if (userAgent.contains("Safari")) {
-            return "Apple Safari";
-        } else if (userAgent.contains("Edge")) {
-            return "Microsoft Edge";
-        } else if (userAgent.contains("Opera")) {
-            return "Opera";
-        } else if (userAgent.contains("IE")) {
-            return "Internet Explorer";
-        } else {
-            return "Unknown Browser";
-        }
-    }
-
     @PostMapping("/login")
     public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) {
     // Get the IP address from the request
@@ -141,16 +88,8 @@ public class AuthController {
   
     // Log login
     Timestamp loginDateTime = new Timestamp(Instant.now().toEpochMilli());
-    LogLoginEntity loglogin = new LogLoginEntity();
-    loglogin.setBrowser(jwtRequest.getBrowser());
-    loglogin.setDevice(jwtRequest.getDevice());
-    loglogin.setSystem(jwtRequest.getSystem());
-    loglogin.setIp_address(ipAddress);
-    loglogin.setLogin_datetime(loginDateTime);
-    loglogin.setCreate_date(loginDateTime);
-    loglogin.setUsername(jwtRequest.getUsername());
-    this.doAuthenticate(jwtRequest.getUsername(), jwtRequest.getPassword(), loglogin);
-    UserEnitiy userDetails = userService.loadUserByUsername(jwtRequest.getUsername());
+    this.doAuthenticate(jwtRequest, ipAddress, loginDateTime);
+    UserEnitiy userDetails = userService.loadUserByUsername(jwtRequest.getEmail());
 
     String token = this.helper.generateToken(userDetails);
 
@@ -192,11 +131,22 @@ public class AuthController {
     return new ResponseEntity<>(userResp, HttpStatus.OK);
 }
 
-    private void doAuthenticate(String email, String password, LogLoginEntity loglogin) {
+    private void doAuthenticate(JwtRequest jwtRequest, String ipAddress, Timestamp loginDateTime) {
+        
         System.out.println("Login Info");
+        String email = jwtRequest.getEmail();
+        String password = jwtRequest.getPassword();
         System.out.println(email);
         System.out.println(password);
         System.out.println("------");
+        LogLoginEntity loglogin = new LogLoginEntity();
+        loglogin.setBrowser(jwtRequest.getBrowser());
+        loglogin.setDevice(jwtRequest.getDevice());
+        loglogin.setSystem(jwtRequest.getSystem());
+        loglogin.setIp_address(ipAddress);
+        loglogin.setLogin_datetime(loginDateTime);
+        loglogin.setCreate_date(loginDateTime);
+        loglogin.setUsername(jwtRequest.getUsername());
         try {
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
             manager.authenticate(authentication);
