@@ -6,8 +6,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import com.nt.red_distribute_api.enitiy.UserEnitiy;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,13 +62,8 @@ public class JwtHelper {
     }
 
     // Validate token
-    public Boolean validateToken(String token, UserEnitiy userDetails) {
+    public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
-
-    // Validate token
-    public Boolean validateCurrentToken(String token, UserEnitiy userDetails) {
-        return token.equals(userDetails.getCurrentToken());
     }
 }

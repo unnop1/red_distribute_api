@@ -4,7 +4,7 @@ import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.dto.req.UserRequestDto;
 import com.nt.red_distribute_api.dto.resp.LoginResp;
 import com.nt.red_distribute_api.dto.resp.UserResp;
-import com.nt.red_distribute_api.enitiy.UserEnitiy;
+import com.nt.red_distribute_api.entity.UserEnitiy;
 import com.nt.red_distribute_api.exp.UserAlreadyExistsException;
 import com.nt.red_distribute_api.repo.UserRepo;
 import com.nt.red_distribute_api.service.UserService;

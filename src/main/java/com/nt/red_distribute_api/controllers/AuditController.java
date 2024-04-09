@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nt.red_distribute_api.enitiy.AuditEntity;
+import com.nt.red_distribute_api.entity.AuditEntity;
 import com.nt.red_distribute_api.service.AuditService;
 
 @RestController

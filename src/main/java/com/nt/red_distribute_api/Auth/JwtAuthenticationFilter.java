@@ -18,11 +18,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.nt.red_distribute_api.enitiy.UserEnitiy;
-import com.nt.red_distribute_api.service.UserService;
-
 import java.io.IOException;
-import java.util.HashMap;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -33,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
     @Autowired
-    private UserService userService;
+    private UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -77,20 +73,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             logger.info("Invalid Header Value !! ");
         }
 
+
         //
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             //fetch user detail from username
-            UserEnitiy userDetails = this.userService.loadUserByUsername(username);
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             Boolean validateToken = this.jwtHelper.validateToken(token, userDetails);
-            Boolean validateCurrentToken = this.jwtHelper.validateCurrentToken(token, userDetails);
-            System.out.println("validateToken: " + validateToken);
-            System.out.println("validateCurrentToken: " + validateCurrentToken);
-            if (validateToken && validateCurrentToken) {
+            if (validateToken) {
                 //set the authentication
+                System.out.println(" validateToken userDetails:"+userDetails.toString());
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+
             } else {
                 logger.info("Validation fails !!");
             }

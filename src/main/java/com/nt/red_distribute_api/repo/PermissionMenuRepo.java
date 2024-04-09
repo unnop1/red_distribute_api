@@ -1,9 +1,9 @@
 package com.nt.red_distribute_api.repo;
 
-import com.nt.red_distribute_api.enitiy.PermissionMenuEntity;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
+import com.nt.red_distribute_api.entity.PermissionMenuEntity;
 
 public interface PermissionMenuRepo extends JpaRepository<PermissionMenuEntity,Long> {
     

@@ -9,8 +9,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.nt.red_distribute_api.dto.resp.LoginResp;
-import com.nt.red_distribute_api.enitiy.AuditEntity;
-import com.nt.red_distribute_api.enitiy.UserEnitiy;
+import com.nt.red_distribute_api.entity.AuditEntity;
+import com.nt.red_distribute_api.entity.UserEnitiy;
 import com.nt.red_distribute_api.repo.AuditRepo;
 import com.nt.red_distribute_api.repo.UserRepo;
 import com.nt.red_distribute_api.service.AuditService;

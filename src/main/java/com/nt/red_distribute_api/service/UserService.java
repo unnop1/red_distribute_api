@@ -3,7 +3,7 @@ package com.nt.red_distribute_api.service;
 import com.nt.red_distribute_api.dto.req.UserRequestDto;
 import com.nt.red_distribute_api.dto.resp.LoginResp;
 import com.nt.red_distribute_api.dto.resp.UserResp;
-import com.nt.red_distribute_api.enitiy.UserEnitiy;
+import com.nt.red_distribute_api.entity.UserEnitiy;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

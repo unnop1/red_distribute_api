@@ -1,7 +1,8 @@
 package com.nt.red_distribute_api.repo;
 
-import com.nt.red_distribute_api.enitiy.UserEnitiy;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.nt.red_distribute_api.entity.UserEnitiy;
 
 
 public interface UserRepo extends JpaRepository<UserEnitiy,Long> {

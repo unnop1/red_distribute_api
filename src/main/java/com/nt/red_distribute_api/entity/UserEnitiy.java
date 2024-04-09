@@ -1,4 +1,4 @@
-package com.nt.red_distribute_api.enitiy;
+package com.nt.red_distribute_api.entity;
 
 
 import jakarta.persistence.*;

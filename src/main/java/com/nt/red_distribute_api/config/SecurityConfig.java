@@ -2,8 +2,6 @@ package com.nt.red_distribute_api.config;
 
 import com.nt.red_distribute_api.Auth.JWTAuthenticationEntryPoint;
 import com.nt.red_distribute_api.Auth.JwtAuthenticationFilter;
-import com.nt.red_distribute_api.service.LogLoginService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
