@@ -15,6 +15,7 @@ import com.nt.red_distribute_api.service.LogLoginService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
 import com.nt.red_distribute_api.service.UserService;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.sql.Timestamp;
@@ -61,7 +62,7 @@ public class AuthController {
     public ResponseEntity<AuthSuccessResp> createUser(@RequestBody UserRequestDto userRequestDto) {
         try {
             UserResp userResponseDto = userService.createUser(userRequestDto);
-            UserDetails userDetails = userService.loadUserByUsername(userResponseDto.getEmail());
+            UserEnitiy userDetails = userService.loadUserByUsername(userResponseDto.getEmail());
             System.out.println("from db info");
             System.out.println(userDetails.getUsername());
             System.out.println(userDetails.getPassword());
@@ -95,12 +96,16 @@ public class AuthController {
         loglogin.setLogin_datetime(loginDateTime);
         loglogin.setCreate_date(loginDateTime);
         loglogin.setUsername(jwtRequest.getUsername());
-        this.doAuthenticate(jwtRequest.getEmail(), jwtRequest.getPassword(), loglogin);
-        UserEnitiy userDetails = userService.loadUserByUsername(jwtRequest.getEmail());
+        System.out.println("jwtUsername:"+jwtRequest.getUsername());
+        UserEnitiy userDetails = userService.findUserLogin(jwtRequest.getUsername());
         if( userDetails == null ){
             return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
         }
 
+        this.doAuthenticate(userDetails.getUsername(), jwtRequest.getPassword(), loglogin);
+        
+        System.out.println("getEmail:"+userDetails.getEmail());
+        System.out.println("getUsername:"+userDetails.getUsername());
         String token = this.helper.generateToken(userDetails);
 
         HashMap<String, Object> updateInfo = new HashMap<String, Object>();
@@ -108,7 +113,7 @@ public class AuthController {
         updateInfo.put("last_login", loginDateTime);
         updateInfo.put("last_login_ipaddress", ipAddress);
 
-        this.userService.updateUser(userDetails.getUsername(), updateInfo);
+        this.userService.updateUser(userDetails.getId(), updateInfo);
 
         
         UserResp userInfo = new UserResp();
@@ -119,7 +124,7 @@ public class AuthController {
         userInfo.setAboutMe(userDetails.getAboutMe());
         userInfo.setName(userDetails.getName());
         userInfo.setPhoneNumber(userDetails.getPhoneNumber());
-        userInfo.setEmail(userDetails.getUsername());
+        userInfo.setEmail(userDetails.getEmail());
         userInfo.setLast_login(userDetails.getLast_login());
         userInfo.setLast_login_ipaddress(ipAddress);
         userInfo.setCreated_by(userDetails.getCreated_by());
@@ -132,29 +137,77 @@ public class AuthController {
         userResp.setJwtToken(token);
 
         // permissionMenu
-        PermissionMenuEntity permissionMenuEntity = permissionMenuService.getUserMenuPermission(userDetails.getId());
+        PermissionMenuEntity permissionMenuEntity = permissionMenuService.getUserMenuPermission(userDetails.getSa_permission_id());
         userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
         userResp.setPermissionName(permissionMenuEntity.getPermissionName());
 
-        System.out.println("token:"+token);
+        // System.out.println("token:"+token);
 
         return new ResponseEntity<>(userResp, HttpStatus.OK);
     }
 
-    private void doAuthenticate(String email, String password, LogLoginEntity loglogin) {
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResp> refresh(HttpServletRequest request) {
+        // Get the IP address from the request
+        LoginResp userResp = new LoginResp();
+        System.out.println("request:"+request.getHeaderNames());
+        String requestHeader = request.getHeader("Authorization");
+        if (requestHeader.startsWith("Bearer")){
+            String token = requestHeader.substring(7);
+            String emailClaim = this.helper.getClaimFromToken(token, claims -> (String) claims.get("email"));
+            String usernameClaim = this.helper.getClaimFromToken(token, claims -> (String) claims.get("username"));
+            System.out.println("emailClaim:"+emailClaim);
+            System.out.println("usernameClaim:"+usernameClaim);
+            UserEnitiy userDetails = userService.loadUserByUsername(usernameClaim);
+            if( userDetails == null ){
+                return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
+            }
+            UserResp userInfo = new UserResp();
+            // PermissionMenu permissionMenu = 
+
+            // User
+            userInfo.setId(userDetails.getId());
+            userInfo.setAboutMe(userDetails.getAboutMe());
+            userInfo.setName(userDetails.getName());
+            userInfo.setPhoneNumber(userDetails.getPhoneNumber());
+            userInfo.setEmail(userDetails.getEmail());
+            userInfo.setLast_login(userDetails.getLast_login());
+            userInfo.setCreated_by(userDetails.getCreated_by());
+            userInfo.setCreatedDate(userDetails.getCreatedDate());
+            userInfo.setIsDelete_by(userDetails.getIsDelete_by());
+            userInfo.setIsDelete(userDetails.getIsDelete());
+            userInfo.setUpdatedDate(userDetails.getUpdatedDate());
+            userInfo.setUpdated_by(userDetails.getUpdated_by());
+            userResp.setUserLogin(userInfo);
+            userResp.setJwtToken(token);
+
+            // permissionMenu
+            PermissionMenuEntity permissionMenuEntity = permissionMenuService.getUserMenuPermission(userDetails.getSa_permission_id());
+            userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
+            userResp.setPermissionName(permissionMenuEntity.getPermissionName());
+
+            return new ResponseEntity<>(userResp, HttpStatus.OK);
+        }
+        
+
+        return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
+    }
+
+    private void doAuthenticate(String username, String password, LogLoginEntity loglogin) {
         System.out.println("Login Info");
-        System.out.println(email);
+        System.out.println(username);
         System.out.println(password);
         System.out.println("------");
         try {
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, password);
             manager.authenticate(authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            System.out.println("Authentication successful for user: " + email);
+            System.out.println("Authentication successful for user: " + username);
             this.logloginService.createLog(loglogin);
 
         } catch (Exception e) {
-            System.out.println("Authentication not-successful for user: " + email);
+            System.out.println("Exception:" + e.getMessage());
+            System.out.println("Authentication not-successful for user: " + username);
             loglogin.setPassword(password);
             System.out.println(loglogin.toString());
             this.logloginService.createLog(loglogin);

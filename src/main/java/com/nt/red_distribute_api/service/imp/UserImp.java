@@ -2,7 +2,6 @@ package com.nt.red_distribute_api.service.imp;
 
 import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.dto.req.UserRequestDto;
-import com.nt.red_distribute_api.dto.resp.LoginResp;
 import com.nt.red_distribute_api.dto.resp.UserResp;
 import com.nt.red_distribute_api.entity.UserEnitiy;
 import com.nt.red_distribute_api.exp.UserAlreadyExistsException;
@@ -11,14 +10,13 @@ import com.nt.red_distribute_api.service.UserService;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,13 +30,7 @@ public class UserImp implements UserService {
     private AuthConfig authConfig;
     @Override
     public UserEnitiy loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEnitiy user = userRepo.findByEmail(username);
-        // System.out.println("Retrived Data");
-        // System.out.println(user.getPassword()+"Retrived Password");
-        // System.out.println(user.getUsername());
-        // System.out.println(user.getId());
-        // System.out.println(user.getEmail());
-        // System.out.println("-----");
+        UserEnitiy user = userRepo.findByUsername(username);
         return user;
     }
 
@@ -52,7 +44,7 @@ public class UserImp implements UserService {
     }
     @Override
     public UserResp createUser(UserRequestDto userRequestDto) {
-        UserEnitiy foundUser = this.userRepo.findByEmail(userRequestDto.getUsername());
+        UserEnitiy foundUser = this.userRepo.loadByUniqueUser(userRequestDto.getEmail(), userRequestDto.getUsername());
         if (foundUser.getUsername() != null) {
             UserEnitiy user = this.userReqDtoToUserEntity(userRequestDto);
             user.setPassword(authConfig.passwordEncoder().encode(user.getPassword()));
@@ -65,8 +57,8 @@ public class UserImp implements UserService {
     }
 
     @Override
-    public void updateUser(String email, HashMap<String, Object> updateInfo) {
-        UserEnitiy foundUser = this.userRepo.findByEmail(email);
+    public void updateUser(Long userID, HashMap<String, Object> updateInfo) {
+        UserEnitiy foundUser = this.userRepo.findByID(userID);
         System.out.println("foundUser:"+foundUser.getUsername());
         if (foundUser.getUsername() != null) {
             for (Map.Entry<String, Object> entry : updateInfo.entrySet()) {
@@ -96,6 +88,12 @@ public class UserImp implements UserService {
     public UserResp userEntityToUserRespDto(UserEnitiy user){
         UserResp userRespDto = this.modelMapper.map(user,UserResp.class);
         return userRespDto;
+    }
+
+    @Override
+    public UserEnitiy findUserLogin(String username) throws UsernameNotFoundException {
+        UserEnitiy user = userRepo.findLoginUser(username);
+        return user;
     }
     
 }

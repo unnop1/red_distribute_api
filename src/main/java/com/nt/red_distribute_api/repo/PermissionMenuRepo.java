@@ -7,7 +7,7 @@ import com.nt.red_distribute_api.entity.PermissionMenuEntity;
 
 public interface PermissionMenuRepo extends JpaRepository<PermissionMenuEntity,Long> {
     
-    @Query(value = "SELECT * FROM sa_menu_permission WHERE user_id=?1", nativeQuery = true)
-    public PermissionMenuEntity findPermissionByUserId(Long userId);
+    @Query(value = "SELECT * FROM sa_menu_permission WHERE id=?1", nativeQuery = true)
+    public PermissionMenuEntity findPermissionByUserId(Long saPermissionID);
 
 }

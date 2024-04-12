@@ -6,6 +6,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.nt.red_distribute_api.entity.UserEnitiy;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +36,8 @@ public class JwtHelper {
     }
 
     // For retrieving any information from token we will need the secret key
-    private Claims getAllClaimsFromToken(String token) {                                    // i d k
+    private Claims getAllClaimsFromToken(String token) { 
+        System.out.println("token:"+token);                                   // i d k
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
     }
 
@@ -45,8 +48,10 @@ public class JwtHelper {
     }
 
     // Generate token for user
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserEnitiy userDetails) {
         Map<String, Object> claims = new HashMap<>();                           // geenrate token
+        claims.put("email",  userDetails.getEmail());
+        claims.put("username",  userDetails.getUsername());
         return doGenerateToken(claims, userDetails.getUsername());
     }
 

@@ -1,9 +1,5 @@
 package com.nt.red_distribute_api.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-
 import java.sql.Timestamp;
 
 import jakarta.persistence.*;
@@ -24,7 +20,8 @@ import lombok.ToString;
 public class AuditEntity {
            
         @Id
-        @GeneratedValue(strategy = GenerationType.AUTO)
+        @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "audit_seq")
+        @SequenceGenerator(name = "audit_seq", allocationSize = 1)
         @Column(name = "AuditID")
         private Long AuditID;
 
