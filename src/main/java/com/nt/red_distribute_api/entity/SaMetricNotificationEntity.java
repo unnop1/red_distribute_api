@@ -1,0 +1,46 @@
+package com.nt.red_distribute_api.entity;
+
+
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@Table (name = "sa_metric_notification")
+public class SaMetricNotificationEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sa_metric_notification_seq")
+    @SequenceGenerator(name = "sa_metric_notification_seq", allocationSize = 1)
+    @Column(name = "ID")
+    private Long ID = null;
+
+    @Column(name = "email", unique = false,nullable = true)
+    private String email = null;
+
+    @Column(name = "OM_NOT_CONNECT", unique = false,nullable = true)
+    private Integer OM_NOT_CONNECT = null;
+
+    @Column(name = "DB_OM_NOT_CONNECT", unique = false,nullable = true)
+    private Integer DB_OM_NOT_CONNECT = null;
+
+    @Column(name = "TOPUP_NOT_CONNECT", unique = false,nullable = true)
+    private Integer TOPUP_NOT_CONNECT = null;
+
+    @Column(name = "TRIGGER_NOTI_JSON", unique = false,nullable = true)
+    private String TRIGGER_NOTI_JSON = null;
+
+    @Column(name = "UPDATED_DATE", unique = false,nullable = true)
+    private String UPDATED_DATE = null;
+
+    @Column(name = "UPDATED_By", unique = false,nullable = true)
+    private String UPDATED_By = null;
+}

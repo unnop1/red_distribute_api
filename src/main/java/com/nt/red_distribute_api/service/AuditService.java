@@ -1,10 +1,10 @@
 package com.nt.red_distribute_api.service;
 
-import java.util.List;
-
-import com.nt.red_distribute_api.entity.AuditEntity;
+import com.nt.red_distribute_api.dto.req.audit.AuditLog;
+import com.nt.red_distribute_api.dto.req.audit.ListAuditReq;
+import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 
 public interface AuditService {
-    List<AuditEntity> getAllAudit(Integer page, Integer limit);
-    public AuditEntity createAudit(AuditEntity AuditEntity);
+    public PaginationDataResp ListAllAudit(ListAuditReq req);
+    public void AddAuditLog(AuditLog req);
 }

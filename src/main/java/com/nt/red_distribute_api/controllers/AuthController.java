@@ -1,16 +1,22 @@
 package com.nt.red_distribute_api.controllers;
 
 import com.nt.red_distribute_api.Auth.JwtHelper;
-import com.nt.red_distribute_api.dto.req.JwtRequest;
-import com.nt.red_distribute_api.dto.req.UserRequestDto;
+import com.nt.red_distribute_api.Util.DateTime;
+import com.nt.red_distribute_api.dto.req.audit.AuditLog;
+import com.nt.red_distribute_api.dto.req.auth.JwtRequest;
+import com.nt.red_distribute_api.dto.req.user.UserRequestDto;
 import com.nt.red_distribute_api.dto.resp.AuthSuccessResp;
 import com.nt.red_distribute_api.dto.resp.JwtErrorResp;
 import com.nt.red_distribute_api.dto.resp.LoginResp;
 import com.nt.red_distribute_api.dto.resp.UserResp;
+import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
+import com.nt.red_distribute_api.entity.AuditLogEntity;
+import com.nt.red_distribute_api.entity.AuditLogEntity;
 import com.nt.red_distribute_api.entity.LogLoginEntity;
 import com.nt.red_distribute_api.entity.PermissionMenuEntity;
-import com.nt.red_distribute_api.entity.UserEnitiy;
+import com.nt.red_distribute_api.entity.UserEntity;
 import com.nt.red_distribute_api.exp.UserAlreadyExistsException;
+import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.LogLoginService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
 import com.nt.red_distribute_api.service.UserService;
@@ -47,6 +53,8 @@ public class AuthController {
     @Autowired
     private JwtHelper helper;
 
+    @Autowired
+    private AuditService auditService;
 
     @Autowired
     private UserService userService;
@@ -59,15 +67,34 @@ public class AuthController {
 
 
     @PostMapping("/create")
-    public ResponseEntity<AuthSuccessResp> createUser(@RequestBody UserRequestDto userRequestDto) {
+    public ResponseEntity<AuthSuccessResp> createUser(HttpServletRequest request, @RequestBody UserRequestDto userRequestDto) {
+        String requestHeader = request.getHeader("Authorization");
+        String ipAddress = request.getRemoteAddr();
+        VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         try {
-            UserResp userResponseDto = userService.createUser(userRequestDto);
-            UserEnitiy userDetails = userService.loadUserByUsername(userResponseDto.getEmail());
-            System.out.println("from db info");
-            System.out.println(userDetails.getUsername());
-            System.out.println(userDetails.getPassword());
+            UserResp userResponseDto = userService.createUser(userRequestDto, vsf.getUsername());
+            UserEntity userDetails = userService.loadUserByUsername(userResponseDto.getUsername());
+            
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("create");
+            auditLog.setAuditable("user_db");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setAuditable_id(userDetails.getId());
+            auditLog.setComment("createUser");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
 
-            String token = this.helper.generateToken(userDetails);
+            JwtRequest jwtReq = new JwtRequest();
+            jwtReq.setUsername(vsf.getUsername());
+            jwtReq.setBrowser(vsf.getBrowser());
+            jwtReq.setDevice(vsf.getDevice());
+            jwtReq.setSystem(vsf.getSystem());
+
+            String token = this.helper.generateToken(jwtReq, userDetails.getEmail());
             return new ResponseEntity<>(new AuthSuccessResp(token), HttpStatus.CREATED);
         } catch (UserAlreadyExistsException ex) {
             // Handle the exception and return an appropriate response
@@ -97,7 +124,7 @@ public class AuthController {
         loglogin.setCreate_date(loginDateTime);
         loglogin.setUsername(jwtRequest.getUsername());
         System.out.println("jwtUsername:"+jwtRequest.getUsername());
-        UserEnitiy userDetails = userService.findUserLogin(jwtRequest.getUsername());
+        UserEntity userDetails = userService.findUserLogin(jwtRequest.getUsername());
         if( userDetails == null ){
             return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
         }
@@ -106,14 +133,14 @@ public class AuthController {
         
         System.out.println("getEmail:"+userDetails.getEmail());
         System.out.println("getUsername:"+userDetails.getUsername());
-        String token = this.helper.generateToken(userDetails);
+        String token = this.helper.generateToken(jwtRequest, userDetails.getEmail());
 
         HashMap<String, Object> updateInfo = new HashMap<String, Object>();
         updateInfo.put("currentToken", token);
         updateInfo.put("last_login", loginDateTime);
         updateInfo.put("last_login_ipaddress", ipAddress);
 
-        this.userService.updateUser(userDetails.getId(), updateInfo);
+        this.userService.updateUserLogLogin(userDetails.getId(), updateInfo);
 
         
         UserResp userInfo = new UserResp();
@@ -121,27 +148,41 @@ public class AuthController {
 
         // User
         userInfo.setId(userDetails.getId());
-        userInfo.setAboutMe(userDetails.getAboutMe());
+        userInfo.setAbout_Me(userDetails.getAbout_me());
         userInfo.setName(userDetails.getName());
+        userInfo.setUsername(userDetails.getUsername());
         userInfo.setPhoneNumber(userDetails.getPhoneNumber());
         userInfo.setEmail(userDetails.getEmail());
         userInfo.setLast_login(userDetails.getLast_login());
         userInfo.setLast_login_ipaddress(ipAddress);
         userInfo.setCreated_by(userDetails.getCreated_by());
-        userInfo.setCreatedDate(userDetails.getCreatedDate());
-        userInfo.setIsDelete_by(userDetails.getIsDelete_by());
-        userInfo.setIsDelete(userDetails.getIsDelete());
-        userInfo.setUpdatedDate(userDetails.getUpdatedDate());
+        userInfo.setCreated_Date(userDetails.getCreated_Date());
+        userInfo.setIs_Enable(userDetails.getIs_Enable());
+        userInfo.setIs_Delete_by(userDetails.getIs_Delete_by());
+        userInfo.setIs_Delete(userDetails.getIs_Delete());
+        userInfo.setUpdated_Date(userDetails.getUpdated_Date());
         userInfo.setUpdated_by(userDetails.getUpdated_by());
         userResp.setUserLogin(userInfo);
         userResp.setJwtToken(token);
 
         // permissionMenu
-        PermissionMenuEntity permissionMenuEntity = permissionMenuService.getUserMenuPermission(userDetails.getSa_permission_id());
+        PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
         userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
-        userResp.setPermissionName(permissionMenuEntity.getPermissionName());
+        userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
         // System.out.println("token:"+token);
+        AuditLog auditLog = new AuditLog();
+        auditLog.setAction("login");
+        auditLog.setAuditable_id(userDetails.getId());
+        auditLog.setAuditable("user_db");
+        auditLog.setIp_address(ipAddress);
+        auditLog.setUsername(userDetails.getUsername());
+        auditLog.setDevice(jwtRequest.getDevice());
+        auditLog.setBrowser(jwtRequest.getBrowser());
+        auditLog.setOperating_system(jwtRequest.getSystem());
+        auditLog.setComment("authentication login");
+        auditLog.setCreated_date(DateTime.getTimeStampNow());
+        auditService.AddAuditLog(auditLog);
 
         return new ResponseEntity<>(userResp, HttpStatus.OK);
     }
@@ -152,13 +193,11 @@ public class AuthController {
         LoginResp userResp = new LoginResp();
         System.out.println("request:"+request.getHeaderNames());
         String requestHeader = request.getHeader("Authorization");
-        if (requestHeader.startsWith("Bearer")){
-            String token = requestHeader.substring(7);
-            String emailClaim = this.helper.getClaimFromToken(token, claims -> (String) claims.get("email"));
-            String usernameClaim = this.helper.getClaimFromToken(token, claims -> (String) claims.get("username"));
-            System.out.println("emailClaim:"+emailClaim);
-            System.out.println("usernameClaim:"+usernameClaim);
-            UserEnitiy userDetails = userService.loadUserByUsername(usernameClaim);
+        String token = requestHeader.substring(7);
+            
+        VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+        if (vsf.getError() == null) {
+            UserEntity userDetails = vsf.getUserInfo();
             if( userDetails == null ){
                 return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
             }
@@ -167,24 +206,26 @@ public class AuthController {
 
             // User
             userInfo.setId(userDetails.getId());
-            userInfo.setAboutMe(userDetails.getAboutMe());
+            userInfo.setAbout_Me(userDetails.getAbout_me());
             userInfo.setName(userDetails.getName());
             userInfo.setPhoneNumber(userDetails.getPhoneNumber());
+            userInfo.setIs_Enable(userDetails.getIs_Enable());
             userInfo.setEmail(userDetails.getEmail());
             userInfo.setLast_login(userDetails.getLast_login());
             userInfo.setCreated_by(userDetails.getCreated_by());
-            userInfo.setCreatedDate(userDetails.getCreatedDate());
-            userInfo.setIsDelete_by(userDetails.getIsDelete_by());
-            userInfo.setIsDelete(userDetails.getIsDelete());
-            userInfo.setUpdatedDate(userDetails.getUpdatedDate());
+            userInfo.setCreated_Date(userDetails.getCreated_Date());
+            userInfo.setIs_Delete_by(userDetails.getIs_Delete_by());
+            userInfo.setIs_Delete(userDetails.getIs_Delete());
+            userInfo.setUpdated_Date(userDetails.getUpdated_Date());
+            userInfo.setSa_menu_permission_id(userDetails.getSa_menu_permission_id());
             userInfo.setUpdated_by(userDetails.getUpdated_by());
             userResp.setUserLogin(userInfo);
             userResp.setJwtToken(token);
 
             // permissionMenu
-            PermissionMenuEntity permissionMenuEntity = permissionMenuService.getUserMenuPermission(userDetails.getSa_permission_id());
+            PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
             userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
-            userResp.setPermissionName(permissionMenuEntity.getPermissionName());
+            userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
             return new ResponseEntity<>(userResp, HttpStatus.OK);
         }
@@ -203,12 +244,14 @@ public class AuthController {
             manager.authenticate(authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             System.out.println("Authentication successful for user: " + username);
+            loglogin.setIs_login(1);
             this.logloginService.createLog(loglogin);
 
         } catch (Exception e) {
             System.out.println("Exception:" + e.getMessage());
             System.out.println("Authentication not-successful for user: " + username);
             loglogin.setPassword(password);
+            loglogin.setIs_login(0);
             System.out.println(loglogin.toString());
             this.logloginService.createLog(loglogin);
             throw new BadCredentialsException(" Invalid Username or Password  !!");

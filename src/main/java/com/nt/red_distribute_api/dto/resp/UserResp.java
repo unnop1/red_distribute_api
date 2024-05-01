@@ -12,15 +12,18 @@ public class UserResp {
     private long id;
     private String name;
     private String phoneNumber;
+    private String username;
     private String email;
-    private String aboutMe;
+    private String about_Me;
     private Timestamp last_login;
     private String last_login_ipaddress;
-    private Integer isDelete;
-    private String isDelete_by;
-    private Timestamp isDelete_date;
-    private Timestamp createdDate;
+    private Integer is_Enable;
+    private Integer is_Delete;
+    private String is_Delete_by;
+    private Timestamp is_Delete_date;
+    private Timestamp created_Date;
     private String created_by;
-    private Timestamp updatedDate;
+    private Timestamp updated_Date;
     private String updated_by;
+    private Long sa_menu_permission_id;
 }

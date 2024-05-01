@@ -12,13 +12,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nt.red_distribute_api.entity.UserEntity;
+import com.nt.red_distribute_api.service.UserService;
+
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -29,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserService userService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -60,6 +65,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             } catch (ExpiredJwtException e) {
                 logger.info("Given jwt token is expired !!");
                 e.printStackTrace();
+                JwtExpiredHandler(e.getMessage(), request, response);
+                return;
             } catch (MalformedJwtException e) {
                 logger.info("Some changed has done in token !! Invalid Token");
                 e.printStackTrace();
@@ -69,8 +76,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
 
-        } else {
-            logger.info("Invalid Header Value !! ");
         }
 
 
@@ -78,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             //fetch user detail from username
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+            UserEntity userDetails = this.userService.loadUserByUsername(username);
             Boolean validateToken = this.jwtHelper.validateToken(token, userDetails);
             if (validateToken) {
                 //set the authentication
@@ -98,5 +103,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response); //doubt hai
 
 
+    }
+
+    private void JwtExpiredHandler(String error, HttpServletRequest request, HttpServletResponse response) throws IOException{
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+        // Create a JSON error response
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Authentication failed");
+        errorResponse.put("message", error);
+
+        // Convert the error response to JSON
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonResponse = mapper.writeValueAsString(errorResponse);
+
+        // Set the content type to JSON
+        response.setContentType("application/json");
+
+        // Write the JSON response to the output stream
+        PrintWriter writer = response.getWriter();
+        writer.println(jsonResponse);
     }
 }

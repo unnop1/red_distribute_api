@@ -1,5 +1,7 @@
-package com.nt.red_distribute_api.dto.req;
+package com.nt.red_distribute_api.dto.req.auth;
 
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.*;
 
@@ -7,10 +9,14 @@ import lombok.*;
 @Setter
 @ToString
 public class JwtRequest {
+    @JsonProperty("username")
     private String username;
-    private String email;
+    @JsonProperty("password")
     private String password;
+    @JsonProperty("device")
     private String device="Unknown device";
+    @JsonProperty("system")
     private String system="Unknown system";
+    @JsonProperty("browser")
     private String browser="Unknown browser";
 }
