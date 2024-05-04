@@ -1,5 +1,6 @@
 package com.nt.red_distribute_api.dto.req.trigger;
 
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +14,10 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class ListTriggerReq {
+public class DashboardReq {
+
+    @JsonProperty("by_type")
+    private String byType="all";
 
     @JsonProperty("order[0][dir]")
     private String sortBy="ASC";
@@ -26,19 +30,4 @@ public class ListTriggerReq {
 
     @JsonProperty("end_time")
     private String endTime="";
-
-    @JsonProperty("start")
-    private Integer start=0;
-
-    @JsonProperty("length")
-    private Integer length=10;
-
-    @JsonProperty("order_type_id")
-    private Long orderTypeID;
-
-    @JsonProperty("Search")
-    private String search="";
-
-    @JsonProperty("Search_field")
-    private String searchField="";
 }

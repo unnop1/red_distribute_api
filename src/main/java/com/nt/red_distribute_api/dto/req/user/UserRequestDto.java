@@ -31,4 +31,10 @@ public class UserRequestDto {
 
         @JsonProperty("sa_menu_permission_id")
         private Long permissionID;
+
+        @JsonProperty("is_delete")
+        private Integer is_delete=0;
+
+        @JsonProperty("is_enable")
+        private Integer is_enable=1;
 }

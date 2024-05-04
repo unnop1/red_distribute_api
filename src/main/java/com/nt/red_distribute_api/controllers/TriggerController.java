@@ -4,6 +4,7 @@ import com.nt.red_distribute_api.Auth.JwtHelper;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.ordertype.ListOrderTypeReq;
+import com.nt.red_distribute_api.dto.req.trigger.DashboardReq;
 import com.nt.red_distribute_api.dto.req.trigger.ListTriggerReq;
 import com.nt.red_distribute_api.dto.resp.DefaultControllerResp;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
@@ -40,13 +41,19 @@ public class TriggerController {
         HttpServletRequest request,    
         @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
         @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
-        @RequestParam(name = "type", defaultValue = "all")String byType
+        @RequestParam(name = "start_time", defaultValue = "")String startTime,
+        @RequestParam(name = "end_time", defaultValue = "")String endTime,
+        @RequestParam(name = "by_type", defaultValue = "all")String byType
     ){
         
         String ipAddress = request.getRemoteAddr();
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+
+        DashboardReq req = new DashboardReq(
+            byType, sortBy, sortName, startTime, endTime
+        );
 
         AuditLog auditLog = new AuditLog();
         auditLog.setAction("get");
@@ -60,11 +67,11 @@ public class TriggerController {
         auditLog.setCreated_date(DateTime.getTimeStampNow());
         auditService.AddAuditLog(auditLog);
         
-        return new ResponseEntity<>( triggerService.Dashboard(sortBy, sortName, byType), HttpStatus.OK);
+        return new ResponseEntity<>( triggerService.Dashboard(req), HttpStatus.OK);
     }
 
-    @GetMapping("/list")
-    public ResponseEntity<PaginationDataResp> getAllTriggers(
+    @GetMapping("/by_order_type")
+    public ResponseEntity<PaginationDataResp> getAllTriggersByOrderType(
         HttpServletRequest request,    
         @RequestParam(name = "draw", defaultValue = "11")Integer draw,
         @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
@@ -74,7 +81,8 @@ public class TriggerController {
         @RequestParam(name = "start", defaultValue = "0")Integer start,
         @RequestParam(name = "length", defaultValue = "10")Integer length,
         @RequestParam(name = "Search", defaultValue = "")String search,
-        @RequestParam(name = "Search_field", defaultValue = "")String searchField
+        @RequestParam(name = "Search_field", defaultValue = "")String searchField,
+        @RequestParam(name = "order_type_id")Long orderTypeID
     ){
         
         String ipAddress = request.getRemoteAddr();
@@ -83,13 +91,13 @@ public class TriggerController {
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
 
         ListTriggerReq req = new ListTriggerReq(
-            draw,
             sortBy,
             sortName,
             startTime,
             endTime,
             start,
             length,
+            orderTypeID,
             search,
             searchField
         );
@@ -102,7 +110,7 @@ public class TriggerController {
         auditLog.setDevice(vsf.getDevice());
         auditLog.setOperating_system(vsf.getSystem());
         auditLog.setIp_address(ipAddress);
-        auditLog.setComment("getAllTriggers");
+        auditLog.setComment("getAllTriggersByOrderType");
         auditLog.setCreated_date(DateTime.getTimeStampNow());
         auditService.AddAuditLog(auditLog);
         
