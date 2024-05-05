@@ -5,7 +5,7 @@ import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.consumer.AddConsumerReq;
 import com.nt.red_distribute_api.dto.req.consumer.UpdateByConsumerReq;
-import com.nt.red_distribute_api.dto.req.manage_system.ListByOrderTypeReq;
+import com.nt.red_distribute_api.dto.req.manage_system.ListConsumerByOrderTypeReq;
 import com.nt.red_distribute_api.dto.req.sa_metric_notification.AddMetricNotificationReq;
 import com.nt.red_distribute_api.dto.req.sa_metric_notification.UpdateMetricReq;
 import com.nt.red_distribute_api.dto.resp.DefaultControllerResp;
@@ -13,6 +13,7 @@ import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
+import com.nt.red_distribute_api.entity.view.consumer.ListConsumerTopic;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.ConsumerService;
 import com.nt.red_distribute_api.service.ManageSystemService;
@@ -61,7 +62,7 @@ public class ManageSystemController {
             PaginationDataResp manageOrderTypes = manageSystemService.ListManageOrderTypes(page, limit);
             
             AuditLog auditLog = new AuditLog();
-            auditLog.setAction("update");
+            auditLog.setAction("get");
             auditLog.setAuditable("");
             auditLog.setUsername(vsf.getUsername());
             auditLog.setBrowser(vsf.getBrowser());
@@ -87,8 +88,8 @@ public class ManageSystemController {
         }
     }
 
-    @GetMapping("/order_types/list")
-    public ResponseEntity<PaginationDataResp> getAllManageSystem(
+    @GetMapping("/order_type/consumers")
+    public ResponseEntity<PaginationDataResp> getAllConsumerByOrderType(
         HttpServletRequest request,    
         @RequestParam(name = "draw", defaultValue = "11")Integer draw,
         @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
@@ -99,7 +100,7 @@ public class ManageSystemController {
         @RequestParam(name = "length", defaultValue = "10")Integer length,
         @RequestParam(name = "Search", defaultValue = "")String search,
         @RequestParam(name = "Search_field", defaultValue = "")String searchField,
-        @RequestParam(name = "order_type")String byOrderType
+        @RequestParam(name = "order_type_id")Long orderTypeID
     ){
         
         String ipAddress = request.getRemoteAddr();
@@ -107,18 +108,16 @@ public class ManageSystemController {
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
 
-        ListByOrderTypeReq req = new ListByOrderTypeReq(
+        ListConsumerByOrderTypeReq req = new ListConsumerByOrderTypeReq(
             draw,
             sortBy,
             sortName,
-            startTime,
-            endTime,
             start,
             length,
             search,
             searchField,
-            byOrderType
-        );
+            orderTypeID)
+        ;
 
         AuditLog auditLog = new AuditLog();
         auditLog.setAction("get");
@@ -132,7 +131,7 @@ public class ManageSystemController {
         auditLog.setCreated_date(DateTime.getTimeStampNow());
         auditService.AddAuditLog(auditLog);
         
-        return new ResponseEntity<>( manageSystemService.ListManageByOrderType(req), HttpStatus.OK);
+        return new ResponseEntity<>( manageSystemService.ListConsumerByOrderType(req), HttpStatus.OK);
     }
 
     @PostMapping("/consumer")

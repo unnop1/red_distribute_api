@@ -16,8 +16,8 @@ import lombok.ToString;
 @NoArgsConstructor
 public class DashboardReq {
 
-    @JsonProperty("by_type")
-    private String byType="all";
+    @JsonProperty("channel_id")
+    private Long channelID=null;
 
     @JsonProperty("order[0][dir]")
     private String sortBy="ASC";

@@ -14,7 +14,7 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class ListByOrderTypeReq {
+public class ListConsumerByOrderTypeReq {
     @JsonProperty("draw")
     private Integer draw=11;
 
@@ -23,14 +23,6 @@ public class ListByOrderTypeReq {
 
     @JsonProperty("order[0][name]")
     private String sortName="created_date";
-
-    @lombok.NonNull
-    @JsonProperty("start_time")
-    private String start_time;
-
-    @lombok.NonNull
-    @JsonProperty("end_time")
-    private String end_time;
 
     @JsonProperty("start")
     private Integer start=0;
@@ -45,6 +37,6 @@ public class ListByOrderTypeReq {
     private String searchField="";
 
     @lombok.NonNull
-    @JsonProperty("order_type")
-    private String order_Type;
+    @JsonProperty("order_type_id")
+    private Long orderTypeID;
 }

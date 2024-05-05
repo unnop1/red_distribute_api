@@ -35,16 +35,16 @@ public class TriggerImp implements TriggerMessageService{
         // Timestamp endTime = Timestamp.valueOf(req.getEndTime());
         String sortName = req.getSortName();
         String sortBy = req.getSortBy();
-        String byType = req.getByType();
+        Long channelID = req.getChannelID();
         // System.out.println("startTime:" + startTime + " endTime:" + endTime);
         System.out.println("sortName:" + sortName + " sortBy:" + sortBy);
-        if (byType.equals("all")){
+        if (channelID != null){
             List<OrderTypeDashboardTrigger> dashboards = orderTypeRepo.OrderTypeTriggerDashboard(PageRequest.of(0, 5000, Sort.Direction.fromString(sortBy), sortName));
             resp.setData(dashboards);
             resp.setCount(dashboards.size());
             return resp;
         }else{
-            List<OrderTypeDashboardTrigger> dashboards = orderTypeRepo.OrderTypeTriggerDashboard(PageRequest.of(0, 5000, Sort.Direction.fromString(sortBy), sortName));
+            List<OrderTypeDashboardTrigger> dashboards = orderTypeRepo.OrderTypeTriggerDashboardByChannelID(channelID, PageRequest.of(0, 5000, Sort.Direction.fromString(sortBy), sortName));
             resp.setData(dashboards);
             resp.setCount(dashboards.size());
             return resp;

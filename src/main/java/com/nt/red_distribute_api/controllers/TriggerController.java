@@ -37,47 +37,61 @@ public class TriggerController {
     private TriggerMessageService triggerService;
 
     @GetMapping("/dashboard")
-    public ResponseEntity<PaginationDataResp> getDashBoardTriggers(
+    public ResponseEntity<DefaultControllerResp> getDashBoardTriggers(
         HttpServletRequest request,    
         @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
         @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
         @RequestParam(name = "start_time", defaultValue = "")String startTime,
         @RequestParam(name = "end_time", defaultValue = "")String endTime,
-        @RequestParam(name = "by_type", defaultValue = "all")String byType
+        @RequestParam(name = "channel_id", defaultValue = "")Long channelID
     ){
         
         String ipAddress = request.getRemoteAddr();
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+        DefaultControllerResp resp = new DefaultControllerResp();
+        try {
+            DashboardReq req = new DashboardReq(
+                channelID, sortBy, sortName, startTime, endTime
+            );
 
-        DashboardReq req = new DashboardReq(
-            byType, sortBy, sortName, startTime, endTime
-        );
+            PaginationDataResp triggers = triggerService.Dashboard(req);
+            resp.setCount(triggers.getCount());
+            resp.setData(triggers.getData());
+            resp.setRecordsFiltered(triggers.getCount());
+            resp.setRecordsTotal(triggers.getCount());
 
-        AuditLog auditLog = new AuditLog();
-        auditLog.setAction("get");
-        auditLog.setAuditable("trigger");
-        auditLog.setUsername(vsf.getUsername());
-        auditLog.setBrowser(vsf.getBrowser());
-        auditLog.setDevice(vsf.getDevice());
-        auditLog.setOperating_system(vsf.getSystem());
-        auditLog.setIp_address(ipAddress);
-        auditLog.setComment("getDashBoardTriggers");
-        auditLog.setCreated_date(DateTime.getTimeStampNow());
-        auditService.AddAuditLog(auditLog);
-        
-        return new ResponseEntity<>( triggerService.Dashboard(req), HttpStatus.OK);
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("get");
+            auditLog.setAuditable("trigger");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setComment("getDashBoardTriggers");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
+            
+            return new ResponseEntity<>( resp, HttpStatus.OK);
+        }catch (Exception e){
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while getting : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/by_order_type")
-    public ResponseEntity<PaginationDataResp> getAllTriggersByOrderType(
+    public ResponseEntity<DefaultControllerResp> getAllTriggersByOrderType(
         HttpServletRequest request,    
         @RequestParam(name = "draw", defaultValue = "11")Integer draw,
         @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
-        @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
-        @RequestParam(name = "start_time")String startTime,
-        @RequestParam(name = "end_time")String endTime,
+        @RequestParam(name = "order[0][name]", defaultValue = "orderid")String sortName,
+        @RequestParam(name = "start_time", defaultValue = "")String startTime,
+        @RequestParam(name = "end_time", defaultValue = "")String endTime,
         @RequestParam(name = "start", defaultValue = "0")Integer start,
         @RequestParam(name = "length", defaultValue = "10")Integer length,
         @RequestParam(name = "Search", defaultValue = "")String search,
@@ -89,32 +103,45 @@ public class TriggerController {
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+        DefaultControllerResp resp = new DefaultControllerResp();
+        try {
+            ListTriggerReq req = new ListTriggerReq(
+                sortBy,
+                sortName,
+                startTime,
+                endTime,
+                start,
+                length,
+                orderTypeID,
+                search,
+                searchField
+            );
 
-        ListTriggerReq req = new ListTriggerReq(
-            sortBy,
-            sortName,
-            startTime,
-            endTime,
-            start,
-            length,
-            orderTypeID,
-            search,
-            searchField
-        );
+            PaginationDataResp triggers = triggerService.ListAllTrigger(req);
+            resp.setCount(triggers.getCount());
+            resp.setData(triggers.getData());
+            resp.setRecordsFiltered(triggers.getCount());
+            resp.setRecordsTotal(triggers.getCount());
 
-        AuditLog auditLog = new AuditLog();
-        auditLog.setAction("get");
-        auditLog.setAuditable("trigger");
-        auditLog.setUsername(vsf.getUsername());
-        auditLog.setBrowser(vsf.getBrowser());
-        auditLog.setDevice(vsf.getDevice());
-        auditLog.setOperating_system(vsf.getSystem());
-        auditLog.setIp_address(ipAddress);
-        auditLog.setComment("getAllTriggersByOrderType");
-        auditLog.setCreated_date(DateTime.getTimeStampNow());
-        auditService.AddAuditLog(auditLog);
-        
-        return new ResponseEntity<>( triggerService.ListAllTrigger(req), HttpStatus.OK);
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("get");
+            auditLog.setAuditable("trigger");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setComment("getAllTriggersByOrderType");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
+            return new ResponseEntity<>( resp, HttpStatus.OK);
+        }catch (Exception e){
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while getting : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     
     @GetMapping("/detail")

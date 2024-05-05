@@ -41,6 +41,27 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
     @Query(value = """
                 SELECT 
                     odt.*,
+                    (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ordertype_id = odt.id) AS TotalConsumer
+                FROM 
+                    ordertype odt
+                   """,
+                 nativeQuery = true)
+    public List<OrderTypeDashboardTrigger> ListManageOrderType(
+      Pageable pageable
+    );
+
+    @Query(value = """
+                SELECT 
+                    COUNT(*),
+                FROM 
+                    ordertype
+                   """,
+                 nativeQuery = true)
+    public Integer getListManageOrderTypeTotal();
+
+    @Query(value = """
+                SELECT 
+                    odt.*,
                     (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ordertype_id = odt.id) AS TotalConsumer,
                     (SELECT COUNT(id) FROM trigger_message trg WHERE trg.ordertype_id = odt.id) AS TotalTrigger
                 FROM 
@@ -50,10 +71,10 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
                 WHERE odt.SA_CHANNEL_CONNECT_ID = :channel_id
                    """,
                  nativeQuery = true)
-    public List<OrderTypeDashboardTrigger> OrderTypeTriggerDashboardByType(
+    public List<OrderTypeDashboardTrigger> OrderTypeTriggerDashboardByChannelID(
     //   @Param(value = "start_time") Timestamp startTime,
     //   @Param(value = "end_time") Timestamp endTime,
-      @Param(value = "channel_id") String channelID,
+      @Param(value = "channel_id") Long channelID,
       Pageable pageable
     );
 
