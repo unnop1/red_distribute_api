@@ -41,6 +41,7 @@ import org.apache.kafka.common.resource.ResourceType;
 import org.springframework.stereotype.Service;
 
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
+import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 
 @Service
 public class KafkaClientService {
@@ -66,8 +67,8 @@ public class KafkaClientService {
         System.out.println(names.get());
     }
 
-    public Object ListUserAcls(String username) throws InterruptedException, ExecutionException {
-        List<Object> aclHashMaps = new ArrayList<>();
+    public List<UserAclsInfo> ListUserAcls(String username) throws InterruptedException, ExecutionException {
+        List<UserAclsInfo> aclHashMaps = new ArrayList<>();
         ResourcePatternFilter patternFilter = new ResourcePatternFilter(ResourceType.ANY, null, PatternType.ANY);
         AccessControlEntryFilter entityFilter = new AccessControlEntryFilter(null, null, AclOperation.ANY, AclPermissionType.ANY);
         if (!username.equals("UnknownUsername")) {
@@ -92,15 +93,15 @@ public class KafkaClientService {
                 // Print or process the ACL bindings
                 
                 for (AclBinding aclBinding : aclBindings) {
-                    HashMap<String,Object> aclHashMap = new HashMap<String,Object>();
-                    aclHashMap.put("name", aclBinding.pattern().name());
-                    aclHashMap.put("resource_type", aclBinding.pattern().resourceType());
-                    aclHashMap.put("pattern_type", aclBinding.pattern().patternType());
-                    aclHashMap.put("principal", aclBinding.entry().principal());
-                    aclHashMap.put("host", aclBinding.entry().host());
-                    aclHashMap.put("operation", aclBinding.entry().operation());
-                    aclHashMap.put("permission_type", aclBinding.entry().permissionType());
-                    aclHashMaps.add(aclHashMap);
+                    UserAclsInfo userAclInfo = new UserAclsInfo();
+                    userAclInfo.setName(aclBinding.pattern().name());
+                    userAclInfo.setResource_type( aclBinding.pattern().resourceType());
+                    userAclInfo.setPattern_type( aclBinding.pattern().patternType());
+                    userAclInfo.setPrincipal( aclBinding.entry().principal());
+                    userAclInfo.setHost( aclBinding.entry().host());
+                    userAclInfo.setOperation(aclBinding.entry().operation());
+                    userAclInfo.setPermission_type( aclBinding.entry().permissionType());
+                    aclHashMaps.add(userAclInfo);
                     System.out.println(aclBinding);
                 }
             }
@@ -113,14 +114,30 @@ public class KafkaClientService {
         }
     }
 
-    public ArrayList<Object> createUserAndAcls(String user, String password, String[] topics, String consumerGroup){
+    public ArrayList<Object> createUserAndAcls(String user, String password, List<UserAclsInfo> userTopicAcls, String consumerGroup){
         ArrayList<Object> userAndAcls = new ArrayList<Object>();
         // 1. Create a new user
         userAndAcls.add(createUser(user, password));
 
         // 2. Create a ACLs 
-        userAndAcls.add(createAcls(user, topics, consumerGroup));
+        userAndAcls.add(createAcls(user, userTopicAcls, consumerGroup));
         return userAndAcls;
+    }
+
+    public List<UserAclsInfo> initUserAclsTopicList(String username,List<String> topics){
+        List<UserAclsInfo> userAclsTopicList = new ArrayList<UserAclsInfo>();
+        for(String topic : topics){
+            UserAclsInfo userAclsInfo = new UserAclsInfo();
+            userAclsInfo.setHost("*");
+            userAclsInfo.setName(topic);
+            userAclsInfo.setOperation(AclOperation.ALL);
+            userAclsInfo.setPattern_type(PatternType.LITERAL);
+            userAclsInfo.setPermission_type(AclPermissionType.ALLOW);
+            userAclsInfo.setPrincipal("User:"+username);
+            userAclsInfo.setResource_type(ResourceType.TOPIC);
+            userAclsTopicList.add(userAclsInfo);
+        }
+        return userAclsTopicList;
     }
 
     public Object createUser(String user, String password){
@@ -133,25 +150,25 @@ public class KafkaClientService {
         return results.values();
     }
 
-    public Object createAcls(String user, String[] topics, String consumerGroup){
+    public Object createAcls(String user, List<UserAclsInfo> userAcls, String consumerGroup){
         try {
 
             ArrayList<AclBinding> arrayUserAcls = new ArrayList<AclBinding>();
 
-            for (String topic : topics){
-                System.out.println(topic);
+            for (UserAclsInfo aclInfo : userAcls){
                 AclBinding userTopicAcl = new AclBinding(
-                    new ResourcePattern(ResourceType.TOPIC, topic, PatternType.LITERAL),
-                    new AccessControlEntry("User:"+user, "*", AclOperation.ALL, AclPermissionType.ALLOW)
-                );
-
-                AclBinding userGroupAcl = new AclBinding(
-                    new ResourcePattern(ResourceType.GROUP, consumerGroup, PatternType.LITERAL),
-                    new AccessControlEntry("User:"+user, "*", AclOperation.READ, AclPermissionType.ALLOW)
-                );
+                    new ResourcePattern(aclInfo.getResource_type(), aclInfo.getName(), aclInfo.getPattern_type()),
+                    new AccessControlEntry(aclInfo.getPrincipal(), aclInfo.getHost(), aclInfo.getOperation(), aclInfo.getPermission_type())
+                ); 
                 arrayUserAcls.add(userTopicAcl);
-                arrayUserAcls.add(userGroupAcl);
             }
+
+            AclBinding userGroupAcl = new AclBinding(
+                new ResourcePattern(ResourceType.GROUP, consumerGroup, PatternType.LITERAL),
+                new AccessControlEntry("User:"+user, "*", AclOperation.READ, AclPermissionType.ALLOW)
+            );
+            arrayUserAcls.add(userGroupAcl);
+
             System.out.println("arrayUserAcls size:"+arrayUserAcls.size());
         
             CreateAclsResult results = client.createAcls(arrayUserAcls);
@@ -170,12 +187,12 @@ public class KafkaClientService {
         return null;
     }
 
-    public void deleteUserAndAcls(String user, String[] topics){
+    public void deleteUserAndAcls(String user, List<UserAclsInfo> userAcls){
         // 1. Delete User
         this.deleteUser(user);
 
         // 2. Delete User ACLs
-        this.deleteAcls(user, topics);
+        this.deleteAcls(user, userAcls);
     }
 
     public void deleteUser(String user){
@@ -199,7 +216,7 @@ public class KafkaClientService {
         
     }
 
-    public void deleteAcls(String user, String[] topics){
+    public void deleteAcls(String user, List<UserAclsInfo> userAcls){
         
         try {
             /*
@@ -214,10 +231,10 @@ public class KafkaClientService {
             }
             */
             ArrayList<AclBindingFilter> arrayUserAcls = new ArrayList<AclBindingFilter>();
-            for (String topic : topics){
+            for (UserAclsInfo aclInfo : userAcls){
                 AclBindingFilter userAcl = new AclBindingFilter(
-                    new ResourcePatternFilter(ResourceType.TOPIC, topic, PatternType.ANY),
-                    new AccessControlEntryFilter("User:"+user, "*", AclOperation.ALL, AclPermissionType.ANY)
+                    new ResourcePatternFilter(aclInfo.getResource_type(), aclInfo.getName(), aclInfo.getPattern_type()),
+                    new AccessControlEntryFilter(aclInfo.getPrincipal(), aclInfo.getHost(), aclInfo.getOperation(), aclInfo.getPermission_type())
                 );  
                 arrayUserAcls.add(userAcl);
             }

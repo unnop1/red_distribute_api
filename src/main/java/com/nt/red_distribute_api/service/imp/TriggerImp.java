@@ -38,7 +38,7 @@ public class TriggerImp implements TriggerMessageService{
         Long channelID = req.getChannelID();
         // System.out.println("startTime:" + startTime + " endTime:" + endTime);
         System.out.println("sortName:" + sortName + " sortBy:" + sortBy);
-        if (channelID != null){
+        if (channelID != 0){
             List<OrderTypeDashboardTrigger> dashboards = orderTypeRepo.OrderTypeTriggerDashboard(PageRequest.of(0, 5000, Sort.Direction.fromString(sortBy), sortName));
             resp.setData(dashboards);
             resp.setCount(dashboards.size());

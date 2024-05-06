@@ -52,7 +52,7 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
 
     @Query(value = """
                 SELECT 
-                    COUNT(*),
+                    COUNT(*)
                 FROM 
                     ordertype
                    """,

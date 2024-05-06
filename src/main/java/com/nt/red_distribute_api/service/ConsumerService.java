@@ -8,7 +8,7 @@ import com.nt.red_distribute_api.entity.ConsumerEntity;
 
 public interface ConsumerService  {
     public Long registerConsumer(AddConsumerReq req, String createdBy);
-    public void updateConsumer(UpdateByConsumerReq req, String updatedBy);
+    public ConsumerEntity updateConsumer(UpdateByConsumerReq req, String updatedBy);
     public void deleteConsumer(Long consumerID, String updatedBy);
     public ConsumerEntity consumerDetail(Long consumerID);
 }

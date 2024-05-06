@@ -47,4 +47,7 @@ public class AuditLog {
 
     @Column(name = "CREATED_DATE")
     private Timestamp created_date=null;
+    
+    @Column(name = "ORERTYPE_NAME")
+    private String orderTypeName=null;
 }

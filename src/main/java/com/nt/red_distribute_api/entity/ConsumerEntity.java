@@ -49,7 +49,7 @@ public class ConsumerEntity {
     private String phoneNumber=null;
 
     @Column(name = "is_enable", nullable = true)
-    private Integer is_enable=null;
+    private Integer is_enable=1;
 
     @Column(name = "is_delete", nullable = true)
     private Integer is_delete=0;

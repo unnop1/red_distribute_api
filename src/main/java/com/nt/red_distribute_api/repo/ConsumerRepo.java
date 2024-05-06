@@ -11,7 +11,200 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
+    
 
+    ////////////////////////////////////////////////////////////////
+    //                        All OrderType Id                    //
+    ////////////////////////////////////////////////////////////////
+
+    @Query(value = """
+                  SELECT 
+                      con.id, con.system_name, con.contactname, con.email, con.phonenumber, 
+                      (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+                  FROM 
+                      consumer_ordertype cod
+                  LEFT JOIN 
+                      consumer con ON con.id = cod.consumer_id
+                   """,
+                 nativeQuery = true)
+    public List<ListConsumerTopic> ListConsumer(
+      Pageable pageable
+    );
+
+    @Query(value = """
+                  SELECT 
+                      COUNT(*)
+                  FROM 
+                      consumer_ordertype cod
+                  LEFT JOIN 
+                      consumer con ON con.id = cod.consumer_id 
+                   """,
+                 nativeQuery = true)
+    public Integer getListConsumerTotal();
+
+    @Query(value = """
+        SELECT 
+            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE ( con.system_name like %:search% OR con.contactname like  %:search% OR con.email like  %:search% OR con.phonenumber like  %:search% )
+        """,
+        nativeQuery = true)
+    public List<ListConsumerTopic> ListConsumerAllLike(
+      @Param(value = "search") String search,
+      Pageable pageable
+    );
+
+    @Query(value = """
+        SELECT 
+            COUNT(*)
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE ( con.system_name like %:search% OR con.contactname like  %:search% OR con.email like  %:search% OR con.phonenumber like  %:search% )
+        """,
+        nativeQuery = true)
+    public Integer getListConsumerAllLikeTotal(
+      @Param(value = "search") String search
+    );
+
+
+    // system name
+    @Query(value = """
+        SELECT 
+            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE ( con.system_name like %:search% )
+        """,
+        nativeQuery = true)
+    public List<ListConsumerTopic> ListConsumerSystemNameLike(
+      @Param(value = "search") String search,
+      Pageable pageable
+    );
+
+    @Query(value = """
+        SELECT 
+            COUNT(*)
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE ( con.system_name like %:search% )
+        """,
+        nativeQuery = true)
+    public Integer getListConsumerSystemNameLikeTotal(
+      @Param(value = "search") String search
+    );
+
+
+    // contactname
+    @Query(value = """
+        SELECT 
+            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE ( con.contactname like %:search% )
+        """,
+        nativeQuery = true)
+    public List<ListConsumerTopic> ListConsumerContactNameLike(
+      @Param(value = "search") String search,
+      Pageable pageable
+    );
+
+    @Query(value = """
+        SELECT 
+            COUNT(*)
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE cod.ordertype_id = :ordertype_id 
+        AND ( con.contactname like %:search% )
+        """,
+        nativeQuery = true)
+    public Integer getListConsumerContactNameLikeTotal(
+      @Param(value = "search") String search
+    );
+
+
+    // email
+    @Query(value = """
+        SELECT 
+            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE ( con.email like %:search% )
+        """,
+        nativeQuery = true)
+    public List<ListConsumerTopic> ListConsumerEmailLike(
+      @Param(value = "search") String search,
+      Pageable pageable
+    );
+
+    @Query(value = """
+        SELECT 
+            COUNT(*)
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE ( con.email like %:search% )
+        """,
+        nativeQuery = true)
+    public Integer getListConsumerEmailLikeTotal(
+      @Param(value = "search") String search
+    );
+
+    // phonenumber
+    @Query(value = """
+        SELECT 
+            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE ( con.phonenumber like %:search% )
+        """,
+        nativeQuery = true)
+    public List<ListConsumerTopic> ListConsumerPhoneNumberLike(
+      @Param(value = "search") String search,
+      Pageable pageable
+    );
+
+
+    @Query(value = """
+        SELECT 
+            COUNT(*)
+        FROM 
+            consumer_ordertype cod
+        LEFT JOIN 
+            consumer con ON con.id = cod.consumer_id
+        WHERE ( con.phonenumber like %:search% )
+        """,
+        nativeQuery = true)
+    public Integer getListConsumerPhoneNumberLikeTotal(
+      @Param(value = "search") String search
+    );
+
+    
+    ////////////////////////////////////////////////////////////////
+    //                      By OrderType Id                       //
+    ////////////////////////////////////////////////////////////////
     @SuppressWarnings("null")
     @Query(value = "SELECT * FROM consumer WHERE id=?1", nativeQuery = true)
     public ConsumerEntity GetDetail(Long consumerID);

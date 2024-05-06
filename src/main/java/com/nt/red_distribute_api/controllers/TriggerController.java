@@ -43,7 +43,7 @@ public class TriggerController {
         @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
         @RequestParam(name = "start_time", defaultValue = "")String startTime,
         @RequestParam(name = "end_time", defaultValue = "")String endTime,
-        @RequestParam(name = "channel_id", defaultValue = "")Long channelID
+        @RequestParam(name = "channel_id", defaultValue = "0")Long channelID
     ){
         
         String ipAddress = request.getRemoteAddr();

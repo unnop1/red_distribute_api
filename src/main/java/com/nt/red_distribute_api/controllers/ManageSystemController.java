@@ -10,17 +10,23 @@ import com.nt.red_distribute_api.dto.req.sa_metric_notification.AddMetricNotific
 import com.nt.red_distribute_api.dto.req.sa_metric_notification.UpdateMetricReq;
 import com.nt.red_distribute_api.dto.resp.DefaultControllerResp;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
+import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
 import com.nt.red_distribute_api.entity.view.consumer.ListConsumerTopic;
+import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import com.nt.red_distribute_api.service.AuditService;
+import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
+import com.nt.red_distribute_api.service.KafkaClientService;
 import com.nt.red_distribute_api.service.ManageSystemService;
 import com.nt.red_distribute_api.service.SaMetricNotificationService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,12 +42,18 @@ public class ManageSystemController {
 
     @Autowired
     private AuditService auditService;
+    
+    @Autowired
+    private KafkaClientService kafkaClientService;
 
     @Autowired
     private ManageSystemService manageSystemService;
 
     @Autowired
     private ConsumerService consumerService;
+
+    @Autowired
+    private ConsumerOrderTypeService consumerOrderTypeService;
 
     @Autowired
     private SaMetricNotificationService saMetricNotificationService;
@@ -63,7 +75,7 @@ public class ManageSystemController {
             
             AuditLog auditLog = new AuditLog();
             auditLog.setAction("get");
-            auditLog.setAuditable("");
+            auditLog.setAuditable("ordertype");
             auditLog.setUsername(vsf.getUsername());
             auditLog.setBrowser(vsf.getBrowser());
             auditLog.setDevice(vsf.getDevice());
@@ -89,7 +101,7 @@ public class ManageSystemController {
     }
 
     @GetMapping("/order_type/consumers")
-    public ResponseEntity<PaginationDataResp> getAllConsumerByOrderType(
+    public ResponseEntity<DefaultControllerResp> getAllConsumerByOrderType(
         HttpServletRequest request,    
         @RequestParam(name = "draw", defaultValue = "11")Integer draw,
         @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
@@ -103,35 +115,51 @@ public class ManageSystemController {
         @RequestParam(name = "order_type_id")Long orderTypeID
     ){
         
+        DefaultControllerResp resp = new DefaultControllerResp();
         String ipAddress = request.getRemoteAddr();
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+        try {
+            ListConsumerByOrderTypeReq req = new ListConsumerByOrderTypeReq(
+                draw,
+                sortBy,
+                sortName,
+                start,
+                length,
+                search,
+                searchField,
+                orderTypeID)
+            ;
 
-        ListConsumerByOrderTypeReq req = new ListConsumerByOrderTypeReq(
-            draw,
-            sortBy,
-            sortName,
-            start,
-            length,
-            search,
-            searchField,
-            orderTypeID)
-        ;
+            PaginationDataResp data = manageSystemService.ListConsumerByOrderType(req);
+            resp.setData(data);
+            resp.setCount(data.getCount());
+            resp.setRecordsFiltered(data.getCount());
+            resp.setRecordsTotal(data.getCount());
+            resp.setDraw(draw);
 
-        AuditLog auditLog = new AuditLog();
-        auditLog.setAction("get");
-        auditLog.setAuditable("trigger");
-        auditLog.setUsername(vsf.getUsername());
-        auditLog.setBrowser(vsf.getBrowser());
-        auditLog.setDevice(vsf.getDevice());
-        auditLog.setOperating_system(vsf.getSystem());
-        auditLog.setIp_address(ipAddress);
-        auditLog.setComment("getAllTriggers");
-        auditLog.setCreated_date(DateTime.getTimeStampNow());
-        auditService.AddAuditLog(auditLog);
-        
-        return new ResponseEntity<>( manageSystemService.ListConsumerByOrderType(req), HttpStatus.OK);
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("get");
+            auditLog.setAuditable("consumer_ordertype");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setComment("getAllConsumerByOrderType");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
+
+            
+            return new ResponseEntity<>( resp, HttpStatus.OK);
+        }catch (Exception e){
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while updating : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/consumer")
@@ -141,8 +169,31 @@ public class ManageSystemController {
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
+            // create consumer in database
             Long consumerID = consumerService.registerConsumer(req, vsf.getUsername());
+            String consumerGroup = req.getSystem_name().toLowerCase() + req.getUsername().toLowerCase();
+            System.out.println("registered consumer id: " + consumerID);
             ConsumerEntity consumerDetail = consumerService.consumerDetail(consumerID);
+            
+            // create consumer in kafka server
+            kafkaClientService.createUser(req.getUsername(), req.getPassword());
+            List<UserAclsInfo> userAclsInfos = kafkaClientService.initUserAclsTopicList(consumerGroup, null);
+            kafkaClientService.createAcls(req.getUsername(), userAclsInfos, consumerGroup);
+
+
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("create");
+            auditLog.setAuditable_id(consumerID);
+            auditLog.setAuditable("consumer");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setComment("createConsumer");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
+
             resp.setCount(1);
             resp.setData(consumerDetail);
             return new ResponseEntity<>(resp, HttpStatus.CREATED);
@@ -165,8 +216,40 @@ public class ManageSystemController {
 
         DefaultControllerResp response = new DefaultControllerResp();
         try{
-            consumerService.updateConsumer(req, vsf.getUsername());
-            
+            // update consumer in database
+            ConsumerEntity updateConsumer = consumerService.updateConsumer(req, vsf.getUsername());
+            String consumerGroup = updateConsumer.getSystem_name().toLowerCase() + updateConsumer.getUsername().toLowerCase();
+
+            // update consumer in kafka server
+            List<UserAclsInfo> userAcls = kafkaClientService.ListUserAcls(updateConsumer.getUsername());
+            if (!req.getUpdateInfo().getPassword().isEmpty()){
+                kafkaClientService.deleteUserAndAcls(updateConsumer.getUsername(), userAcls);
+                kafkaClientService.createUserAndAcls(updateConsumer.getUsername(), req.getUpdateInfo().getPassword(),userAcls,consumerGroup );
+            }
+
+            if (!req.getUpdateInfo().getOrder_type_topics().isEmpty()){
+                List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(updateConsumer.getID());
+                List<String> orderTypeTopicNames = new ArrayList<>();
+                for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
+                    orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
+                }
+                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(updateConsumer.getUsername(), orderTypeTopicNames);
+                kafkaClientService.createAcls(req.getUpdateInfo().getUsername(), userAclsTopics, consumerGroup);
+            }
+
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("update");
+            auditLog.setAuditable_id(req.getUpdateID());
+            auditLog.setAuditable("consumer");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setComment("updateConsumer");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
+
 
             response.setCount(1);
             response.setMessage("Success");
@@ -192,8 +275,30 @@ public class ManageSystemController {
 
         DefaultControllerResp response = new DefaultControllerResp();
         try{
+            // get consumer in database
+            ConsumerEntity consumer = consumerService.consumerDetail(consumerID);
+
+            // delete consumer in database
             consumerService.deleteConsumer(consumerID, vsf.getUsername());
+
+            // list consumer acls in kafka
+            List<UserAclsInfo> userAcls = kafkaClientService.ListUserAcls(consumer.getUsername());
+
+            // delete consumer in kafka
+            kafkaClientService.deleteUserAndAcls(consumer.getUsername(), userAcls);
             
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("delete");
+            auditLog.setAuditable_id(consumerID);
+            auditLog.setAuditable("consumer");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setComment("deleteConsumer");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
 
             response.setCount(1);
             response.setMessage("Success");
@@ -209,7 +314,7 @@ public class ManageSystemController {
     }
 
     @GetMapping("/consumers")
-    public ResponseEntity<DefaultControllerResp> getManageOrderTypes(
+    public ResponseEntity<DefaultControllerResp> getManageConsumers(
         HttpServletRequest request,    
         @RequestParam(name = "consumer", defaultValue = "1")Long consumerID
     ){
@@ -285,9 +390,8 @@ public class ManageSystemController {
         }
     }
 
-
     @GetMapping("/metrics")
-    public ResponseEntity<DefaultControllerResp> getManageMetric(HttpServletRequest request, @RequestParam(name="metric_notification_id")Long metricNotificationID) {
+    public ResponseEntity<DefaultControllerResp> getManageMetrics(HttpServletRequest request, @RequestParam(name="metric_notification_id")Long metricNotificationID) {
         String requestHeader = request.getHeader("Authorization");
         String ipAddress = request.getRemoteAddr();
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
