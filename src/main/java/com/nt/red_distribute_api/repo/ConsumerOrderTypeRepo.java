@@ -12,10 +12,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEntity,Long> {
 
-    @SuppressWarnings("null")
-    @Query(value = "SELECT * FROM order_type WHERE MAINID=?1", nativeQuery = true)
-    public OrderTypeEntity findByMainId(Long orderTypeMainID);
-
     @Query(value = """
                   SELECT cod.consumer_id,odt.ordertype_name
                   FROM consumer_ordertype cod

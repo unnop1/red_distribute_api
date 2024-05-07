@@ -101,7 +101,7 @@ public class PermissionMenuImp implements PermissionMenuService {
         newPermissionMenu.setCreated_Date(timeNow);
         PermissionMenuEntity created = permissionMenuRepo.save(newPermissionMenu);
 
-        return created.getId();
+        return created.getId()+1;
     }
 
     @Override

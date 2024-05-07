@@ -34,6 +34,20 @@ public class ConsumerOrderTypeImp implements ConsumerOrderTypeService {
         return consumerOdts;
     }
 
+    @Override
+    public Long registerConsumerOrderType(Long consumerID, Long orderTypeID, String createdBy) {
+        Timestamp timeNow = DateTime.getTimeStampNow();
+        ConsumerOrderTypeEntity newConsumerOrderType = new ConsumerOrderTypeEntity();
+        newConsumerOrderType.setConsumer_id(consumerID);
+        newConsumerOrderType.setOrdertype_id(orderTypeID);
+        newConsumerOrderType.setCreated_date(timeNow);
+        newConsumerOrderType.setCreated_by(createdBy);
+        
+        ConsumerOrderTypeEntity created = consumerOrderTypeRepo.save(newConsumerOrderType);
+
+        return created.getID()+1;
+    }
+
     
 
     

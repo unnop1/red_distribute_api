@@ -25,8 +25,8 @@ public class OrderTypeEntity {
         @Column(name = "ID")
         private Long ID = null;
 
-        @Column(name = "SA_CHANNEL_CONNECT", unique = false,nullable = true)
-        private Long SA_CHANNEL_CONNECT = null;
+        @Column(name = "SA_CHANNEL_CONNECT_ID", unique = false,nullable = true)
+        private Long SA_CHANNEL_CONNECT_ID = null;
 
         @Column(name = "OrderType_Name", unique = false,nullable = true)
         private String OrderTypeName = null;
@@ -38,10 +38,10 @@ public class OrderTypeEntity {
         private String MESSAGE_EXPIRE = null;
 
         @Column(name = "Is_Enable", unique = false,nullable = true)
-        private Integer IsEnable = 1;
+        private Integer Is_Enable = 1;
 
         @Column(name = "Is_Delete", unique = false,nullable = true)
-        private Integer IsDelete = 0;
+        private Integer Is_Delete = 0;
 
         @Column(name = "Is_Delete_By", unique = false,nullable = true)
         private String Is_Delete_By = null;
@@ -50,14 +50,14 @@ public class OrderTypeEntity {
         private Timestamp Is_Delete_Date = null;
 
         @Column(name = "Created_Date", unique = false,nullable = true)
-        private Timestamp CreatedDate = null;
+        private Timestamp Created_Date = null;
 
         @Column(name = "Created_By", unique = false,nullable = true)
-        private String CreatedBy = null;
+        private String Created_By = null;
 
         @Column(name = "Updated_Date", unique = false,nullable = true)
-        private Timestamp UpdatedDate = null;
+        private Timestamp Updated_Date = null;
 
         @Column(name = "Updated_By", unique = false,nullable = true)
-        private Long Updated_By = null;
+        private String Updated_By = null;
 }

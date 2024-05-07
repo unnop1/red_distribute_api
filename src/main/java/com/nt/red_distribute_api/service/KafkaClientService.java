@@ -258,7 +258,7 @@ public class KafkaClientService {
                         topic.getTopicName(), 
                         topic.getPartitions(), 
                         topic.getReplicationFactor()
-                    )
+                    ).configs(Collections.singletonMap("retention.ms", topic.getRetentionMs())) // Add retention.ms configuration
                 ),
                 new CreateTopicsOptions().timeoutMs(10000)).all();
             future.get();

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 
 import com.nt.red_distribute_api.dto.req.DefaultListReq;
+import com.nt.red_distribute_api.dto.req.consumer.ListConsumerReq;
 import com.nt.red_distribute_api.dto.req.manage_system.ListConsumerByOrderTypeReq;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.entity.view.consumer.ListConsumerTopic;
@@ -96,7 +97,7 @@ public class ManageSystemImp implements ManageSystemService{
     }
 
     @Override
-    public PaginationDataResp ListManageConsumers(DefaultListReq req) {
+    public PaginationDataResp ListManageConsumers(ListConsumerReq req) {
         PaginationDataResp resp = new PaginationDataResp();
         Integer offset = req.getStart();
         Integer limit = req.getLength();

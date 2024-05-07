@@ -23,10 +23,10 @@ public class ConsumerOrderTypeEntity {
     private Long ID;
 
     @Column(name = "consumer_id", nullable = true)
-    private String consumer_id=null;
+    private Long consumer_id=null;
 
     @Column(name = "ordertype_id", nullable = true)
-    private String ordertype_id=null;
+    private Long ordertype_id=null;
 
     @Column(name = "created_date", nullable = true)
     private Timestamp created_date=null;
