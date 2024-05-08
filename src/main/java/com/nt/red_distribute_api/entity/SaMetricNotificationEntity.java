@@ -29,13 +29,13 @@ public class SaMetricNotificationEntity {
     private String email = null;
 
     @Column(name = "OM_NOT_CONNECT", unique = false,nullable = true)
-    private Integer OM_NOT_CONNECT = null;
+    private Integer OM_NOT_CONNECT = 0;
 
     @Column(name = "DB_OM_NOT_CONNECT", unique = false,nullable = true)
-    private Integer DB_OM_NOT_CONNECT = null;
+    private Integer DB_OM_NOT_CONNECT = 0;
 
     @Column(name = "TOPUP_NOT_CONNECT", unique = false,nullable = true)
-    private Integer TOPUP_NOT_CONNECT = null;
+    private Integer TOPUP_NOT_CONNECT = 0;
 
     @Column(name = "TRIGGER_NOTI_JSON", unique = false,nullable = true)
     private String TRIGGER_NOTI_JSON = null;
@@ -45,4 +45,10 @@ public class SaMetricNotificationEntity {
 
     @Column(name = "UPDATED_By", unique = false,nullable = true)
     private String UPDATED_By = null;
+
+    @Column(name = "LINE_IS_ACTIVE", unique = false,nullable = true)
+    private Integer LINE_IS_ACTIVE = 0;
+
+    @Column(name = "LINE_TOKEN", unique = false,nullable = true)
+    private String LINE_TOKEN = null;
 }

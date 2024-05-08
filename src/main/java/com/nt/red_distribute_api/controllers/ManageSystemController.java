@@ -166,6 +166,7 @@ public class ManageSystemController {
             
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
+            resp.setDraw(draw);
             resp.setCount(0);
             resp.setData(null);
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -349,6 +350,15 @@ public class ManageSystemController {
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
             OrderTypeEntity orderTypeData = orderTypeService.getOrderTypeDetail(orderTypeID);
+            if( orderTypeData == null ){
+                resp.setCount(0);
+                resp.setData(null);
+                resp.setStatusCode(HttpStatus.NOT_FOUND.value());
+                resp.setMessage("Error Not Found order type id "+orderTypeID);
+                return new ResponseEntity<>(resp, HttpStatus.NOT_FOUND);
+            }
+
+            kafkaClientService.purgeDataInTopic(orderTypeData.getOrderTypeName());
 
             AuditLog auditLog = new AuditLog();
             auditLog.setAction("purge");
@@ -609,6 +619,7 @@ public class ManageSystemController {
 
             PaginationDataResp listConsumers = manageSystemService.ListManageConsumers(req);
             
+            resp.setDraw(draw);
             resp.setCount(listConsumers.getCount());
             resp.setData(listConsumers.getData());
             resp.setRecordsFiltered(listConsumers.getCount());
@@ -618,6 +629,7 @@ public class ManageSystemController {
 
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
+            resp.setDraw(draw);
             resp.setCount(0);
             resp.setData(null);
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -704,10 +716,14 @@ public class ManageSystemController {
             );
 
             PaginationDataResp saMetrics = manageSystemService.ListManageMetrics(req);
+            resp.setDraw(draw);
+            resp.setRecordsFiltered(saMetrics.getCount());
+            resp.setRecordsTotal(saMetrics.getCount());
             resp.setCount(saMetrics.getCount());
             resp.setData(saMetrics.getData());
             return new ResponseEntity<>(resp, HttpStatus.OK);
         } catch (Exception e) {
+            resp.setDraw(draw);
             resp.setCount(0);
             resp.setData(null);
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());

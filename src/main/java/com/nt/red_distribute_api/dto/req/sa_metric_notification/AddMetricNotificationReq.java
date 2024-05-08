@@ -11,22 +11,22 @@ public class AddMetricNotificationReq {
     @JsonProperty("email")
     private String email = null;
 
-    @JsonProperty("OM_NOT_CONNECT")
+    @JsonProperty("om_not_connect")
     private Integer OM_NOT_CONNECT = null;
 
-    @JsonProperty("DB_OM_NOT_CONNECT")
+    @JsonProperty("db_om_not_connect")
     private Integer DB_OM_NOT_CONNECT = null;
 
-    @JsonProperty("TOPUP_NOT_CONNECT")
+    @JsonProperty("topup_not_connect")
     private Integer TOPUP_NOT_CONNECT = null;
 
-    @JsonProperty("TRIGGER_NOTI_JSON")
+    @JsonProperty("trigger_noti_json")
     private String TRIGGER_NOTI_JSON = null;
 
-    @JsonProperty("UPDATED_DATE")
-    private String UPDATED_DATE = null;
+    @JsonProperty("line_is_active")
+    private Integer LINE_IS_ACTIVE = null;
 
-    @JsonProperty("UPDATED_By")
-    private String UPDATED_By = null;
+    @JsonProperty("line_token")
+    private String LINE_TOKEN = null;
 
 }

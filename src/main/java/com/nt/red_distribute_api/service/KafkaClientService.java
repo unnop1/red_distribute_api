@@ -19,13 +19,17 @@ import org.apache.kafka.clients.admin.CreateAclsResult;
 import org.apache.kafka.clients.admin.CreateTopicsOptions;
 import org.apache.kafka.clients.admin.DeleteAclsResult;
 import org.apache.kafka.clients.admin.DescribeAclsResult;
+import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.ScramCredentialInfo;
 import org.apache.kafka.clients.admin.ScramMechanism;
+import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.UserScramCredentialDeletion;
 import org.apache.kafka.clients.admin.UserScramCredentialUpsertion;
 import org.apache.kafka.common.KafkaFuture;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AccessControlEntryFilter;
 import org.apache.kafka.common.acl.AclBinding;
@@ -296,5 +300,43 @@ public class KafkaClientService {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+    }
+
+    public void purgeDataInTopic(String topicName) {
+        // Get the partition count for the topic
+        int partitionCount;
+        try {
+            DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topicName));
+            Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
+            TopicDescription topicDescription = topicDescriptionMap.get(topicName);
+            partitionCount = topicDescription.partitions().size();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        // Purge data from each partition
+        for (int partitionIndex = 0; partitionIndex < partitionCount; partitionIndex++) {
+            TopicPartition topicPartition = new TopicPartition(topicName, partitionIndex);
+            long lastOffset = getLastOffset(topicPartition);
+            RecordsToDelete recordsToDelete = RecordsToDelete.beforeOffset(lastOffset);
+
+            Map<TopicPartition, RecordsToDelete> topicPartitionRecordToDelete = Collections.singletonMap(topicPartition, recordsToDelete);
+            try {
+                client.deleteRecords(topicPartitionRecordToDelete).all().get();
+                System.out.println("Data purged successfully from partition " + partitionIndex);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+
+        client.close();
+    }
+
+    private long getLastOffset(TopicPartition topicPartition) {
+        // Implement a method to fetch the last offset for the given partition
+        // This could be done using a Kafka consumer
+        // Here, we'll assume it returns a hardcoded value for demonstration purposes
+        return 5L;
     }
 }

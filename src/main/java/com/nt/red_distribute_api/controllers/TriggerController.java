@@ -39,6 +39,7 @@ public class TriggerController {
     @GetMapping("/dashboard")
     public ResponseEntity<DefaultControllerResp> getDashBoardTriggers(
         HttpServletRequest request,    
+        @RequestParam(name = "draw", defaultValue = "11")Integer draw,
         @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
         @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
         @RequestParam(name = "start_time", defaultValue = "")String startTime,
@@ -57,6 +58,7 @@ public class TriggerController {
             );
 
             PaginationDataResp triggers = triggerService.Dashboard(req);
+            resp.setDraw(draw);
             resp.setCount(triggers.getCount());
             resp.setData(triggers.getData());
             resp.setRecordsFiltered(triggers.getCount());
@@ -76,6 +78,7 @@ public class TriggerController {
             
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
+            resp.setDraw(draw);
             resp.setCount(0);
             resp.setData(null);
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -118,6 +121,7 @@ public class TriggerController {
             );
 
             PaginationDataResp triggers = triggerService.ListAllTrigger(req);
+            resp.setDraw(draw);
             resp.setCount(triggers.getCount());
             resp.setData(triggers.getData());
             resp.setRecordsFiltered(triggers.getCount());
@@ -136,6 +140,7 @@ public class TriggerController {
             auditService.AddAuditLog(auditLog);
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
+            resp.setDraw(draw);
             resp.setCount(0);
             resp.setData(null);
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());

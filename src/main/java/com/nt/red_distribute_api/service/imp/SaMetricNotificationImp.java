@@ -29,6 +29,8 @@ public class SaMetricNotificationImp implements SaMetricNotificationService {
         newMetric.setDB_OM_NOT_CONNECT(req.getDB_OM_NOT_CONNECT());
         newMetric.setTOPUP_NOT_CONNECT(req.getTOPUP_NOT_CONNECT());
         newMetric.setTRIGGER_NOTI_JSON(req.getTRIGGER_NOTI_JSON());
+        newMetric.setLINE_IS_ACTIVE(req.getLINE_IS_ACTIVE());
+        newMetric.setLINE_TOKEN(req.getLINE_TOKEN());
         newMetric.setUPDATED_DATE(timeNow);
         newMetric.setUPDATED_By(createdBy);
         
@@ -60,6 +62,14 @@ public class SaMetricNotificationImp implements SaMetricNotificationService {
 
             if (updates.getTRIGGER_NOTI_JSON() != null ){
                 existingEntity.setTRIGGER_NOTI_JSON(updates.getTRIGGER_NOTI_JSON());
+            }
+
+            if (updates.getLINE_IS_ACTIVE() != null ){
+                existingEntity.setLINE_IS_ACTIVE(updates.getLINE_IS_ACTIVE());
+            }
+
+            if (updates.getLINE_TOKEN() != null ){
+                existingEntity.setLINE_TOKEN(updates.getLINE_TOKEN());
             }
 
             existingEntity.setUPDATED_By(updatedBy);
