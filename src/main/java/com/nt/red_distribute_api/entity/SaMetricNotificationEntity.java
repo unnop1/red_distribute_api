@@ -2,6 +2,8 @@ package com.nt.red_distribute_api.entity;
 
 
 
+import java.sql.Timestamp;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,7 +41,7 @@ public class SaMetricNotificationEntity {
     private String TRIGGER_NOTI_JSON = null;
 
     @Column(name = "UPDATED_DATE", unique = false,nullable = true)
-    private String UPDATED_DATE = null;
+    private Timestamp UPDATED_DATE = null;
 
     @Column(name = "UPDATED_By", unique = false,nullable = true)
     private String UPDATED_By = null;

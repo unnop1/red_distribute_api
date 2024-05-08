@@ -33,6 +33,12 @@ public class OrderTypeImp implements OrderTypeService {
     }
 
     @Override
+    public OrderTypeEntity getOrderTypeByName(String orderTypeName) {
+        OrderTypeEntity existsOrderType = orderTypeRepo.OrderTypeByName(orderTypeName);
+        return existsOrderType;
+    }
+
+    @Override
     public Long registerOrderType(AddOrderTypeReq req, String createdBy) {
         Timestamp timeNow = DateTime.getTimeStampNow();
         OrderTypeEntity newOrderType = new OrderTypeEntity();

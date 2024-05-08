@@ -182,6 +182,15 @@ public class ManageSystemController {
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
+            OrderTypeEntity existOrderType = orderTypeService.getOrderTypeByName(req.getOrder_type_name().toUpperCase());
+            if( existOrderType != null ){
+                resp.setCount(0);
+                resp.setData(null);
+                resp.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                resp.setMessage("Error order type name "+req.getOrder_type_name().toUpperCase()+" has already created a order type");
+                return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+            }
+
             // create orderType in database
             Long orderTypeID = orderTypeService.registerOrderType(req, vsf.getUsername());
             System.out.println("registered order type id: " + orderTypeID);
@@ -233,7 +242,14 @@ public class ManageSystemController {
         try{
             // update orderType in database
             OrderTypeEntity updateOrderType = orderTypeService.updateOrderType(req, vsf.getUsername());
-
+            if( updateOrderType == null ){
+                response.setCount(0);
+                response.setData(null);
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage("Error Not Found order type id "+req.getUpdateID());
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+            
             // update orderType in kafka server
             if (!req.getUpdateInfo().getMessage_expire().isEmpty()){
                 TopicReq topicUpdate = new TopicReq();
@@ -254,6 +270,7 @@ public class ManageSystemController {
             auditLog.setComment("updateOrderType");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+        
 
 
             response.setCount(1);
@@ -282,6 +299,13 @@ public class ManageSystemController {
         try{
             // get order_type in database
             OrderTypeEntity orderType = orderTypeService.getOrderTypeDetail(orderTypeID);
+            if( orderType == null ){
+                response.setCount(0);
+                response.setData(null);
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage("Error Not Found order type id "+orderTypeID);
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
 
             // delete order_type in database
             orderTypeService.deleteOrderType(orderTypeID, vsf.getUsername());
@@ -316,6 +340,48 @@ public class ManageSystemController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    @DeleteMapping("/order_type/purge")
+    public ResponseEntity<DefaultControllerResp> PurgeOrderTypeData(HttpServletRequest request, @RequestParam(name="order_type_id")Long orderTypeID) {
+        String requestHeader = request.getHeader("Authorization");
+        String ipAddress = request.getRemoteAddr();
+        VerifyAuthResp vsf = helper.verifyToken(requestHeader);
+        DefaultControllerResp resp = new DefaultControllerResp();
+        try {
+            OrderTypeEntity orderTypeData = orderTypeService.getOrderTypeDetail(orderTypeID);
+
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("purge");
+            auditLog.setAuditable_id(orderTypeID);
+            auditLog.setAuditable("ordertype");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setComment("PurgeOrderTypeData");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
+
+            if( orderTypeData == null ){
+                resp.setCount(0);
+                resp.setData(null);
+                resp.setStatusCode(HttpStatus.NOT_FOUND.value());
+                resp.setMessage("Error Not Found order type id "+orderTypeID);
+                return new ResponseEntity<>(resp, HttpStatus.NOT_FOUND);
+            }
+            
+            resp.setMessage("Purge all messages in order type "+orderTypeData.getOrderTypeName());
+
+            return new ResponseEntity<>(resp, HttpStatus.OK);
+        } catch (Exception e) {
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while purge : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     
     
     @PostMapping("/consumer")
@@ -325,7 +391,15 @@ public class ManageSystemController {
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
-            // create consumer in database
+            ConsumerEntity existConsumer = consumerService.getConsumerByUsername(req.getUsername());
+            if( existConsumer != null ){
+                resp.setCount(0);
+                resp.setData(null);
+                resp.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                resp.setMessage("Error username "+req.getUsername()+" has already created a consumer");
+                return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+            }
+
             Long consumerID = consumerService.registerConsumer(req, vsf.getUsername());
             String consumerGroup = req.getSystem_name().toLowerCase() + req.getUsername().toLowerCase();
             System.out.println("registered consumer id: " + consumerID);
@@ -392,6 +466,15 @@ public class ManageSystemController {
         try{
             // update consumer in database
             ConsumerEntity updateConsumer = consumerService.updateConsumer(req, vsf.getUsername());
+
+            if( updateConsumer == null ){
+                response.setCount(0);
+                response.setData(null);
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage("Error Not Found consumer id "+req.getUpdateID());
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+
             String consumerGroup = updateConsumer.getSystem_name().toLowerCase() + updateConsumer.getUsername().toLowerCase();
 
             // update consumer in kafka server
@@ -451,30 +534,35 @@ public class ManageSystemController {
         try{
             // get consumer in database
             ConsumerEntity consumer = consumerService.consumerDetail(consumerID);
+            if( consumer == null ){
+                response.setCount(0);
+                response.setData(null);
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage("Error Not Found consumer id "+consumerID);
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
 
             // delete consumer in database
-            if (consumer != null){
-                consumerService.deleteConsumer(consumerID, vsf.getUsername());
+            consumerService.deleteConsumer(consumerID, vsf.getUsername());
 
-                // list consumer acls in kafka
-                List<UserAclsInfo> userAcls = kafkaClientService.ListUserAcls(consumer.getUsername());
+            // list consumer acls in kafka
+            List<UserAclsInfo> userAcls = kafkaClientService.ListUserAcls(consumer.getUsername());
 
-                // delete consumer in kafka
-                kafkaClientService.deleteUserAndAcls(consumer.getUsername(), userAcls);
-                
-                AuditLog auditLog = new AuditLog();
-                auditLog.setAction("delete");
-                auditLog.setAuditable_id(consumerID);
-                auditLog.setAuditable("consumer");
-                auditLog.setUsername(vsf.getUsername());
-                auditLog.setBrowser(vsf.getBrowser());
-                auditLog.setDevice(vsf.getDevice());
-                auditLog.setOperating_system(vsf.getSystem());
-                auditLog.setIp_address(ipAddress);
-                auditLog.setComment("deleteConsumer");
-                auditLog.setCreated_date(DateTime.getTimeStampNow());
-                auditService.AddAuditLog(auditLog);
-            }
+            // delete consumer in kafka
+            kafkaClientService.deleteUserAndAcls(consumer.getUsername(), userAcls);
+            
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("delete");
+            auditLog.setAuditable_id(consumerID);
+            auditLog.setAuditable("consumer");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setComment("deleteConsumer");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
 
             response.setCount(1);
             response.setMessage("Success");
@@ -546,7 +634,7 @@ public class ManageSystemController {
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
             Long metricNotificationID = saMetricNotificationService.registerMetricNotification(req, vsf.getUsername());
-            ConsumerEntity saMetricNotificationDetail = consumerService.consumerDetail(metricNotificationID);
+            SaMetricNotificationEntity saMetricNotificationDetail = saMetricNotificationService.saMetricNotificationDetail(metricNotificationID);
             resp.setCount(1);
             resp.setData(saMetricNotificationDetail);
             return new ResponseEntity<>(resp, HttpStatus.CREATED);
@@ -569,12 +657,11 @@ public class ManageSystemController {
 
         DefaultControllerResp response = new DefaultControllerResp();
         try{
-            saMetricNotificationService.updateMetricNotification(req, vsf.getUsername());
-            
+            SaMetricNotificationEntity saMetric = saMetricNotificationService.updateMetricNotification(req, vsf.getUsername());
 
             response.setCount(1);
             response.setMessage("Success");
-            response.setData(req);
+            response.setData(saMetric);
             
             response.setStatusCode(200);
 
@@ -587,15 +674,38 @@ public class ManageSystemController {
     }
 
     @GetMapping("/metrics")
-    public ResponseEntity<DefaultControllerResp> getManageMetrics(HttpServletRequest request, @RequestParam(name="metric_notification_id")Long metricNotificationID) {
+    public ResponseEntity<DefaultControllerResp> getManageMetrics(
+        HttpServletRequest request,
+        @RequestParam(name = "draw", defaultValue = "11")Integer draw,
+        @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
+        @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
+        @RequestParam(name = "start_time" , defaultValue = "")String startTime,
+        @RequestParam(name = "end_time" , defaultValue = "")String endTime,
+        @RequestParam(name = "start", defaultValue = "0")Integer start,
+        @RequestParam(name = "length", defaultValue = "10")Integer length,
+        @RequestParam(name = "Search", defaultValue = "")String search,
+        @RequestParam(name = "Search_field", defaultValue = "")String searchField
+    ) {
         String requestHeader = request.getHeader("Authorization");
         String ipAddress = request.getRemoteAddr();
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
-            SaMetricNotificationEntity saMetricNotificationDetail = saMetricNotificationService.saMetricNotificationDetail(metricNotificationID);
-            resp.setCount(1);
-            resp.setData(saMetricNotificationDetail);
+            DefaultListReq req = new DefaultListReq(
+                draw,
+                sortBy,
+                sortName,
+                startTime,
+                endTime,
+                start,
+                length,
+                search,
+                searchField
+            );
+
+            PaginationDataResp saMetrics = manageSystemService.ListManageMetrics(req);
+            resp.setCount(saMetrics.getCount());
+            resp.setData(saMetrics.getData());
             return new ResponseEntity<>(resp, HttpStatus.OK);
         } catch (Exception e) {
             resp.setCount(0);
@@ -605,4 +715,5 @@ public class ManageSystemController {
             return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
 }

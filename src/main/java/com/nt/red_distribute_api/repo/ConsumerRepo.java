@@ -11,6 +11,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
+
+    @Query(value = """
+                  SELECT * 
+                  FROM 
+                      consumer
+                  WHERE username=?1
+                   """,
+                 nativeQuery = true)
+    public ConsumerEntity ConsumerByUsername(String username);
     
 
     ////////////////////////////////////////////////////////////////

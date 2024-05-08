@@ -12,6 +12,7 @@ import lombok.ToString;
 
 @Getter
 @ToString
+@AllArgsConstructor
 @NoArgsConstructor
 public class DefaultListReq {
     @JsonProperty("draw")

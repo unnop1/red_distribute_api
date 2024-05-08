@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboardTrigger;
 
@@ -14,6 +15,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
+
+    @Query(value = """
+                  SELECT * 
+                  FROM 
+                      ordertype
+                  WHERE ordertype_name=?1
+                   """,
+                 nativeQuery = true)
+    public OrderTypeEntity OrderTypeByName(String orderTypeName);
 
     @SuppressWarnings("null")
     @Query(value = "SELECT * FROM ordertype WHERE ID=?1", nativeQuery = true)

@@ -25,6 +25,13 @@ public class ConsumerImp implements ConsumerService {
     private AuthConfig authConfig;
 
     @Override
+    public ConsumerEntity getConsumerByUsername(String username) {
+        ConsumerEntity consumer = consumerRepo.ConsumerByUsername(username);
+
+        return consumer;
+    }
+
+    @Override
     public Long registerConsumer(AddConsumerReq req, String createdBy) {
         Timestamp timeNow = DateTime.getTimeStampNow();
         String passwordEncode = authConfig.passwordEncoder().encode(req.getPassword());

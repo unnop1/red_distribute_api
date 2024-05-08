@@ -11,4 +11,5 @@ public interface ConsumerService  {
     public ConsumerEntity updateConsumer(UpdateByConsumerReq req, String updatedBy);
     public void deleteConsumer(Long consumerID, String updatedBy);
     public ConsumerEntity consumerDetail(Long consumerID);
+    public ConsumerEntity getConsumerByUsername(String username);
 }

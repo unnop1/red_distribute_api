@@ -13,5 +13,6 @@ public interface OrderTypeService  {
     public OrderTypeEntity updateOrderType(UpdateOrderTypeReq req, String updatedBy);
     public void deleteOrderType(Long orderTypeID, String deletedBy);
     public OrderTypeEntity getOrderTypeDetail(Long orderTypeID);
+    public OrderTypeEntity getOrderTypeByName(String orderTypeName);
     public List<OrderTypeEntity> ListOrderTypeByIDs(List<Long> orderTypeIDs);
 }
