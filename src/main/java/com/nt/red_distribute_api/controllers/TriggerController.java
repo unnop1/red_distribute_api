@@ -59,6 +59,7 @@ public class TriggerController {
 
             PaginationDataResp triggers = triggerService.Dashboard(req);
             resp.setDraw(draw);
+            resp.setStatusCode(HttpStatus.OK.value());
             resp.setCount(triggers.getCount());
             resp.setData(triggers.getData());
             resp.setRecordsFiltered(triggers.getCount());
@@ -122,6 +123,7 @@ public class TriggerController {
 
             PaginationDataResp triggers = triggerService.ListAllTrigger(req);
             resp.setDraw(draw);
+            resp.setStatusCode(HttpStatus.OK.value());
             resp.setCount(triggers.getCount());
             resp.setData(triggers.getData());
             resp.setRecordsFiltered(triggers.getCount());

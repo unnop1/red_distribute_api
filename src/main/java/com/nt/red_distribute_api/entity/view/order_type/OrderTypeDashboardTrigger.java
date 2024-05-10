@@ -13,8 +13,8 @@ public interface OrderTypeDashboardTrigger {
         String getIS_DELETE_BY();
         Timestamp getIS_DELETE_DATE();
         Timestamp getCREATED_DATE();
-        Timestamp getCREATED_BY();
-        Long getTotalConsumer();
-        Long getTotalTrigger();
+        String getCREATED_BY();
+        Integer getTotalConsumer();
+        Integer getTotalTrigger();
         String getCHANNEL_NAME();
 }
