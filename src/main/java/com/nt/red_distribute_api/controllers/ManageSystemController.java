@@ -27,13 +27,17 @@ import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
 import com.nt.red_distribute_api.service.KafkaClientService;
 import com.nt.red_distribute_api.service.ManageSystemService;
+import com.nt.red_distribute_api.service.NotificationMessageService;
 import com.nt.red_distribute_api.service.OrderTypeService;
 import com.nt.red_distribute_api.service.SaMetricNotificationService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.kafka.common.config.TopicConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +61,9 @@ public class ManageSystemController {
 
     @Autowired
     private ManageSystemService manageSystemService;
+
+    @Autowired
+    private NotificationMessageService notificationMsgService;
 
     @Autowired
     private ConsumerService consumerService;
@@ -415,6 +422,7 @@ public class ManageSystemController {
 
             Long consumerID = consumerService.registerConsumer(req, vsf.getUsername());
             String consumerGroup = req.getSystem_name().toLowerCase() + req.getUsername().toLowerCase();
+            req.setConsumer_group(consumerGroup);
             System.out.println("registered consumer id: " + consumerID);
             ConsumerEntity consumerDetail = consumerService.consumerDetail(consumerID);
             
@@ -621,6 +629,11 @@ public class ManageSystemController {
             );
 
             PaginationDataResp listConsumers = manageSystemService.ListManageConsumers(req);
+
+            Collection<String> topics = Collections.singletonList("PACKAGE_EXPIRE");
+            String groupId = "sms_module.worker.test";
+
+            kafkaClientService.calculateConsumerLag(groupId, topics);
             
             resp.setDraw(draw);
             resp.setCount(listConsumers.getCount());
@@ -693,7 +706,7 @@ public class ManageSystemController {
         HttpServletRequest request,
         @RequestParam(name = "draw", defaultValue = "11")Integer draw,
         @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
-        @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
+        @RequestParam(name = "order[0][name]", defaultValue = "updated_date")String sortName,
         @RequestParam(name = "start_time" , defaultValue = "")String startTime,
         @RequestParam(name = "end_time" , defaultValue = "")String endTime,
         @RequestParam(name = "start", defaultValue = "0")Integer start,
@@ -724,6 +737,54 @@ public class ManageSystemController {
             resp.setRecordsTotal(saMetrics.getCount());
             resp.setCount(saMetrics.getCount());
             resp.setData(saMetrics.getData());
+            return new ResponseEntity<>(resp, HttpStatus.OK);
+        } catch (Exception e) {
+            resp.setDraw(draw);
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while getting : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/metrics/notification_messages")
+    public ResponseEntity<DefaultControllerResp> getManageMetricNotificationMessages(
+        HttpServletRequest request,
+        @RequestParam(name = "draw", defaultValue = "11")Integer draw,
+        @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
+        @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
+        @RequestParam(name = "start_time" , defaultValue = "")String startTime,
+        @RequestParam(name = "end_time" , defaultValue = "")String endTime,
+        @RequestParam(name = "start", defaultValue = "0")Integer start,
+        @RequestParam(name = "length", defaultValue = "10")Integer length,
+        @RequestParam(name = "Search", defaultValue = "")String search,
+        @RequestParam(name = "Search_field", defaultValue = "")String searchField
+    ) {
+        String requestHeader = request.getHeader("Authorization");
+        String ipAddress = request.getRemoteAddr();
+        VerifyAuthResp vsf = helper.verifyToken(requestHeader);
+        DefaultControllerResp resp = new DefaultControllerResp();
+        try {
+            DefaultListReq req = new DefaultListReq(
+                draw,
+                sortBy,
+                sortName,
+                startTime,
+                endTime,
+                start,
+                length,
+                search,
+                searchField
+            );
+
+            PaginationDataResp notifications = notificationMsgService.ListMetricNotificationMessages(req);
+            resp.setDraw(draw);
+            resp.setRecordsFiltered(notifications.getCount());
+            resp.setRecordsTotal(notifications.getCount());
+            resp.setCount(notifications.getCount());
+            resp.setData(notifications.getData());
             return new ResponseEntity<>(resp, HttpStatus.OK);
         } catch (Exception e) {
             resp.setDraw(draw);

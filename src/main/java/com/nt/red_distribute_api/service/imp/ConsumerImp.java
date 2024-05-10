@@ -39,6 +39,7 @@ public class ConsumerImp implements ConsumerService {
         newConsumer.setUsername(req.getUsername());
         newConsumer.setSystem_name(req.getSystem_name());
         newConsumer.setPassword(passwordEncode);
+        newConsumer.setConsumer_group(req.getConsumer_group());
         newConsumer.setDepartmentName(req.getDepartment_name());
         newConsumer.setContactName(req.getContact_name());
         newConsumer.setEmail(req.getEmail());

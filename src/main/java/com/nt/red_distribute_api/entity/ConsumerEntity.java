@@ -30,6 +30,9 @@ public class ConsumerEntity {
     @Column(name = "username", nullable = true)
     private String username=null;
 
+    @Column(name = "consumer_group", nullable = true)
+    private String consumer_group=null;
+
     @Column(name = "system_name", nullable = true)
     private String system_name=null;
 

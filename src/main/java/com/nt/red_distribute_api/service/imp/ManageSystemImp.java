@@ -13,11 +13,13 @@ import com.nt.red_distribute_api.dto.req.DefaultListReq;
 import com.nt.red_distribute_api.dto.req.consumer.ListConsumerReq;
 import com.nt.red_distribute_api.dto.req.manage_system.ListConsumerByOrderTypeReq;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
+import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
 import com.nt.red_distribute_api.entity.view.consumer.ListConsumerTopic;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboardTrigger;
 import com.nt.red_distribute_api.entity.view.trigger.DashboardTrigger;
 import com.nt.red_distribute_api.repo.ConsumerRepo;
 import com.nt.red_distribute_api.repo.OrderTypeRepo;
+import com.nt.red_distribute_api.repo.SaMetricNotificationRepo;
 import com.nt.red_distribute_api.service.ManageSystemService;
 
 @Service
@@ -25,6 +27,8 @@ public class ManageSystemImp implements ManageSystemService{
     @Autowired
     private OrderTypeRepo orderTypeRepo;
 
+    @Autowired
+    private SaMetricNotificationRepo saMetricNotificationRepo;
 
     @Autowired
     private ConsumerRepo consumerRepo;
@@ -154,8 +158,17 @@ public class ManageSystemImp implements ManageSystemService{
 
     @Override
     public PaginationDataResp ListManageMetrics(DefaultListReq req) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ListManageMetrics'");
+        PaginationDataResp resp = new PaginationDataResp();
+        Integer offset = req.getStart();
+        Integer limit = req.getLength();
+        Integer page = offset / limit;
+        String sortName = req.getSortName();
+        String sortBy = req.getSortBy();
+        List<SaMetricNotificationEntity> consumerList = saMetricNotificationRepo.ListSaMetrics(PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+        Integer count = saMetricNotificationRepo.getTotalCount();
+        resp.setCount(count);
+        resp.setData(consumerList);
+        return resp;
     }
 
 }

@@ -15,6 +15,7 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.AlterUserScramCredentialsResult;
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
+import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.CreateAclsResult;
 import org.apache.kafka.clients.admin.CreateTopicsOptions;
 import org.apache.kafka.clients.admin.DeleteAclsResult;
@@ -23,6 +24,7 @@ import org.apache.kafka.clients.admin.DeleteRecordsResult;
 import org.apache.kafka.clients.admin.DeletedRecords;
 import org.apache.kafka.clients.admin.DescribeAclsResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
+import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
 import org.apache.kafka.clients.admin.ListOffsetsOptions;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
@@ -36,7 +38,9 @@ import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.UserScramCredentialDeletion;
 import org.apache.kafka.clients.admin.UserScramCredentialUpsertion;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
@@ -315,29 +319,39 @@ public class KafkaClientService {
         }
     }
 
-    // public void purgeDataInTopic(String topicName) {
-    //     try {
-    //         int partitionCount;
-    //         try {
-    //             DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topicName));
-    //             Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
-    //             TopicDescription topicDescription = topicDescriptionMap.get(topicName);
-    //             partitionCount = topicDescription.partitions().size();
-    //         } catch (InterruptedException | ExecutionException e) {
-    //             e.printStackTrace();
-    //             return;
-    //         }
-    //         for (Integer i = 0; i<partitionCount;i++){
-    //             TopicPartition topicPartition = new TopicPartition(topicName, 0);
-    //             Map<TopicPartition, RecordsToDelete> deleteMap = new HashMap<>();
-    //             deleteMap.put(topicPartition, RecordsToDelete.beforeOffset(6));
-    //             DeleteRecordsResult deleteRecordsResult = client.deleteRecords(topicPartitionRecordToDelete);
-    //             deleteRecordsResult.all().get();
-    //         }
-    //     } finally {
-    //         client.close();
-    //     }
-    // }
+    public Map<TopicPartition, Long> calculateConsumerLag(String groupId, Collection<String> topics) throws InterruptedException, ExecutionException {
+        Map<TopicPartition, Long> consumerLagMap = new HashMap<>();
+
+        // Get end offsets for the topic partitions
+        Map<TopicPartition, OffsetSpec> endOffsetsRequest = new HashMap<>();
+        for (String topic : topics) {
+            DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topic));
+            Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
+            for (Map.Entry<String, TopicDescription> entry : topicDescriptionMap.entrySet()) {
+                TopicDescription topicDescription = entry.getValue();
+                for (TopicPartitionInfo partitionInfo : topicDescription.partitions()) {
+                    TopicPartition topicPartition = new TopicPartition(topic, partitionInfo.partition());
+                    endOffsetsRequest.put(topicPartition, OffsetSpec.latest());
+                }
+            }
+        }
+        Map<TopicPartition, ListOffsetsResultInfo> endOffsetsResponse = client.listOffsets(endOffsetsRequest).all().get();
+
+        // Get current offsets for the consumer group
+        Map<TopicPartition, OffsetAndMetadata> currentOffsetsResponse = client.listConsumerGroupOffsets(groupId).partitionsToOffsetAndMetadata().get();
+
+        // Calculate lag for each partition
+        for (Map.Entry<TopicPartition, ListOffsetsResultInfo> entry : endOffsetsResponse.entrySet()) {
+            TopicPartition partition = entry.getKey();
+            Long endOffset = entry.getValue().offset();
+            Long currentOffset = currentOffsetsResponse.containsKey(partition) ? currentOffsetsResponse.get(partition).offset() : 0L;
+            Long lag = endOffset - currentOffset;
+            consumerLagMap.put(partition, lag);
+            System.out.println("endOffset: "+endOffset+", currentOffset: "+currentOffset + ", lag: "+lag);
+        }
+
+        return consumerLagMap;
+    }
 
     public void purgeDataInTopic(String topicName) {
         synchronized (lock) {
@@ -365,7 +379,7 @@ public class KafkaClientService {
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             } finally {
-                // Close AdminClient outside of the loop
+                client.close();
             }
         }
     }
