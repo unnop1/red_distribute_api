@@ -18,18 +18,28 @@ import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.CreateAclsResult;
 import org.apache.kafka.clients.admin.CreateTopicsOptions;
 import org.apache.kafka.clients.admin.DeleteAclsResult;
+import org.apache.kafka.clients.admin.DeleteRecordsOptions;
+import org.apache.kafka.clients.admin.DeleteRecordsResult;
+import org.apache.kafka.clients.admin.DeletedRecords;
 import org.apache.kafka.clients.admin.DescribeAclsResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
+import org.apache.kafka.clients.admin.ListOffsetsOptions;
+import org.apache.kafka.clients.admin.ListOffsetsResult;
+import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
 import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.ScramCredentialInfo;
 import org.apache.kafka.clients.admin.ScramMechanism;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.UserScramCredentialDeletion;
 import org.apache.kafka.clients.admin.UserScramCredentialUpsertion;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AccessControlEntryFilter;
 import org.apache.kafka.common.acl.AclBinding;
@@ -51,9 +61,12 @@ import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 public class KafkaClientService {
     private AdminClient client = null;
 
+    private final Object lock = new Object();
+
+    private Properties props = new Properties();
+
     public KafkaClientService() {
         // Ideally, you would import these settings from a properties file or the like
-        Properties props = new Properties();
         // props.setProperty("ssl.endpoint.identification.algorithm", "https");
         props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "34.142.215.79:9092,34.142.251.254:9092");
         props.setProperty("security.protocol", "SASL_PLAINTEXT");
@@ -302,41 +315,71 @@ public class KafkaClientService {
         }
     }
 
+    // public void purgeDataInTopic(String topicName) {
+    //     try {
+    //         int partitionCount;
+    //         try {
+    //             DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topicName));
+    //             Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
+    //             TopicDescription topicDescription = topicDescriptionMap.get(topicName);
+    //             partitionCount = topicDescription.partitions().size();
+    //         } catch (InterruptedException | ExecutionException e) {
+    //             e.printStackTrace();
+    //             return;
+    //         }
+    //         for (Integer i = 0; i<partitionCount;i++){
+    //             TopicPartition topicPartition = new TopicPartition(topicName, 0);
+    //             Map<TopicPartition, RecordsToDelete> deleteMap = new HashMap<>();
+    //             deleteMap.put(topicPartition, RecordsToDelete.beforeOffset(6));
+    //             DeleteRecordsResult deleteRecordsResult = client.deleteRecords(topicPartitionRecordToDelete);
+    //             deleteRecordsResult.all().get();
+    //         }
+    //     } finally {
+    //         client.close();
+    //     }
+    // }
+
     public void purgeDataInTopic(String topicName) {
-        // Get the partition count for the topic
-        int partitionCount;
-        try {
-            DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topicName));
-            Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
-            TopicDescription topicDescription = topicDescriptionMap.get(topicName);
-            partitionCount = topicDescription.partitions().size();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        // Purge data from each partition
-        for (int partitionIndex = 0; partitionIndex < partitionCount; partitionIndex++) {
-            TopicPartition topicPartition = new TopicPartition(topicName, partitionIndex);
-            long lastOffset = getLastOffset(topicPartition);
-            RecordsToDelete recordsToDelete = RecordsToDelete.beforeOffset(lastOffset);
-
-            Map<TopicPartition, RecordsToDelete> topicPartitionRecordToDelete = Collections.singletonMap(topicPartition, recordsToDelete);
+        synchronized (lock) {
             try {
-                client.deleteRecords(topicPartitionRecordToDelete).all().get();
-                System.out.println("Data purged successfully from partition " + partitionIndex);
+                DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topicName));
+                Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
+                for (Map.Entry<String, TopicDescription> entry : topicDescriptionMap.entrySet()) {
+                    TopicDescription topicDescription = entry.getValue();
+                    for (TopicPartitionInfo partitionInfo : topicDescription.partitions()) {
+                        TopicPartition topicPartition = new TopicPartition(topicName, partitionInfo.partition());
+                        long lastOffset = getLastOffset(topicPartition);
+                        RecordsToDelete recordsToDelete = RecordsToDelete.beforeOffset(lastOffset);
+                        Map<TopicPartition, RecordsToDelete> topicPartitionRecordToDelete = Collections.singletonMap(topicPartition, recordsToDelete);
+                        DeleteRecordsResult deleteRecordsResult = client.deleteRecords(topicPartitionRecordToDelete);
+                        Map<TopicPartition, KafkaFuture<DeletedRecords>> lowWatermarks = deleteRecordsResult.lowWatermarks();
+                        try {
+                            for (Map.Entry<TopicPartition, KafkaFuture<DeletedRecords>> entryDelete : lowWatermarks.entrySet()) {
+                                System.out.println(entryDelete.getKey().topic() + " " + entryDelete.getKey().partition() + " " + entryDelete.getValue().get().lowWatermark());
+                            }
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
+            } finally {
+                // Close AdminClient outside of the loop
             }
         }
-
-        client.close();
+    }
+    
+    private long getLastOffset(TopicPartition topicPartition) throws ExecutionException, InterruptedException {
+        try {
+            ListOffsetsResult listOffsetsResult = client.listOffsets(Collections.singletonMap(topicPartition, OffsetSpec.latest()));
+            Map<TopicPartition, ListOffsetsResultInfo> offsets = listOffsetsResult.all().get();
+            return offsets.get(topicPartition).offset();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception
+        }
     }
 
-    private long getLastOffset(TopicPartition topicPartition) {
-        // Implement a method to fetch the last offset for the given partition
-        // This could be done using a Kafka consumer
-        // Here, we'll assume it returns a hardcoded value for demonstration purposes
-        return 5L;
-    }
+
 }

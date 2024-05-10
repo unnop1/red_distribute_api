@@ -251,11 +251,21 @@ public class ManageSystemController {
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
             
+            // recreate orderType in kafka server
+            if (req.getUpdateInfo().getIs_delete().equals(0)){
+                TopicReq topicUpdate = new TopicReq();
+                topicUpdate.setTopicName(updateOrderType.getOrderTypeName());
+                topicUpdate.setRetentionMs(updateOrderType.getMESSAGE_EXPIRE());
+                topicUpdate.setReplicationFactor((short) 2); // fix for test
+                kafkaClientService.createTopic(topicUpdate);
+            }
+
             // update orderType in kafka server
             if (!req.getUpdateInfo().getMessage_expire().isEmpty()){
                 TopicReq topicUpdate = new TopicReq();
                 topicUpdate.setTopicName(updateOrderType.getOrderTypeName());
                 topicUpdate.setRetentionMs(updateOrderType.getMESSAGE_EXPIRE());
+                topicUpdate.setReplicationFactor((short) 2); // fix for test
                 kafkaClientService.updateTopic(topicUpdate);
             }
 
@@ -373,13 +383,6 @@ public class ManageSystemController {
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
 
-            if( orderTypeData == null ){
-                resp.setCount(0);
-                resp.setData(null);
-                resp.setStatusCode(HttpStatus.NOT_FOUND.value());
-                resp.setMessage("Error Not Found order type id "+orderTypeID);
-                return new ResponseEntity<>(resp, HttpStatus.NOT_FOUND);
-            }
             
             resp.setMessage("Purge all messages in order type "+orderTypeData.getOrderTypeName());
 
