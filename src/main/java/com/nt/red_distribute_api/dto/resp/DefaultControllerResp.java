@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DefaultControllerResp {
-    private int statusCode;
+    private int statusCode=200;
     private int count;
     private String message;
     private Object data;

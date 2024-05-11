@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
+import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboard;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboardTrigger;
 
 import org.springframework.data.domain.Pageable;
@@ -46,14 +47,14 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
 
     @Query(value = """
                 SELECT 
-                    odt.*,
+                odt.id, odt.ordertype_name, odt.message_expire, odt.is_delete, odt.is_enable,
                     (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ordertype_id = odt.id) AS TotalConsumer
-                FROM 
-                    ordertype odt
+                FROM ordertype odt
+                OFFSET ?1 ROWS FETCH NEXT ?2 ROWS ONLY 
                    """,
                  nativeQuery = true)
-    public List<OrderTypeDashboardTrigger> ListManageOrderType(
-      Pageable pageable
+    public List<OrderTypeDashboard> ListManageOrderType(
+      Integer offset, Integer limit
     );
 
     @Query(value = """

@@ -15,6 +15,7 @@ import com.nt.red_distribute_api.dto.req.manage_system.ListConsumerByOrderTypeRe
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
 import com.nt.red_distribute_api.entity.view.consumer.ListConsumerTopic;
+import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboard;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboardTrigger;
 import com.nt.red_distribute_api.entity.view.trigger.DashboardTrigger;
 import com.nt.red_distribute_api.repo.ConsumerRepo;
@@ -36,7 +37,8 @@ public class ManageSystemImp implements ManageSystemService{
     @Override
     public PaginationDataResp ListManageOrderTypes(Integer page, Integer limit) {
         PaginationDataResp resp = new PaginationDataResp();
-        List<OrderTypeDashboardTrigger> data = orderTypeRepo.ListManageOrderType(PageRequest.of(page, limit));
+        Integer offset = (page - 1) * limit;
+        List<OrderTypeDashboard> data = orderTypeRepo.ListManageOrderType(offset, limit);
         Integer count = orderTypeRepo.getListManageOrderTypeTotal();
         resp.setCount(count);
         resp.setData(data);
