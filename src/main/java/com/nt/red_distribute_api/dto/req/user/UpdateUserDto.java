@@ -23,13 +23,13 @@ public class UpdateUserDto {
         @JsonProperty("is_enable")
         private Integer is_enable=null;
 
-        @JsonProperty("phonenumber")
+        @JsonProperty("phone_number")
         private String phonenumber="";
 
         @JsonProperty("password")
         private String password="";
 
-        @JsonProperty("departmentname")
+        @JsonProperty("department_name")
         private String departmentName="";
 
         @JsonProperty("sa_menu_permission_id")

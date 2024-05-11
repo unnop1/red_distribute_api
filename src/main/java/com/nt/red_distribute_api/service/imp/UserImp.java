@@ -125,18 +125,24 @@ public class UserImp implements UserService {
 
     }
     @Override
-    public UserResp createUser(UserRequestDto userRequestDto, String createdBy) {
-        UserEntity foundUser = this.userRepo.loadByUniqueUser(userRequestDto.getEmail(), userRequestDto.getUsername());
+    public UserResp createUser(UserRequestDto req, String createdBy) {
+        UserEntity foundUser = this.userRepo.loadByUniqueUser(req.getEmail(), req.getUsername());
         if (foundUser == null) {
             // Creat a new user
             Timestamp timeNow = DateTime.getTimeStampNow();
-            UserEntity user = this.userReqDtoToUserEntity(userRequestDto);
+            UserEntity user = new UserEntity();
+            user.setAbout_me(req.getAboutMe());
+            user.setDepartmentname(req.getDepartmentName());
+            user.setEmail(req.getEmail());
+            user.setUsername(req.getUsername());
+            user.setName(req.getName());
+            user.setPhoneNumber(req.getPhonenumber());
             user.setCreated_by(createdBy);
             user.setCreated_Date(timeNow);
             // Encode password  
-            user.setPassword(authConfig.passwordEncoder().encode(user.getPassword()));
+            user.setPassword(authConfig.passwordEncoder().encode(req.getPassword()));
             // Set permissions
-            user.setSa_menu_permission_id(userRequestDto.getPermissionID());
+            user.setSa_menu_permission_id(req.getPermissionID());
             
 
             UserEntity createdUser = userRepo.save(user);
@@ -144,13 +150,8 @@ public class UserImp implements UserService {
             return this.userEntityToUserRespDto(createdUser);
         } else {
             // User already exists, throw an exception
-            throw new UserAlreadyExistsException("User with email " + userRequestDto.getUsername() + " already exists");
+            throw new UserAlreadyExistsException("User with email " + req.getUsername() + " already exists");
         }
-    }
-
-    public UserEntity userReqDtoToUserEntity(Object userReqDto){
-        UserEntity user = this.modelMapper.map(userReqDto,UserEntity.class);
-        return user;
     }
     
     public UserResp userEntityToUserRespDto(UserEntity user){
@@ -168,7 +169,7 @@ public class UserImp implements UserService {
     public void updateUserLogLogin(Long userID, HashMap<String, Object> updateInfo) {
         UserEntity foundUser = this.userRepo.findByID(userID);
         System.out.println("foundUser:"+foundUser.getUsername());
-        if (foundUser.getUsername() != null) {
+        if (foundUser != null) {
             for (Map.Entry<String, Object> entry : updateInfo.entrySet()) {
                 String fieldName = entry.getKey();
                 Object fieldValue = entry.getValue();

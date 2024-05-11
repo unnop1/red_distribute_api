@@ -20,13 +20,13 @@ public class UserRequestDto {
         @JsonProperty("username")
         private String username;
 
-        @JsonProperty("phonenumber")
+        @JsonProperty("phone_number")
         private String phonenumber;
 
         @JsonProperty("password")
         private String password;
 
-        @JsonProperty("departmentname")
+        @JsonProperty("department_name")
         private String departmentName=null;
 
         @JsonProperty("sa_menu_permission_id")
