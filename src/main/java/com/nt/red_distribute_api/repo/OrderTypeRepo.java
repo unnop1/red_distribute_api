@@ -7,15 +7,28 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboard;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboardTrigger;
+import com.nt.red_distribute_api.entity.view.trigger.TriggerOrderTypeCount;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
+
+    @Query(value = """
+      SELECT 
+        odt.*,
+        (SELECT COUNT(id) FROM trigger_message trg WHERE trg.ordertype_id = odt.id AND TRUNC(trg.RECEIVE_DATE) = TRUNC(SYSDATE) ) AS TotalTrigger
+      FROM 
+        ordertype odt
+      LEFT JOIN sa_channel_connect sac
+      ON sac.id = odt.SA_CHANNEL_CONNECT_ID
+        """,
+      nativeQuery = true)
+    public List<TriggerOrderTypeCount> AllOrderTypeTriggerCount(
+    );
 
     @Query(value = """
                   SELECT * 

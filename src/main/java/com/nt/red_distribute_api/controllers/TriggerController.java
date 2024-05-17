@@ -12,10 +12,13 @@ import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
 import com.nt.red_distribute_api.entity.AuditLogEntity;
 import com.nt.red_distribute_api.entity.PermissionMenuEntity;
 import com.nt.red_distribute_api.entity.TriggerMessageEntity;
+import com.nt.red_distribute_api.entity.view.trigger.TriggerOrderTypeCount;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.TriggerMessageService;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -191,6 +194,31 @@ public class TriggerController {
                 resp.setMessage("Not found");
                 return new ResponseEntity<>( resp, HttpStatus.NOT_FOUND);
             }
+            
+        }catch (Exception e){
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while getting : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/count/by_ordertype")
+    public ResponseEntity<DefaultControllerResp> getTriggerOrderTypeCount(
+        HttpServletRequest request
+    ){
+        String ipAddress = request.getRemoteAddr();
+        String requestHeader = request.getHeader("Authorization");
+            
+        VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+        DefaultControllerResp resp = new DefaultControllerResp();
+
+        try {
+            List<TriggerOrderTypeCount> triggerCountMsg = triggerService.CountTriggerAllOrderType();
+            resp.setCount(triggerCountMsg.size());
+            resp.setData(triggerCountMsg);
+            return new ResponseEntity<>( resp, HttpStatus.OK);
             
         }catch (Exception e){
             resp.setCount(0);

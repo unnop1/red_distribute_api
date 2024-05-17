@@ -13,6 +13,7 @@ import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.entity.TriggerMessageEntity;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboardTrigger;
 import com.nt.red_distribute_api.entity.view.trigger.DashboardTrigger;
+import com.nt.red_distribute_api.entity.view.trigger.TriggerOrderTypeCount;
 import com.nt.red_distribute_api.repo.OrderTypeRepo;
 import com.nt.red_distribute_api.repo.TriggerRepo;
 import com.nt.red_distribute_api.service.TriggerMessageService;
@@ -37,8 +38,9 @@ public class TriggerImp implements TriggerMessageService{
         String sortBy = req.getSortBy();
         Long channelID = req.getChannelID();
         // System.out.println("startTime:" + startTime + " endTime:" + endTime);
+        System.out.println("channelID:" + channelID );
         System.out.println("sortName:" + sortName + " sortBy:" + sortBy);
-        if (channelID != 0){
+        if (channelID == 0){
             List<OrderTypeDashboardTrigger> dashboards = orderTypeRepo.OrderTypeTriggerDashboard(PageRequest.of(0, 5000, Sort.Direction.fromString(sortBy), sortName));
             resp.setData(dashboards);
             resp.setCount(dashboards.size());
@@ -160,6 +162,12 @@ public class TriggerImp implements TriggerMessageService{
     public TriggerMessageEntity TriggerDetail(Long triggerID) {
         TriggerMessageEntity trigger = triggerRepo.findTriggerById(triggerID);
         return trigger;
+    }
+
+    @Override
+    public List<TriggerOrderTypeCount> CountTriggerAllOrderType() {        
+        List<TriggerOrderTypeCount> resp = orderTypeRepo.AllOrderTypeTriggerCount();
+        return resp;
     }
     
 }

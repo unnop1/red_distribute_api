@@ -163,10 +163,17 @@ public class ManageSystemImp implements ManageSystemService{
         PaginationDataResp resp = new PaginationDataResp();
         Integer offset = req.getStart();
         Integer limit = req.getLength();
-        Integer page = offset / limit;
         String sortName = req.getSortName();
         String sortBy = req.getSortBy();
-        List<SaMetricNotificationEntity> consumerList = saMetricNotificationRepo.ListSaMetrics(PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+        List<SaMetricNotificationEntity> consumerList;
+        if (limit == null || limit <= 0) {
+            // No limit case, fetch all results
+            consumerList = saMetricNotificationRepo.findAll(Sort.by(Sort.Direction.fromString(req.getSortBy()), req.getSortName()));
+        } else {
+            // Pagination case
+            Integer page = offset / limit;
+            consumerList = saMetricNotificationRepo.ListSaMetrics(PageRequest.of(page, limit, Sort.Direction.fromString(req.getSortBy()), req.getSortName()));
+        }
         Integer count = saMetricNotificationRepo.getTotalCount();
         resp.setCount(count);
         resp.setData(consumerList);
