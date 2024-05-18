@@ -10,8 +10,6 @@ import com.nt.red_distribute_api.dto.resp.JwtErrorResp;
 import com.nt.red_distribute_api.dto.resp.LoginResp;
 import com.nt.red_distribute_api.dto.resp.UserResp;
 import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
-import com.nt.red_distribute_api.entity.AuditLogEntity;
-import com.nt.red_distribute_api.entity.AuditLogEntity;
 import com.nt.red_distribute_api.entity.LogLoginEntity;
 import com.nt.red_distribute_api.entity.PermissionMenuEntity;
 import com.nt.red_distribute_api.entity.UserEntity;
@@ -21,8 +19,7 @@ import com.nt.red_distribute_api.service.LogLoginService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
 import com.nt.red_distribute_api.service.UserService;
 
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -37,7 +34,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

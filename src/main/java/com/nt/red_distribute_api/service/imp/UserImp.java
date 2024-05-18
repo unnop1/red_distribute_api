@@ -5,7 +5,6 @@ import com.nt.red_distribute_api.dto.req.user.ListUserReq;
 import com.nt.red_distribute_api.dto.req.user.UpdateUserDto;
 import com.nt.red_distribute_api.dto.req.user.UserRequestDto;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
-import com.nt.red_distribute_api.dto.resp.UserInfoResp;
 import com.nt.red_distribute_api.dto.resp.UserResp;
 import com.nt.red_distribute_api.entity.UserEntity;
 import com.nt.red_distribute_api.entity.view.user.ListUser;
@@ -28,7 +27,6 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class UserImp implements UserService {

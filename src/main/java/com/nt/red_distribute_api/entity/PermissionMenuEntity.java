@@ -9,7 +9,7 @@ import lombok.ToString;
 
 import java.sql.Timestamp;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
 @Entity
 @Getter

@@ -2,7 +2,7 @@ package com.nt.red_distribute_api.entity;
 
 import java.sql.Timestamp;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

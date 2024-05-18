@@ -20,7 +20,6 @@ import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
-import com.nt.red_distribute_api.entity.view.consumer.ListConsumerTopic;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
@@ -31,15 +30,12 @@ import com.nt.red_distribute_api.service.NotificationMessageService;
 import com.nt.red_distribute_api.service.OrderTypeService;
 import com.nt.red_distribute_api.service.SaMetricNotificationService;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-
-import org.apache.kafka.common.config.TopicConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

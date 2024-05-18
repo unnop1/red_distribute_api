@@ -3,7 +3,7 @@ package com.nt.red_distribute_api.entity.view.permission;
 
 import java.sql.Timestamp;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

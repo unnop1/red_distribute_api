@@ -62,7 +62,7 @@ import org.springframework.stereotype.Service;
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 
 @Service
 public class KafkaClientService {

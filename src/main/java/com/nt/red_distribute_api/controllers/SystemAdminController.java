@@ -14,7 +14,7 @@ import com.nt.red_distribute_api.entity.PermissionMenuEntity;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
