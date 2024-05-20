@@ -13,10 +13,10 @@ public class RedDistributeApiApplication extends SpringBootServletInitializer {
         SpringApplication.run(RedDistributeApiApplication.class, args);
     }
 
-    //If you need a traditional war deployment we need to extend the SpringBootServletInitializer
-    //This helps us deploy war files to Jboss containers
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder springApplicationBuilder) {
-        return springApplicationBuilder.sources(RedDistributeApiApplication.class);
-    }
+    // //If you need a traditional war deployment we need to extend the SpringBootServletInitializer
+    // //This helps us deploy war files to Jboss containers
+    // @Override
+    // protected SpringApplicationBuilder configure(SpringApplicationBuilder springApplicationBuilder) {
+    //     return springApplicationBuilder.sources(RedDistributeApiApplication.class);
+    // }
 }
