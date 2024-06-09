@@ -40,6 +40,7 @@ public class ListPermissionTotalUser {
         @Column(name = "updated_By", unique = false,nullable = true)
         private String updated_By=null;
 
+        @Transient
         @Column(name = "totalUser", unique = false,nullable = true)
         private Integer totalUser=0;
 }
