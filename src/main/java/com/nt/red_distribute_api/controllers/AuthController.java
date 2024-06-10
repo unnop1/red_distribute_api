@@ -115,102 +115,106 @@ public class AuthController {
 
     @PostMapping(value="/login", produces = "application/json")
     @ResponseBody
-    public LoginResp login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) throws java.io.IOException {
-        // // Get the IP address from the request
-        // String ipAddress = request.getRemoteAddr();
-        // logger.info("IP Address: {}", ipAddress);
-        // logger.info("jwtUsername: {}", jwtRequest.getUsername());
+    public ResponseEntity<Object> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, BindingResult bindingResult) throws java.io.IOException {
+        // Get the IP address from the request
+        if (bindingResult.hasErrors()) {
+            // Handle binding errors here
+            // You can log errors or return a custom error response
+            // For simplicity, let's just return a generic error response
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
+        } 
+        try{
+            String ipAddress = request.getRemoteAddr();
+            logger.info("IP Address: {}", ipAddress);
+            logger.info("jwtUsername: {}", jwtRequest.getUsername());
 
-        // // Log login
-        LoginResp loginResp = new LoginResp();
-        // Timestamp loginDateTime = new Timestamp(Instant.now().toEpochMilli());
-        // LogLoginEntity loglogin = new LogLoginEntity();
-        // loglogin.setBrowser(jwtRequest.getBrowser());
-        // loglogin.setDevice(jwtRequest.getDevice());
-        // loglogin.setSystem(jwtRequest.getSystem());
-        // loglogin.setIp_address(ipAddress);
-        // loglogin.setLogin_datetime(loginDateTime);
-        // loglogin.setCreate_date(loginDateTime);
-        // loglogin.setUsername(jwtRequest.getUsername());
+            // Log login
+            LoginResp loginResp = new LoginResp();
+            Timestamp loginDateTime = new Timestamp(Instant.now().toEpochMilli());
+            LogLoginEntity loglogin = new LogLoginEntity();
+            loglogin.setBrowser(jwtRequest.getBrowser());
+            loglogin.setDevice(jwtRequest.getDevice());
+            loglogin.setSystem(jwtRequest.getSystem());
+            loglogin.setIp_address(ipAddress);
+            loglogin.setLogin_datetime(loginDateTime);
+            loglogin.setCreate_date(loginDateTime);
+            loglogin.setUsername(jwtRequest.getUsername());
 
-        // UserEntity userDetails = userService.findUserLogin(jwtRequest.getUsername());
-        // if (userDetails == null) {
-        //     logger.error("User not found: {}", jwtRequest.getUsername());
-        //     // return ResponseEntity.badRequest().body(null);
-        //     return loginResp;
-        // }
+            UserEntity userDetails = userService.findUserLogin(jwtRequest.getUsername());
+            if (userDetails == null) {
+                logger.error("User not found: {}", jwtRequest.getUsername());
+                return ResponseEntity.badRequest().body("error: User not found");
+                // return loginResp;
+            }
 
-        // this.doAuthenticate(userDetails.getUsername(), jwtRequest.getPassword(), loglogin);
+            this.doAuthenticate(userDetails.getUsername(), jwtRequest.getPassword(), loglogin);
 
-        // String token = this.helper.generateToken(jwtRequest, userDetails.getEmail());
-        // logger.info("Generated token: {}", token);
+            String token = this.helper.generateToken(jwtRequest, userDetails.getEmail());
+            logger.info("Generated token: {}", token);
 
-        // HashMap<String, Object> updateInfo = new HashMap<>();
-        // updateInfo.put("currentToken", token);
-        // updateInfo.put("last_login", loginDateTime);
-        // updateInfo.put("last_login_ipaddress", ipAddress);
-        // this.userService.updateUserLogLogin(userDetails.getId(), updateInfo);
+            HashMap<String, Object> updateInfo = new HashMap<>();
+            updateInfo.put("currentToken", token);
+            updateInfo.put("last_login", loginDateTime);
+            updateInfo.put("last_login_ipaddress", ipAddress);
+            this.userService.updateUserLogLogin(userDetails.getId(), updateInfo);
 
-        // UserResp userInfo = new UserResp();
-        // userInfo.setId(userDetails.getId());
-        // userInfo.setAbout_Me(userDetails.getAbout_me());
-        // userInfo.setName(userDetails.getName());
-        // userInfo.setUsername(userDetails.getUsername());
-        // userInfo.setPhoneNumber(userDetails.getPhoneNumber());
-        // userInfo.setEmail(userDetails.getEmail());
-        // userInfo.setLast_login(userDetails.getLast_login());
-        // userInfo.setLast_login_ipaddress(ipAddress);
-        // userInfo.setCreated_by(userDetails.getCreated_by());
-        // userInfo.setCreated_Date(userDetails.getCreated_Date());
-        // userInfo.setIs_Enable(userDetails.getIs_Enable());
-        // userInfo.setIs_Delete_by(userDetails.getIs_Delete_by());
-        // userInfo.setIs_Delete(userDetails.getIs_Delete());
-        // userInfo.setUpdated_Date(userDetails.getUpdated_Date());
-        // userInfo.setUpdated_by(userDetails.getUpdated_by());
+            UserResp userInfo = new UserResp();
+            userInfo.setId(userDetails.getId());
+            userInfo.setAbout_Me(userDetails.getAbout_me());
+            userInfo.setName(userDetails.getName());
+            userInfo.setUsername(userDetails.getUsername());
+            userInfo.setPhoneNumber(userDetails.getPhoneNumber());
+            userInfo.setEmail(userDetails.getEmail());
+            userInfo.setLast_login(userDetails.getLast_login());
+            userInfo.setLast_login_ipaddress(ipAddress);
+            userInfo.setCreated_by(userDetails.getCreated_by());
+            userInfo.setCreated_Date(userDetails.getCreated_Date());
+            userInfo.setIs_Enable(userDetails.getIs_Enable());
+            userInfo.setIs_Delete_by(userDetails.getIs_Delete_by());
+            userInfo.setIs_Delete(userDetails.getIs_Delete());
+            userInfo.setUpdated_Date(userDetails.getUpdated_Date());
+            userInfo.setUpdated_by(userDetails.getUpdated_by());
 
-        
-        // loginResp.setUserLogin(userInfo);
-        // loginResp.setJwtToken(token);
+            
+            loginResp.setUserLogin(userInfo);
+            loginResp.setJwtToken(token);
 
-        // PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
-        // String permissionJSonStr;
-        // try {
-        //     permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
-        //     loginResp.setPermissionJson(permissionJSonStr);
-        // } catch (java.io.IOException | SQLException e) {
-        //     // TODO Auto-generated catch block
-        //     e.printStackTrace();
-        // }
-        
-        // loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
+            PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
+            String permissionJSonStr;
+            try {
+                permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                loginResp.setPermissionJson(permissionJSonStr);
+            } catch (java.io.IOException | SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+            loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
-        // AuditLog auditLog = new AuditLog();
-        // auditLog.setAction("login");
-        // auditLog.setAuditable_id(userDetails.getId());
-        // auditLog.setAuditable("user_db");
-        // auditLog.setIp_address(ipAddress);
-        // auditLog.setUsername(userDetails.getUsername());
-        // auditLog.setDevice(jwtRequest.getDevice());
-        // auditLog.setBrowser(jwtRequest.getBrowser());
-        // auditLog.setOperating_system(jwtRequest.getSystem());
-        // auditLog.setComment("authentication login");
-        // auditLog.setCreated_date(DateTime.getTimeStampNow());
-        // auditService.AddAuditLog(auditLog);
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("login");
+            auditLog.setAuditable_id(userDetails.getId());
+            auditLog.setAuditable("user_db");
+            auditLog.setIp_address(ipAddress);
+            auditLog.setUsername(userDetails.getUsername());
+            auditLog.setDevice(jwtRequest.getDevice());
+            auditLog.setBrowser(jwtRequest.getBrowser());
+            auditLog.setOperating_system(jwtRequest.getSystem());
+            auditLog.setComment("authentication login");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
 
-        // logger.info("Response user info: {}", loginResp.getUserLogin());
-        // logger.info("Response JWT token: {}", loginResp.getJwtToken());
-        // logger.info("Response permission JSON: {}", loginResp.getPermissionJson());
-        // logger.info("Response permission name: {}", loginResp.getPermissionName());
+            logger.info("Response user info: {}", loginResp.getUserLogin());
+            logger.info("Response JWT token: {}", loginResp.getJwtToken());
+            logger.info("Response permission JSON: {}", loginResp.getPermissionJson());
+            logger.info("Response permission name: {}", loginResp.getPermissionName());
 
-        // // return ResponseEntity.ok(loginResp);
-        // if(loginResp.getJwtToken()==null){
-        //     loginResp.setJwtToken("error jwt");
-        //     // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginResp);
-        //     return loginResp;
-        // }
-        // return new ResponseEntity<>(loginResp, HttpStatus.OK);
-        // return ResponseEntity.status(HttpStatus.OK).body(loginResp);
-        return loginResp;
+            // return new ResponseEntity<>(loginResp, HttpStatus.OK);
+            return ResponseEntity.status(HttpStatus.OK).body(loginResp);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+        // return loginResp;
 
     }
 
