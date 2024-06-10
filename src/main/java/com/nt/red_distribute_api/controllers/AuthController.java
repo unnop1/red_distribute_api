@@ -180,6 +180,7 @@ public class AuthController {
         auditLog.setComment("authentication login");
         auditLog.setCreated_date(DateTime.getTimeStampNow());
         auditService.AddAuditLog(auditLog);
+        logger.info("token:"+userResp.getJwtToken());
 
         return ResponseEntity.ok(userResp);
     }
