@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.entity;
 
 
+import java.sql.Clob;
 import java.sql.Timestamp;
 
 import jakarta.persistence.*;
@@ -47,7 +48,7 @@ public class TriggerMessageEntity {
         private String MESSAGE_IN = null;
 
         @Column(name = "DATE_MODEL", unique = false,nullable = true)
-        private String DATE_MODEL = null;
+        private Clob DATE_MODEL = null;
 
         @Column(name = "RECEIVE_DATE", unique = false,nullable = true)
         private Timestamp RECEIVE_DATE = null;
