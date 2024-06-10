@@ -1,15 +1,18 @@
 package com.nt.red_distribute_api.entity;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
 import java.sql.Timestamp;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
@@ -23,21 +26,21 @@ public class PermissionMenuEntity {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "permission_Name", unique = false,nullable = true)
+    @Column(name = "PERMISSION_NAME", unique = false,nullable = true)
     private String permission_Name=null;
 
-    @Column(name = "permission_json", unique = false,nullable = true)
+    @Column(name = "PERMISSION_JSON", unique = false,nullable = true)
     private String permission_json=null;
 
-    @Column(name = "created_Date", unique = false,nullable = true)
+    @Column(name = "CREATED_DATE", unique = false,nullable = true)
     private Timestamp created_Date=null;
     
-    @Column(name = "created_By", unique = false,nullable = true)
+    @Column(name = "CREATED_BY", unique = false,nullable = true)
     private String created_By=null;
 
-    @Column(name = "updated_Date", unique = false,nullable = true)
+    @Column(name = "UPDATED_DATE", unique = false,nullable = true)
     private Timestamp updated_Date=null;
 
-    @Column(name = "updated_By", unique = false,nullable = true)
+    @Column(name = "UPDATED_BY", unique = false,nullable = true)
     private String updated_By=null;
 }
