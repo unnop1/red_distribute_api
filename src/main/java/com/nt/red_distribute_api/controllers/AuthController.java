@@ -115,13 +115,14 @@ public class AuthController {
 
     @PostMapping(value="/login", produces = "application/json")
     @ResponseBody
-    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) throws java.io.IOException {
+    public LoginResp login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) throws java.io.IOException {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
         logger.info("IP Address: {}", ipAddress);
         logger.info("jwtUsername: {}", jwtRequest.getUsername());
 
         // Log login
+        LoginResp loginResp = new LoginResp();
         Timestamp loginDateTime = new Timestamp(Instant.now().toEpochMilli());
         LogLoginEntity loglogin = new LogLoginEntity();
         loglogin.setBrowser(jwtRequest.getBrowser());
@@ -135,7 +136,8 @@ public class AuthController {
         UserEntity userDetails = userService.findUserLogin(jwtRequest.getUsername());
         if (userDetails == null) {
             logger.error("User not found: {}", jwtRequest.getUsername());
-            return ResponseEntity.badRequest().body(null);
+            // return ResponseEntity.badRequest().body(null);
+            return loginResp;
         }
 
         this.doAuthenticate(userDetails.getUsername(), jwtRequest.getPassword(), loglogin);
@@ -166,7 +168,7 @@ public class AuthController {
         userInfo.setUpdated_Date(userDetails.getUpdated_Date());
         userInfo.setUpdated_by(userDetails.getUpdated_by());
 
-        LoginResp loginResp = new LoginResp();
+        
         loginResp.setUserLogin(userInfo);
         loginResp.setJwtToken(token);
 
@@ -203,10 +205,12 @@ public class AuthController {
         // return ResponseEntity.ok(loginResp);
         if(loginResp.getJwtToken()==null){
             loginResp.setJwtToken("error jwt");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginResp);
+            // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginResp);
+            return loginResp;
         }
         // return new ResponseEntity<>(loginResp, HttpStatus.OK);
-        return ResponseEntity.status(HttpStatus.OK).body(loginResp);
+        // return ResponseEntity.status(HttpStatus.OK).body(loginResp);
+        return loginResp;
 
     }
 
