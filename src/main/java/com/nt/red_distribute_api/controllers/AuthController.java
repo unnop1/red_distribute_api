@@ -110,8 +110,9 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) throws java.io.IOException {
+    @PostMapping(value="/login", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) throws java.io.IOException {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
         logger.info("IP Address: {}", ipAddress);
@@ -189,8 +190,12 @@ public class AuthController {
         logger.info("Response permission name: {}", loginResp.getPermissionName());
 
         // return ResponseEntity.ok(loginResp);
+        if(loginResp.getJwtToken()==null){
+            loginResp.setJwtToken("error jwt");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginResp);
+        }
         // return new ResponseEntity<>(loginResp, HttpStatus.OK);
-        return ResponseEntity.ok(loginResp);
+        return ResponseEntity.status(HttpStatus.OK).body(loginResp);
 
     }
 
