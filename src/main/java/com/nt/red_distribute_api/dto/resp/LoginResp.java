@@ -15,22 +15,16 @@ import lombok.ToString;
 @ToString
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class LoginResp {
     @JsonProperty("user")
-    @Column(name = "user")
     private UserResp userLogin;
 
     @JsonProperty("access_token")
-    @Column(name = "access_token")
     private String jwtToken;
 
     @JsonProperty("permission_menu")
-    @Column(name = "permission_menu")
     private String permissionJson;
 
-    @JsonProperty("permissionName") 
-    @Column(name = "permissionName")   
+    @JsonProperty("permissionName")    
     private String permissionName;
 }

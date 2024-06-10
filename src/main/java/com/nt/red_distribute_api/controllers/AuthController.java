@@ -3,6 +3,7 @@ package com.nt.red_distribute_api.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.nt.red_distribute_api.Auth.JwtHelper;
+import com.nt.red_distribute_api.Util.Convert;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.auth.JwtRequest;
@@ -26,6 +27,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.PrintWriter;
+import java.sql.Clob;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
@@ -163,19 +166,21 @@ public class AuthController {
         userInfo.setUpdated_Date(userDetails.getUpdated_Date());
         userInfo.setUpdated_by(userDetails.getUpdated_by());
 
-        
-        // loginResp.setUserLogin(userInfo);
-        // loginResp.setJwtToken(token);
+        LoginResp loginResp = new LoginResp();
+        loginResp.setUserLogin(userInfo);
+        loginResp.setJwtToken(token);
 
         PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
-        LoginResp loginResp = new LoginResp(
-            userInfo, 
-            token,
-            permissionMenuEntity.getPermission_json(),
-            permissionMenuEntity.getPermission_Name()
-        );
-        // loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
-        // loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
+        String permissionJSonStr;
+        try {
+            permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+            loginResp.setPermissionJson(permissionJSonStr);
+        } catch (java.io.IOException | SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
         AuditLog auditLog = new AuditLog();
         auditLog.setAction("login");
@@ -242,7 +247,14 @@ public class AuthController {
 
             // permissionMenu
             PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
-            userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
+            String permissionJSonStr;
+            try {
+                permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                userResp.setPermissionJson(permissionJSonStr);
+            } catch (java.io.IOException | SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
             return new ResponseEntity<>(userResp, HttpStatus.OK);

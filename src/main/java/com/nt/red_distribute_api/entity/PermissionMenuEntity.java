@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.entity;
 
 
+import java.sql.Clob;
 import java.sql.Timestamp;
 
 import jakarta.persistence.Column;
@@ -30,7 +31,7 @@ public class PermissionMenuEntity {
     private String permission_Name=null;
 
     @Column(name = "PERMISSION_JSON", unique = false,nullable = true)
-    private String permission_json=null;
+    private Clob permission_json=null;
 
     @Column(name = "CREATED_DATE", unique = false,nullable = true)
     private Timestamp created_Date=null;

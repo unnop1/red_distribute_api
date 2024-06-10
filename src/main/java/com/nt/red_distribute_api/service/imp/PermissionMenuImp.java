@@ -15,6 +15,8 @@ import com.nt.red_distribute_api.repo.PermissionMenuRepo;
 import com.nt.red_distribute_api.repo.UserRepo;
 import com.nt.red_distribute_api.repo.view.permission.ListPermissionTotalUserRepo;
 
+import java.sql.Clob;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.service.PermissionMenuService;
@@ -96,7 +98,15 @@ public class PermissionMenuImp implements PermissionMenuService {
         Timestamp timeNow = DateTime.getTimeStampNow();
         PermissionMenuEntity newPermissionMenu = new PermissionMenuEntity();
         newPermissionMenu.setPermission_Name(req.getPermissionName());
-        newPermissionMenu.setPermission_json(req.getPermission_json());
+        Clob permission_jsonClob;
+        try {
+            permission_jsonClob = new javax.sql.rowset.serial.SerialClob(req.getPermission_json().toCharArray());
+            newPermissionMenu.setPermission_json(permission_jsonClob);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
         newPermissionMenu.setCreated_By(createdBy);
         newPermissionMenu.setCreated_Date(timeNow);
         PermissionMenuEntity created = permissionMenuRepo.save(newPermissionMenu);
@@ -115,7 +125,14 @@ public class PermissionMenuImp implements PermissionMenuService {
             }
 
             if (updates.getPermission_json() != null ){
-                existingEntity.setPermission_json(updates.getPermission_json());
+                Clob permission_jsonClob;
+                try {
+                    permission_jsonClob = new javax.sql.rowset.serial.SerialClob(updates.getPermission_json().toCharArray());
+                    existingEntity.setPermission_json(permission_jsonClob);
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
 
             existingEntity.setUpdated_Date(timeNow);
