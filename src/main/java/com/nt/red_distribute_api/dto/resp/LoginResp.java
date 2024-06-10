@@ -4,12 +4,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
+@Entity
+@ToString
 @Getter
 @Setter
-@JsonSerialize
 public class LoginResp {
     @JsonProperty("user")
     private UserResp userLogin;
