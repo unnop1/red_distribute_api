@@ -106,9 +106,8 @@ public class AuthController {
         }
     }
 
-    @ResponseBody
-    @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) throws java.io.IOException {
+    @PostMapping("/login")
+    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
         logger.info("IP Address: {}", ipAddress);
@@ -167,25 +166,6 @@ public class AuthController {
         loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
         loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
-        // Convert LoginResp to JSON string
-        String loginRespJson;
-        try {
-            loginRespJson = objectMapper.writeValueAsString(loginResp);
-        } catch (JsonProcessingException e) {
-            logger.error("Error converting LoginResp to JSON", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        // Set content type and response body
-        response.setContentType("application/json");
-        try {
-            response.getWriter().write(loginRespJson);
-        } catch (IOException e) {
-            logger.error("Error writing response", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        // Audit log
         AuditLog auditLog = new AuditLog();
         auditLog.setAction("login");
         auditLog.setAuditable_id(userDetails.getId());
@@ -204,7 +184,8 @@ public class AuthController {
         logger.info("Response permission JSON: {}", loginResp.getPermissionJson());
         logger.info("Response permission name: {}", loginResp.getPermissionName());
 
-        return ResponseEntity.ok().build();
+        // return ResponseEntity.ok(loginResp);
+        return new ResponseEntity<>(loginResp, HttpStatus.OK);
     }
 
     @PostMapping("/refresh")
