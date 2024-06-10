@@ -25,7 +25,7 @@ public class AuditLogEntity {
         @Column(name = "AUDIT_ID")
         private Long AUDIT_ID;
 
-        @Column(name = "Action", nullable = true)
+        @Column(name = "ACTION", nullable = true)
         private String action;
 
         @Column(name = "AUDITABLE_ID", nullable = true)
@@ -34,7 +34,7 @@ public class AuditLogEntity {
         @Column(name = "AUDITABLE", nullable = true)
         private String auditable;
 
-        @Column(name = "Comments", nullable = true)
+        @Column(name = "COMMENTS", nullable = true)
         private String comment;
 
         @Column(name = "IP_ADDRESS", nullable = true)
@@ -49,7 +49,7 @@ public class AuditLogEntity {
         @Column(name = "BROWSER", nullable = true)
         private String browser;
 
-        @Column(name = "Operating_system", nullable = true) // Renamed to avoid reserved keyword
+        @Column(name = "OPERATING_SYSTEM", nullable = true) // Renamed to avoid reserved keyword
         private String operating_system;
 
         @Column(name = "CREATED_DATE", nullable = true)

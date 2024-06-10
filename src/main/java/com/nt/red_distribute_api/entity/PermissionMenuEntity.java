@@ -23,7 +23,7 @@ public class PermissionMenuEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sa_menu_permission_seq")
     @SequenceGenerator(name = "sa_menu_permission_seq", allocationSize = 1)
-    @Column(name = "id")
+    @Column(name = "ID")
     private Long id;
 
     @Column(name = "PERMISSION_NAME", unique = false,nullable = true)
