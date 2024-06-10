@@ -45,7 +45,7 @@ public class TriggerMessageEntity {
         private Integer IS_STATUS = null;
 
         @Column(name = "MESSAGE_IN", unique = false,nullable = true)
-        private String MESSAGE_IN = null;
+        private Clob MESSAGE_IN = null;
 
         @Column(name = "DATE_MODEL", unique = false,nullable = true)
         private Clob DATE_MODEL = null;
