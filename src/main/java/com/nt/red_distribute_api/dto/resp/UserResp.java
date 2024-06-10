@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.dto.resp;
 
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,7 +11,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserResp {
+public class UserResp implements Serializable {
     @JsonProperty("id")
     private long id;
 
