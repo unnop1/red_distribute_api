@@ -2,6 +2,7 @@ package com.nt.red_distribute_api.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.nt.red_distribute_api.Auth.JwtHelper;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
@@ -63,6 +64,8 @@ public class AuthController {
 
     @Autowired
     private PermissionMenuService permissionMenuService; 
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     @PostMapping("/create")
@@ -164,10 +167,12 @@ public class AuthController {
 
         // try {
         //     String loginRespJson = objectMapper.writeValueAsString(loginResp);
-        //     response.setContentType("application/json");  // Set content type header
+        //     JSONObject jsonObject = new JSONObject(jsonString);
         // } catch (JsonProcessingException e) {
-        //     logger.error("Error converting LoginResp to JSON", e);
+        //     // TODO Auto-generated catch block
+        //     e.printStackTrace();
         // }
+        response.setContentType("application/json"); 
 
         AuditLog auditLog = new AuditLog();
         auditLog.setAction("login");
@@ -187,7 +192,7 @@ public class AuthController {
         logger.info("Response permission JSON: {}", loginResp.getPermissionJson());
         logger.info("Response permission name: {}", loginResp.getPermissionName());
 
-        return ResponseEntity.ok(loginResp);
+        return ResponseEntity.ok().body(loginResp);
     }
 
     @PostMapping("/refresh")
