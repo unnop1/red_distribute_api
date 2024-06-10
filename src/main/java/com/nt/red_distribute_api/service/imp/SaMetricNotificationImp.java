@@ -1,5 +1,7 @@
 package com.nt.red_distribute_api.service.imp;
 
+import java.sql.Clob;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -28,7 +30,14 @@ public class SaMetricNotificationImp implements SaMetricNotificationService {
         newMetric.setOM_NOT_CONNECT(req.getOM_NOT_CONNECT());
         newMetric.setDB_OM_NOT_CONNECT(req.getDB_OM_NOT_CONNECT());
         newMetric.setTOPUP_NOT_CONNECT(req.getTOPUP_NOT_CONNECT());
-        newMetric.setTRIGGER_NOTI_JSON(req.getTRIGGER_NOTI_JSON());
+        Clob triggerNoti_jsonClob;
+        try {
+            triggerNoti_jsonClob = new javax.sql.rowset.serial.SerialClob(req.getTRIGGER_NOTI_JSON().toCharArray());
+            newMetric.setTRIGGER_NOTI_JSON(triggerNoti_jsonClob);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         newMetric.setLINE_IS_ACTIVE(req.getLINE_IS_ACTIVE());
         newMetric.setLINE_TOKEN(req.getLINE_TOKEN());
         newMetric.setUPDATED_DATE(timeNow);
@@ -61,7 +70,15 @@ public class SaMetricNotificationImp implements SaMetricNotificationService {
             }
 
             if (updates.getTRIGGER_NOTI_JSON() != null ){
-                existingEntity.setTRIGGER_NOTI_JSON(updates.getTRIGGER_NOTI_JSON());
+                Clob triggerNoti_jsonClob;
+                try {
+                    triggerNoti_jsonClob = new javax.sql.rowset.serial.SerialClob(updates.getTRIGGER_NOTI_JSON().toCharArray());
+                    existingEntity.setTRIGGER_NOTI_JSON(triggerNoti_jsonClob);
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                
             }
 
             if (updates.getLINE_IS_ACTIVE() != null ){

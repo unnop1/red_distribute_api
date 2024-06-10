@@ -1,5 +1,7 @@
 package com.nt.red_distribute_api.dto.req.sa_metric_notification;
 
+import java.sql.Clob;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
