@@ -111,7 +111,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) throws java.io.IOException {
+    public ResponseEntity<Object> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) throws java.io.IOException {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
         logger.info("IP Address: {}", ipAddress);
