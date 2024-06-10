@@ -163,13 +163,19 @@ public class AuthController {
         userInfo.setUpdated_Date(userDetails.getUpdated_Date());
         userInfo.setUpdated_by(userDetails.getUpdated_by());
 
-        LoginResp loginResp = new LoginResp();
-        loginResp.setUserLogin(userInfo);
-        loginResp.setJwtToken(token);
+        
+        // loginResp.setUserLogin(userInfo);
+        // loginResp.setJwtToken(token);
 
         PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
-        loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
-        loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
+        LoginResp loginResp = new LoginResp(
+            userInfo, 
+            token,
+            permissionMenuEntity.getPermission_json(),
+            permissionMenuEntity.getPermission_Name()
+        );
+        // loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
+        // loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
         AuditLog auditLog = new AuditLog();
         auditLog.setAction("login");
