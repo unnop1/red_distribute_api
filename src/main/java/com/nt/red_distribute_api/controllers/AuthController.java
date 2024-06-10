@@ -1,5 +1,7 @@
 package com.nt.red_distribute_api.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.Auth.JwtHelper;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
@@ -99,6 +101,7 @@ public class AuthController {
         }
     }
 
+    @ResponseBody
     @PostMapping("/login")
     public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) {
         // Get the IP address from the request
@@ -158,6 +161,13 @@ public class AuthController {
         PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
         loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
         loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
+
+        // try {
+        //     String loginRespJson = objectMapper.writeValueAsString(loginResp);
+        //     response.setContentType("application/json");  // Set content type header
+        // } catch (JsonProcessingException e) {
+        //     logger.error("Error converting LoginResp to JSON", e);
+        // }
 
         AuditLog auditLog = new AuditLog();
         auditLog.setAction("login");
