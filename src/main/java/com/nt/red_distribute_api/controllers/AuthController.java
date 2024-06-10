@@ -117,12 +117,6 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<Object> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, BindingResult bindingResult) throws java.io.IOException {
         // Get the IP address from the request
-        if (bindingResult.hasErrors()) {
-            // Handle binding errors here
-            // You can log errors or return a custom error response
-            // For simplicity, let's just return a generic error response
-            return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
-        } 
         try{
             String ipAddress = request.getRemoteAddr();
             logger.info("IP Address: {}", ipAddress);
@@ -182,8 +176,10 @@ public class AuthController {
             PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
             String permissionJSonStr;
             try {
-                permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
-                loginResp.setPermissionJson(permissionJSonStr);
+                if(permissionMenuEntity.getPermission_json()!=null){
+                    permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                    loginResp.setPermissionJson(permissionJSonStr);
+                }
             } catch (java.io.IOException | SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
