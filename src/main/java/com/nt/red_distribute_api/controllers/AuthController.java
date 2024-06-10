@@ -103,13 +103,9 @@ public class AuthController {
     public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
-        LoginResp userResp = new LoginResp();
-        // String userAgent = request.getHeader("User-Agent");
-        // String deviceInfo = parseUserAgent(userAgent);
-        // String systemInfo = parseUserAgentForSystem(userAgent);
-        // String browserInfo = parseUserAgentForBrowser(userAgent);
-        System.out.println("IP Address: " + ipAddress);
-    
+        logger.info("IP Address: {}", ipAddress);
+        logger.info("jwtUsername: {}", jwtRequest.getUsername());
+
         // Log login
         Timestamp loginDateTime = new Timestamp(Instant.now().toEpochMilli());
         LogLoginEntity loglogin = new LogLoginEntity();
@@ -120,30 +116,25 @@ public class AuthController {
         loglogin.setLogin_datetime(loginDateTime);
         loglogin.setCreate_date(loginDateTime);
         loglogin.setUsername(jwtRequest.getUsername());
-        System.out.println("jwtUsername:"+jwtRequest.getUsername());
+
         UserEntity userDetails = userService.findUserLogin(jwtRequest.getUsername());
-        if( userDetails == null ){
-            return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
+        if (userDetails == null) {
+            logger.error("User not found: {}", jwtRequest.getUsername());
+            return ResponseEntity.badRequest().body(null);
         }
 
         this.doAuthenticate(userDetails.getUsername(), jwtRequest.getPassword(), loglogin);
-        
-        System.out.println("getEmail:"+userDetails.getEmail());
-        System.out.println("getUsername:"+userDetails.getUsername());
-        String token = this.helper.generateToken(jwtRequest, userDetails.getEmail());
 
-        HashMap<String, Object> updateInfo = new HashMap<String, Object>();
+        String token = this.helper.generateToken(jwtRequest, userDetails.getEmail());
+        logger.info("Generated token: {}", token);
+
+        HashMap<String, Object> updateInfo = new HashMap<>();
         updateInfo.put("currentToken", token);
         updateInfo.put("last_login", loginDateTime);
         updateInfo.put("last_login_ipaddress", ipAddress);
-
         this.userService.updateUserLogLogin(userDetails.getId(), updateInfo);
 
-        
         UserResp userInfo = new UserResp();
-        // PermissionMenu permissionMenu = 
-
-        // User
         userInfo.setId(userDetails.getId());
         userInfo.setAbout_Me(userDetails.getAbout_me());
         userInfo.setName(userDetails.getName());
@@ -159,15 +150,15 @@ public class AuthController {
         userInfo.setIs_Delete(userDetails.getIs_Delete());
         userInfo.setUpdated_Date(userDetails.getUpdated_Date());
         userInfo.setUpdated_by(userDetails.getUpdated_by());
-        userResp.setUserLogin(userInfo);
-        userResp.setJwtToken(token);
 
-        // permissionMenu
+        LoginResp loginResp = new LoginResp();
+        loginResp.setUserLogin(userInfo);
+        loginResp.setJwtToken(token);
+
         PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
-        userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
-        userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
+        loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
+        loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
-        // System.out.println("token:"+token);
         AuditLog auditLog = new AuditLog();
         auditLog.setAction("login");
         auditLog.setAuditable_id(userDetails.getId());
@@ -180,9 +171,13 @@ public class AuthController {
         auditLog.setComment("authentication login");
         auditLog.setCreated_date(DateTime.getTimeStampNow());
         auditService.AddAuditLog(auditLog);
-        logger.info("token:"+userResp.getJwtToken());
 
-        return ResponseEntity.ok(userResp);
+        logger.info("Response user info: {}", loginResp.getUserLogin());
+        logger.info("Response JWT token: {}", loginResp.getJwtToken());
+        logger.info("Response permission JSON: {}", loginResp.getPermissionJson());
+        logger.info("Response permission name: {}", loginResp.getPermissionName());
+
+        return ResponseEntity.ok(loginResp);
     }
 
     @PostMapping("/refresh")
