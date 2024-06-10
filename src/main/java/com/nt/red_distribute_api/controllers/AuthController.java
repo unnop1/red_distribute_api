@@ -1,6 +1,5 @@
 package com.nt.red_distribute_api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.nt.red_distribute_api.Auth.JwtHelper;
@@ -26,6 +25,7 @@ import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
@@ -107,7 +107,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) throws java.io.IOException {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
         logger.info("IP Address: {}", ipAddress);
@@ -185,7 +185,19 @@ public class AuthController {
         logger.info("Response permission name: {}", loginResp.getPermissionName());
 
         // return ResponseEntity.ok(loginResp);
-        return new ResponseEntity<>(loginResp, HttpStatus.OK);
+        // return new ResponseEntity<>(loginResp, HttpStatus.OK);
+        response.setStatus(HttpServletResponse.SC_OK);
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonResponse = mapper.writeValueAsString(loginResp);
+
+        // Set the content type to JSON
+        response.setContentType("application/json");
+
+        // Write the JSON response to the output stream
+        PrintWriter writer = response.getWriter();
+        writer.println(jsonResponse);
+        return null;
+
     }
 
     @PostMapping("/refresh")
