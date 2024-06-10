@@ -176,16 +176,16 @@ public class AuthController {
             PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
             String permissionJSonStr;
             try {
-                if(permissionMenuEntity.getPermission_json()!=null){
+                if(permissionMenuEntity!=null){
                     permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
                     loginResp.setPermissionJson(permissionJSonStr);
+                    loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
                 }
             } catch (java.io.IOException | SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             
-            loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
             AuditLog auditLog = new AuditLog();
             auditLog.setAction("login");
