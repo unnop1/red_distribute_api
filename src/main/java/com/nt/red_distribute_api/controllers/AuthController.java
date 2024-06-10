@@ -10,8 +10,6 @@ import com.nt.red_distribute_api.dto.resp.JwtErrorResp;
 import com.nt.red_distribute_api.dto.resp.LoginResp;
 import com.nt.red_distribute_api.dto.resp.UserResp;
 import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
-import com.nt.red_distribute_api.entity.AuditLogEntity;
-import com.nt.red_distribute_api.entity.AuditLogEntity;
 import com.nt.red_distribute_api.entity.LogLoginEntity;
 import com.nt.red_distribute_api.entity.PermissionMenuEntity;
 import com.nt.red_distribute_api.entity.UserEntity;
@@ -21,8 +19,8 @@ import com.nt.red_distribute_api.service.LogLoginService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
 import com.nt.red_distribute_api.service.UserService;
 
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -37,7 +35,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -103,7 +100,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) {
+    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
         LoginResp userResp = new LoginResp();
@@ -184,7 +181,7 @@ public class AuthController {
         auditLog.setCreated_date(DateTime.getTimeStampNow());
         auditService.AddAuditLog(auditLog);
 
-        return new ResponseEntity<>(userResp, HttpStatus.OK);
+        return ResponseEntity.ok(userResp);
     }
 
     @PostMapping("/refresh")
