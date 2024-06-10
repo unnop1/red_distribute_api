@@ -22,6 +22,7 @@ import com.nt.red_distribute_api.service.LogLoginService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
 import com.nt.red_distribute_api.service.UserService;
 
+import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -106,7 +107,7 @@ public class AuthController {
 
     @ResponseBody
     @PostMapping("/login")
-    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) throws java.io.IOException {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
         logger.info("IP Address: {}", ipAddress);
@@ -165,15 +166,25 @@ public class AuthController {
         loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
         loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
 
-        // try {
-        //     String loginRespJson = objectMapper.writeValueAsString(loginResp);
-        //     JSONObject jsonObject = new JSONObject(jsonString);
-        // } catch (JsonProcessingException e) {
-        //     // TODO Auto-generated catch block
-        //     e.printStackTrace();
-        // }
-        response.setContentType("application/json"); 
+        // Convert LoginResp to JSON string
+        String loginRespJson;
+        try {
+            loginRespJson = objectMapper.writeValueAsString(loginResp);
+        } catch (JsonProcessingException e) {
+            logger.error("Error converting LoginResp to JSON", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
+        // Set content type and response body
+        response.setContentType("application/json");
+        try {
+            response.getWriter().write(loginRespJson);
+        } catch (IOException e) {
+            logger.error("Error writing response", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        // Audit log
         AuditLog auditLog = new AuditLog();
         auditLog.setAction("login");
         auditLog.setAuditable_id(userDetails.getId());
@@ -192,7 +203,7 @@ public class AuthController {
         logger.info("Response permission JSON: {}", loginResp.getPermissionJson());
         logger.info("Response permission name: {}", loginResp.getPermissionName());
 
-        return ResponseEntity.ok().body(loginResp);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/refresh")
