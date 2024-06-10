@@ -190,7 +190,7 @@ public class AuthController {
 
         // return ResponseEntity.ok(loginResp);
         // return new ResponseEntity<>(loginResp, HttpStatus.OK);
-        return new ResponseEntity( loginResp, HttpStatus.OK);
+        return ResponseEntity.ok(loginResp);
 
     }
 
