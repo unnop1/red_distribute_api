@@ -40,7 +40,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.function.ServerResponse;
+import org.springframework.web.servlet.function.ServerResponse.BodyBuilder;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -107,7 +111,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) throws java.io.IOException {
+    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request) throws java.io.IOException {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
         logger.info("IP Address: {}", ipAddress);
@@ -186,17 +190,7 @@ public class AuthController {
 
         // return ResponseEntity.ok(loginResp);
         // return new ResponseEntity<>(loginResp, HttpStatus.OK);
-        response.setStatus(HttpServletResponse.SC_OK);
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonResponse = mapper.writeValueAsString(loginResp);
-
-        // Set the content type to JSON
-        response.setContentType("application/json");
-
-        // Write the JSON response to the output stream
-        PrintWriter writer = response.getWriter();
-        writer.println(jsonResponse);
-        return ResponseEntity.ok(jsonResponse);
+        return new ResponseEntity( loginResp, HttpStatus.OK);
 
     }
 

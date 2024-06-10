@@ -1,11 +1,14 @@
 package com.nt.red_distribute_api.dto.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@JsonSerialize
 public class LoginResp {
     @JsonProperty("user")
     private UserResp userLogin;
