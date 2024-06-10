@@ -107,7 +107,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResp> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) throws java.io.IOException {
+    public ResponseEntity<Object> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, HttpServletResponse response) throws java.io.IOException {
         // Get the IP address from the request
         String ipAddress = request.getRemoteAddr();
         logger.info("IP Address: {}", ipAddress);
@@ -196,7 +196,7 @@ public class AuthController {
         // Write the JSON response to the output stream
         PrintWriter writer = response.getWriter();
         writer.println(jsonResponse);
-        return null;
+        return ResponseEntity.ok(jsonResponse);
 
     }
 
