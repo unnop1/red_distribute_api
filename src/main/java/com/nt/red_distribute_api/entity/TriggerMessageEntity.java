@@ -25,10 +25,10 @@ public class TriggerMessageEntity {
         @Column(name = "ID")
         private Long id = null;
 
-        @Column(name = "OrderType_id", unique = false,nullable = true)
+        @Column(name = "ORDERTYPE_ID", unique = false,nullable = true)
         private Long OrderType_id = null;
 
-        @Column(name = "OrderType_Name", unique = false,nullable = true)
+        @Column(name = "ORDERTYPE_NAME", unique = false,nullable = true)
         private String OrderType_Name = null;
 
         @Column(name = "SA_CHANNEL_CONNECT_ID", unique = false,nullable = true)

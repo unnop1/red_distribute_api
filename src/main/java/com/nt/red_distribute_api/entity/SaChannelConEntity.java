@@ -23,7 +23,7 @@ public class SaChannelConEntity {
     @Column(name = "ID")
     private Long ID = null;
 
-    @Column(name = "CHANNEL_Name", unique = false,nullable = true)
+    @Column(name = "CHANNEL_NAME", unique = false,nullable = true)
     private String CHANNEL_Name = null;
 
 }

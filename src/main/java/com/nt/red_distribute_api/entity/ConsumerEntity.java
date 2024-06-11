@@ -27,51 +27,51 @@ public class ConsumerEntity {
     @Column(name = "ID")
     private Long ID;
 
-    @Column(name = "username", nullable = true)
+    @Column(name = "USERNAME", nullable = true)
     private String username=null;
 
-    @Column(name = "consumer_group", nullable = true)
+    @Column(name = "CONSUMER_GROUP", nullable = true)
     private String consumer_group=null;
 
-    @Column(name = "system_name", nullable = true)
+    @Column(name = "SYSTEM_NAME", nullable = true)
     private String system_name=null;
 
-    @Column(name = "password", nullable = true)
+    @Column(name = "PASSWORD", nullable = true)
     private String password=null;
 
-    @Column(name = "departmentName", nullable = true)
+    @Column(name = "DEPARTMENTNAME", nullable = true)
     private String departmentName=null;
 
-    @Column(name = "contactName", nullable = true)
+    @Column(name = "CONTRACTNAME", nullable = true)
     private String contactName=null;
 
-    @Column(name = "email", nullable = true)
+    @Column(name = "EMAIL", nullable = true)
     private String email=null;
 
-    @Column(name = "phonenumber", nullable = true)
+    @Column(name = "PHONENUMBER", nullable = true)
     private String phoneNumber=null;
 
-    @Column(name = "is_enable", nullable = true)
+    @Column(name = "IS_ENABLE", nullable = true)
     private Integer is_enable=1;
 
-    @Column(name = "is_delete", nullable = true)
+    @Column(name = "IS_DELETE", nullable = true)
     private Integer is_delete=0;
     
-    @Column(name = "is_delete_date", nullable = true)
+    @Column(name = "IS_DELETE_DATE", nullable = true)
     private Timestamp is_delete_date=null;
 
-    @Column(name = "is_delete_by", nullable = true)
+    @Column(name = "IS_DELETE_BY", nullable = true)
     private String is_delete_by=null;
 
-    @Column(name = "created_date", nullable = true)
+    @Column(name = "CREATED_DATE", nullable = true)
     private Timestamp created_date=null;
 
-    @Column(name = "created_by", nullable = true)
+    @Column(name = "CREATED_BY", nullable = true)
     private String created_by=null;
 
-    @Column(name = "updated_date", nullable = true)
+    @Column(name = "UPDATED_DATE", nullable = true)
     private Timestamp updated_date=null;
 
-    @Column(name = "updated_by", nullable = true)
+    @Column(name = "UPDATE_BY", nullable = true)
     private String updated_by=null;
 }

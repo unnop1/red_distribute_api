@@ -26,7 +26,7 @@ public class SaMetricNotificationEntity {
     @Column(name = "ID")
     private Long ID = null;
 
-    @Column(name = "email", unique = false,nullable = true)
+    @Column(name = "EMAIL", unique = false,nullable = true)
     private String email = null;
 
     @Column(name = "OM_NOT_CONNECT", unique = false,nullable = true)
