@@ -94,7 +94,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    sendSuccessResponse(response, userDetails);
 
                 } else {
                     logger.info("Validation fails !!");
@@ -128,15 +127,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     }
 
-    private void sendSuccessResponse(HttpServletResponse response, UserEntity userDetails) throws IOException {
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType("application/json");
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("message", "Authentication successful");
-        responseBody.put("userDetails", userDetails); // Include any additional user details if needed
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getWriter(), responseBody);
-    }
 
     private void JwtExpiredHandler(String error, HttpServletRequest request, HttpServletResponse response) throws IOException{
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
