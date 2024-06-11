@@ -42,6 +42,6 @@ public class ListPermissionTotalUser {
         private String updated_By=null;
 
         @Transient
-        @Column(name = "TOTAL_USER", unique = false,nullable = true)
+        @Column(name = "TOTALUSER", unique = false,nullable = true)
         private Integer totalUser=0;
 }
