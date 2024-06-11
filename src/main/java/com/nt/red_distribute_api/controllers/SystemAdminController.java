@@ -95,14 +95,16 @@ public class SystemAdminController {
         @RequestParam(name = "Search", defaultValue = "")String search,
         @RequestParam(name = "Search_field", defaultValue = "")String searchField
     ){
-        String ipAddress = request.getRemoteAddr();
-        String requestHeader = request.getHeader("Authorization");
-            
-        VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
-        
         DefaultControllerResp resp = new DefaultControllerResp();
-        System.out.println("sortBy:" + sortBy);
         try {
+            String ipAddress = request.getRemoteAddr();
+            String requestHeader = request.getHeader("Authorization");
+                
+            VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+            
+            
+            System.out.println("sortBy:" + sortBy);
+            
             PermissionListReq req = new PermissionListReq(draw, sortBy, sortName, start, length, search, searchField);
             PaginationDataResp listSaMnPm = permissionMenuService.ListMenuPermission(req);
             AuditLog auditLog = new AuditLog();
