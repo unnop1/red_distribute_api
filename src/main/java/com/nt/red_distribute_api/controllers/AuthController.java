@@ -215,57 +215,61 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResp> refresh(HttpServletRequest request) {
+    public ResponseEntity<Object> refresh(HttpServletRequest request) {
         // Get the IP address from the request
-        LoginResp userResp = new LoginResp();
-        System.out.println("request:"+request.getHeaderNames());
-        String requestHeader = request.getHeader("Authorization");
-        String token = requestHeader.substring(7);
+        try{
+            LoginResp userResp = new LoginResp();
+            System.out.println("request:"+request.getHeaderNames());
+            String requestHeader = request.getHeader("Authorization");
+            String token = requestHeader.substring(7);
+                
+            VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+            if (vsf.getError() == null) {
+                UserEntity userDetails = vsf.getUserInfo();
+                if( userDetails == null ){
+                    return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
+                }
+                UserResp userInfo = new UserResp();
+                // PermissionMenu permissionMenu = 
+
+                // User
+                userInfo.setId(userDetails.getId());
+                userInfo.setAbout_Me(userDetails.getAbout_me());
+                userInfo.setName(userDetails.getName());
+                userInfo.setPhoneNumber(userDetails.getPhoneNumber());
+                userInfo.setIs_Enable(userDetails.getIs_Enable());
+                userInfo.setEmail(userDetails.getEmail());
+                userInfo.setLast_login(userDetails.getLast_login());
+                userInfo.setCreated_by(userDetails.getCreated_by());
+                userInfo.setCreated_Date(userDetails.getCreated_Date());
+                userInfo.setIs_Delete_by(userDetails.getIs_Delete_by());
+                userInfo.setIs_Delete(userDetails.getIs_Delete());
+                userInfo.setUpdated_Date(userDetails.getUpdated_Date());
+                userInfo.setSa_menu_permission_id(userDetails.getSa_menu_permission_id());
+                userInfo.setUpdated_by(userDetails.getUpdated_by());
+                userResp.setUserLogin(userInfo);
+                userResp.setJwtToken(token);
+
+                // permissionMenu
+                PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
+                String permissionJSonStr;
+                try {
+                    permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                    userResp.setPermissionJson(permissionJSonStr);
+                } catch (java.io.IOException | SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
+
+                return new ResponseEntity<>(userResp, HttpStatus.OK);
+            }
             
-        VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
-        if (vsf.getError() == null) {
-            UserEntity userDetails = vsf.getUserInfo();
-            if( userDetails == null ){
-                return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
-            }
-            UserResp userInfo = new UserResp();
-            // PermissionMenu permissionMenu = 
 
-            // User
-            userInfo.setId(userDetails.getId());
-            userInfo.setAbout_Me(userDetails.getAbout_me());
-            userInfo.setName(userDetails.getName());
-            userInfo.setPhoneNumber(userDetails.getPhoneNumber());
-            userInfo.setIs_Enable(userDetails.getIs_Enable());
-            userInfo.setEmail(userDetails.getEmail());
-            userInfo.setLast_login(userDetails.getLast_login());
-            userInfo.setCreated_by(userDetails.getCreated_by());
-            userInfo.setCreated_Date(userDetails.getCreated_Date());
-            userInfo.setIs_Delete_by(userDetails.getIs_Delete_by());
-            userInfo.setIs_Delete(userDetails.getIs_Delete());
-            userInfo.setUpdated_Date(userDetails.getUpdated_Date());
-            userInfo.setSa_menu_permission_id(userDetails.getSa_menu_permission_id());
-            userInfo.setUpdated_by(userDetails.getUpdated_by());
-            userResp.setUserLogin(userInfo);
-            userResp.setJwtToken(token);
-
-            // permissionMenu
-            PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
-            String permissionJSonStr;
-            try {
-                permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
-                userResp.setPermissionJson(permissionJSonStr);
-            } catch (java.io.IOException | SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
-
-            return new ResponseEntity<>(userResp, HttpStatus.OK);
+            return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        
-
-        return new ResponseEntity<>(userResp, HttpStatus.BAD_REQUEST);
     }
 
     private void doAuthenticate(String username, String password, LogLoginEntity loglogin) {
