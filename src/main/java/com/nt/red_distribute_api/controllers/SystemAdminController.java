@@ -95,8 +95,9 @@ public class SystemAdminController {
         @RequestParam(name = "Search", defaultValue = "")String search,
         @RequestParam(name = "Search_field", defaultValue = "")String searchField
     ){
-        DefaultControllerResp resp = new DefaultControllerResp();
         try {
+            DefaultControllerResp resp = new DefaultControllerResp();
+        
             String ipAddress = request.getRemoteAddr();
             String requestHeader = request.getHeader("Authorization");
                 
@@ -129,11 +130,12 @@ public class SystemAdminController {
 
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
+            DefaultControllerResp resp = new DefaultControllerResp();
             resp.setCount(0);
             resp.setData(null);
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             resp.setMessage("Error while getting : " + e.getMessage());
-            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resp);
         }
     }
 
