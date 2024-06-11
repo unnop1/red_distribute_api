@@ -36,55 +36,60 @@ public class PermissionMenuImp implements PermissionMenuService {
     @Override
     public PaginationDataResp ListMenuPermission(PermissionListReq req) {
         PaginationDataResp resp = new PaginationDataResp();
-        Integer offset = req.getStart();
-        Integer limit = req.getLength();
-        Integer page = 0;
-        if(limit > 0){
-            page = offset / limit;
-        }
-        String searchName = req.getSearch();
-        String searchField = req.getSearchField();
-        String sortName = req.getSortName();
-        String sortBy = req.getSortBy();
+            try{
+            Integer offset = req.getStart();
+            Integer limit = req.getLength();
+            Integer page = 0;
+            if(limit > 0){
+                page = offset / limit;
+            }
+            String searchName = req.getSearch();
+            String searchField = req.getSearchField();
+            String sortName = req.getSortName();
+            String sortBy = req.getSortBy();
 
-        if ( searchName.isEmpty()){
-            if (limit > 0){
-                List<ListPermissionTotalUser> permissionMenu = viewPermissionMenuRepo.GetAllWithTotalUser(
-                    PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName )
+            if ( searchName.isEmpty()){
+                if (limit > 0){
+                    List<ListPermissionTotalUser> permissionMenu = viewPermissionMenuRepo.GetAllWithTotalUser(
+                        PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName )
+                    );
+                    Integer count = viewPermissionMenuRepo.getGetAllWithTotalUserTotalCount();
+                    resp.setData(permissionMenu);
+                    resp.setCount(count);
+                    return resp;
+                }else{
+                    List<ListPermissionTotalUser> permissionMenu = viewPermissionMenuRepo.GetAllWithTotalUser();
+                    Integer count = viewPermissionMenuRepo.getGetAllWithTotalUserTotalCount();
+                    resp.setData(permissionMenu);
+                    resp.setCount(count);
+                    return resp;
+                }
+                
+            } else {
+                if( !req.getSearchField().isEmpty()){
+                    List<ListPermissionTotalUser> permissionMenu = viewPermissionMenuRepo.GetAllWithTotalUserLike(
+                        searchField, searchName, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName )
+                    );
+                    Integer count = viewPermissionMenuRepo.getGetAllWithTotalUserLikeTotalCount(searchField, searchName);
+                    resp.setData(permissionMenu);
+                    resp.setCount(count);
+                    return resp;
+                }
+                // System.out.println("all like:");
+                List<ListPermissionTotalUser> permissionMenu = viewPermissionMenuRepo.GetAllWithTotalUserAllLike(
+                    searchName, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName )
                 );
-                Integer count = viewPermissionMenuRepo.getGetAllWithTotalUserTotalCount();
+                Integer count = viewPermissionMenuRepo.getGetAllWithTotalUserAllLikeTotalCount(searchName);
                 resp.setData(permissionMenu);
                 resp.setCount(count);
-                return resp;
-            }else{
-                List<ListPermissionTotalUser> permissionMenu = viewPermissionMenuRepo.GetAllWithTotalUser();
-                Integer count = viewPermissionMenuRepo.getGetAllWithTotalUserTotalCount();
-                resp.setData(permissionMenu);
-                resp.setCount(count);
+                // System.out.println("permissionMenus: " + permissionMenu);
                 return resp;
             }
-            
-        } else {
-            if( !req.getSearchField().isEmpty()){
-                List<ListPermissionTotalUser> permissionMenu = viewPermissionMenuRepo.GetAllWithTotalUserLike(
-                    searchField, searchName, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName )
-                );
-                Integer count = viewPermissionMenuRepo.getGetAllWithTotalUserLikeTotalCount(searchField, searchName);
-                resp.setData(permissionMenu);
-                resp.setCount(count);
-                return resp;
-            }
-            // System.out.println("all like:");
-            List<ListPermissionTotalUser> permissionMenu = viewPermissionMenuRepo.GetAllWithTotalUserAllLike(
-                searchName, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName )
-            );
-            Integer count = viewPermissionMenuRepo.getGetAllWithTotalUserAllLikeTotalCount(searchName);
-            resp.setData(permissionMenu);
-            resp.setCount(count);
-            // System.out.println("permissionMenus: " + permissionMenu);
+        }catch (Exception e) {
+            resp.setData(e.getMessage());
             return resp;
         }
-        
+
     }
 
     @Override

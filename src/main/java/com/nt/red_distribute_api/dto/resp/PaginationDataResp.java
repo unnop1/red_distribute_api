@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 public class PaginationDataResp {   
     private Integer count;
-
     private Object data;
 
 }
