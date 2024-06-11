@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -44,4 +45,8 @@ public class PermissionMenuEntity {
 
     @Column(name = "UPDATED_BY", unique = false,nullable = true)
     private String updated_By=null;
+
+    @Transient
+    @Column(name = "TotalUser", unique = false,nullable = true)
+    private String totalUser=null;
 }

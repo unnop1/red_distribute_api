@@ -12,5 +12,5 @@ public interface ListPermissionTotalUser {
         String getCREATED_BY();
         Timestamp getUPDATED_DATE();
         String getUPDATED_BY();
-        Integer gettotalUser();
+        Integer getTotalUser();
 }
