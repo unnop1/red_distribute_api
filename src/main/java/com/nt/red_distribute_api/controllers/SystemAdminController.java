@@ -130,12 +130,12 @@ public class SystemAdminController {
 
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
-            DefaultControllerResp resp = new DefaultControllerResp();
-            resp.setCount(0);
-            resp.setData(null);
-            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            resp.setMessage("Error while getting : " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resp);
+            DefaultControllerResp resperr = new DefaultControllerResp();
+            resperr.setCount(0);
+            resperr.setData(null);
+            resperr.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resperr.setMessage("Error while getting : " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resperr);
         }
     }
 
