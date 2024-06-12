@@ -169,11 +169,15 @@ public class ExternalController {
 
             List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
             List<String> orderTypeTopicNames = new ArrayList<>();
-            for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
-                orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
+                for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
+                    orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
+                }
+                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
+            if(consumerOrderTypes.size()>0){
+                kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
+            }else{
+                kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
             }
-            List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
-            kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
         
 
 
