@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DefaultServiceResp {
+public class DefaultListResp {
     @JsonProperty("result")
     private Object result = null;
 

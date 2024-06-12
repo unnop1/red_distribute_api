@@ -74,9 +74,6 @@ public class AuthController {
     @Autowired
     private PermissionMenuService permissionMenuService; 
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-
     @PostMapping("/create")
     public ResponseEntity<AuthSuccessResp> createUser(HttpServletRequest request, @RequestBody UserRequestDto userRequestDto) {
         String requestHeader = request.getHeader("Authorization");

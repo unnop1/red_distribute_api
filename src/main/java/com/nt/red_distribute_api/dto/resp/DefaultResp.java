@@ -1,0 +1,20 @@
+package com.nt.red_distribute_api.dto.resp;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Getter;
+import lombok.Setter;
+
+
+@Getter
+@Setter
+public class DefaultResp {
+    @JsonProperty("result")
+    private Object result = null;
+
+    @JsonProperty("message")
+    private String message = "Successfully";
+
+    @JsonProperty("error")
+    private String error = null;
+}

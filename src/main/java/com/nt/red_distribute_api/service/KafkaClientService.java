@@ -1,5 +1,6 @@
 package com.nt.red_distribute_api.service;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,6 +11,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.AlterUserScramCredentialsResult;
@@ -23,6 +26,7 @@ import org.apache.kafka.clients.admin.DeleteRecordsOptions;
 import org.apache.kafka.clients.admin.DeleteRecordsResult;
 import org.apache.kafka.clients.admin.DeletedRecords;
 import org.apache.kafka.clients.admin.DescribeAclsResult;
+import org.apache.kafka.clients.admin.DescribeTopicsOptions;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.ListConsumerGroupsResult;
 import org.apache.kafka.clients.admin.ListOffsetsOptions;
@@ -39,8 +43,13 @@ import org.apache.kafka.clients.admin.UserScramCredentialDeletion;
 import org.apache.kafka.clients.admin.UserScramCredentialUpsertion;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerGroupMetadata;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
@@ -56,6 +65,8 @@ import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -234,7 +245,7 @@ public class KafkaClientService {
         this.deleteAcls(user, userAcls);
     }
 
-    public void deleteUser(String user){
+    public String deleteUser(String user){
         try {
             final String userName = user;
             ScramMechanism userScramMechanism = ScramMechanism.SCRAM_SHA_256;
@@ -246,16 +257,14 @@ public class KafkaClientService {
             for (KafkaFuture<Void> future : results.values().values())
                 future.get();
             results.all().get();
-
-        }catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            return null;
+        }catch (Exception e) {
+            return e.getMessage();
         }
         
     }
 
-    public void deleteAcls(String user, List<UserAclsInfo> userAcls){
+    public String deleteAcls(String user, List<UserAclsInfo> userAcls){
         
         try {
             /*
@@ -282,14 +291,13 @@ public class KafkaClientService {
             DeleteAclsResult results = client.deleteAcls(arrayUserAcls);
             results.all().get();
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            return e.getMessage();
         }
     }
 
-    public void createTopic(TopicReq topic) {
+    public String createTopic(TopicReq topic) {
         try {
             KafkaFuture<Void> future = client.createTopics(
                 Collections.singleton(
@@ -301,39 +309,42 @@ public class KafkaClientService {
                 ),
                 new CreateTopicsOptions().timeoutMs(10000)).all();
             future.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            return e.getMessage();
         }
     }
 
-    public void updateTopic(TopicReq topic) throws InterruptedException, ExecutionException {
-        // Your Topic Resource
-        ConfigResource cr = new ConfigResource(ConfigResource.Type.TOPIC, topic.getTopicName());
+    public String updateTopic(TopicReq topic) throws InterruptedException, ExecutionException {
+        try{
+            // Your Topic Resource
+            ConfigResource cr = new ConfigResource(ConfigResource.Type.TOPIC, topic.getTopicName());
 
-        // Create all your configurations
-        Collection<ConfigEntry> entries = new ArrayList<>();
-        entries.add(new ConfigEntry(TopicConfig.RETENTION_MS_CONFIG, topic.getRetentionMs()));
+            // Create all your configurations
+            Collection<ConfigEntry> entries = new ArrayList<>();
+            entries.add(new ConfigEntry(TopicConfig.RETENTION_MS_CONFIG, topic.getRetentionMs()));
 
-        // Create the Map
-        Config config = new Config(entries);
-        Map<ConfigResource, Config> configs = new HashMap<>();
-        configs.put(cr, config);
+            // Create the Map
+            Config config = new Config(entries);
+            Map<ConfigResource, Config> configs = new HashMap<>();
+            configs.put(cr, config);
 
-        // Call alterConfigs()
-        client.alterConfigs(configs);
+            // Call alterConfigs()
+            client.alterConfigs(configs);
+            return null;
+        } catch (Exception e) {
+            return e.getMessage();
+        }
 
     }
 
-    public void deleteTopic(String topicName) {
-        KafkaFuture<Void> future = client.deleteTopics(Collections.singleton(topicName)).all();
+    public String deleteTopic(String topicName) {
         try {
+            KafkaFuture<Void> future = client.deleteTopics(Collections.singleton(topicName)).all();
             future.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            return e.getMessage();
         }
     }
 
@@ -371,7 +382,7 @@ public class KafkaClientService {
         return consumerLagMap;
     }
 
-    public void purgeDataInTopic(String topicName) {
+    public String purgeDataInTopic(String topicName) {
         synchronized (lock) {
             try {
                 DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topicName));
@@ -394,10 +405,9 @@ public class KafkaClientService {
                         }
                     }
                 }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            } finally {
-                client.close();
+                return null;
+            } catch (Exception e) {
+                return e.getMessage();
             }
         }
     }
@@ -413,5 +423,63 @@ public class KafkaClientService {
         }
     }
 
+    public List<String> consumeMessages(String username, String password, String topic, String groupConsumerId) {
+        Properties config = new Properties();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, groupConsumerId);
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        config.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\""+username+"\" password=\""+password+"\";");
+        
+        List<String> messageList = new ArrayList<>();
+
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config)) {
+            consumer.subscribe(Collections.singletonList(topic));
+
+            while (true) {
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+                for (ConsumerRecord<String, String> record : records) {
+                    messageList.add(record.value());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return messageList;
+    }
+
+    public String adminPublishMessage(String topic, String message) {
+        Properties config = new Properties();
+        props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        props.setProperty("security.protocol", "SASL_PLAINTEXT");
+        props.setProperty("sasl.mechanism", "SCRAM-SHA-256");
+        props.setProperty("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"admin\" password=\"admin-secret\";");
+
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(config)) {
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, message);
+            producer.send(record);
+            return null;
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    public String consumerPublishMessage(String username, String password, String topic, String message) {
+        Properties config = new Properties();
+        props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        props.setProperty("security.protocol", "SASL_PLAINTEXT");
+        props.setProperty("sasl.mechanism", "SCRAM-SHA-256");
+        props.setProperty("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\""+username+"\" password=\""+password+"\";");
+
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(config)) {
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, message);
+            producer.send(record);
+            System.out.println("Message published successfully");
+            return null;
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
 
 }
