@@ -5,6 +5,8 @@ package com.nt.red_distribute_api.entity;
 import java.sql.Clob;
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,6 +40,7 @@ public class SaMetricNotificationEntity {
     @Column(name = "TOPUP_NOT_CONNECT", unique = false,nullable = true)
     private Integer TOPUP_NOT_CONNECT = 0;
 
+    @JsonBackReference
     @Column(name = "TRIGGER_NOTI_JSON", unique = false,nullable = true)
     private Clob TRIGGER_NOTI_JSON = null;
 

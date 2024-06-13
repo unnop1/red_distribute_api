@@ -4,6 +4,8 @@ package com.nt.red_distribute_api.entity;
 import java.sql.Clob;
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -44,9 +46,11 @@ public class TriggerMessageEntity {
         @Column(name = "IS_STATUS", unique = false,nullable = true)
         private Integer IS_STATUS = null;
 
+        @JsonBackReference
         @Column(name = "MESSAGE_IN", unique = false,nullable = true)
         private Clob MESSAGE_IN = null;
 
+        @JsonBackReference
         @Column(name = "DATE_MODEL", unique = false,nullable = true)
         private Clob DATE_MODEL = null;
 

@@ -4,6 +4,8 @@ package com.nt.red_distribute_api.entity;
 import java.sql.Clob;
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,6 +33,7 @@ public class PermissionMenuEntity {
     @Column(name = "PERMISSION_NAME", unique = false,nullable = true)
     private String permission_Name=null;
 
+    @JsonBackReference
     @Column(name = "PERMISSION_JSON", unique = false,nullable = true)
     private Clob permission_json=null;
 
