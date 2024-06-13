@@ -135,7 +135,7 @@ public class SystemAdminController {
             resperr.setData(null);
             resperr.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             resperr.setMessage("Error while getting : " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resperr);
+            return new ResponseEntity<>( resperr, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
