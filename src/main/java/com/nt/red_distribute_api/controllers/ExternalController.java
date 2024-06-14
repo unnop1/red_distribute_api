@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.nt.red_distribute_api.config.AuthConfig;
+import com.nt.red_distribute_api.dto.req.consumer.AddConsumerReq;
+import com.nt.red_distribute_api.dto.req.consumer.UpdateByConsumerReq;
 import com.nt.red_distribute_api.dto.req.external.PublishMessageReq;
 import com.nt.red_distribute_api.dto.resp.DefaultControllerResp;
 import com.nt.red_distribute_api.dto.resp.DefaultListResp;
@@ -153,8 +155,8 @@ public class ExternalController {
         }
     }
 
-    @PostMapping("subscribe_unsubscribe")
-    public ResponseEntity<Object> subscribeUnsubscribeTopic(
+    @PostMapping("subscribe")
+    public ResponseEntity<Object> subscribeTopic(
         HttpServletRequest request
     ) {
         DefaultListResp resp = new DefaultListResp();
@@ -166,20 +168,67 @@ public class ExternalController {
                 resp.setMessage("You don't have permission!!!");
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
+            
+            List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
+            List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
+            List<String> orderTypeTopicNames = new ArrayList<>();
+            List<Long> orderTypeIDs = new ArrayList<>();
+            for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
+                orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
+            }
+            for (OrderTypeEntity orderTypeData : orderTypeLists){
+                orderTypeIDs.add(orderTypeData.getID());
+            }
+
+            Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
+            if (err != null){
+                resp.setError(err.getLocalizedMessage());
+                resp.setMessage(err.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+            }
+
+            List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
+            
+            kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
+            
+            return new ResponseEntity<>( resp, HttpStatus.OK);
+        }catch (Exception e){
+            resp.setError(e.getLocalizedMessage());
+            resp.setMessage("Error while subscribe_unsubscribe : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("unsubscribe")
+    public ResponseEntity<Object> unsubscribeTopic(
+        HttpServletRequest request
+    ) {
+        DefaultListResp resp = new DefaultListResp();
+        try{
+            String requestHeader = request.getHeader("Authorization");
+            VerifyConsumerResp vsp = VerifyAuthentication(requestHeader);
+            if (!vsp.getIsVerify()){
+                resp.setError("Authenticated not you.");
+                resp.setMessage("You don't have permission!!!");
+                return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
+            }
+            List<Long> clearOrderTypes = new ArrayList<Long>();
+            Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), clearOrderTypes, vsp.getConsumerData().getUsername());
+            if (err.getMessage() != null){
+                resp.setCount(0);
+                resp.setError(err.getLocalizedMessage());
+                resp.setMessage(err.getMessage());
+                return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+            }
 
             List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
             List<String> orderTypeTopicNames = new ArrayList<>();
-                for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
-                    orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
-                }
-                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
-            if(consumerOrderTypes.size()>0){
-                kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
-            }else{
-                kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
+            for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
+                orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
             }
-        
+            List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
 
+            kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
 
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){

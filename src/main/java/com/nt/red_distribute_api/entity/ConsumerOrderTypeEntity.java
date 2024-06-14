@@ -14,7 +14,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table(name = "consumer_ordertype")
+@Table(name = "CONSUMER_ORDERTYPE")
 public class ConsumerOrderTypeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "consumer_ordertype_seq")

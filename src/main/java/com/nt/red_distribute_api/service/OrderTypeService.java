@@ -15,4 +15,5 @@ public interface OrderTypeService  {
     public OrderTypeEntity getOrderTypeDetail(Long orderTypeID);
     public OrderTypeEntity getOrderTypeByName(String orderTypeName);
     public List<OrderTypeEntity> ListOrderTypeByIDs(List<Long> orderTypeIDs);
+    public List<OrderTypeEntity> ListAll();
 }

@@ -20,7 +20,6 @@ import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
-import com.nt.red_distribute_api.entity.view.consumer.ListConsumerTopic;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
@@ -37,9 +36,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-
-import org.apache.kafka.common.config.TopicConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -506,6 +502,15 @@ public class ManageSystemController {
             }
 
             if ( req.getUpdateInfo().getOrder_type_ids() != null ){
+                Error err = consumerOrderTypeService.updateConsumerOrderType(updateConsumer.getID(), req.getUpdateInfo().getOrder_type_ids(), vsf.getUsername());
+                if (err.getMessage() != null){
+                    response.setCount(0);
+                    response.setData(err.getMessage());
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    response.setMessage("Error update Consumer and orderType ");
+                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                }
+
                 List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(updateConsumer.getID());
                 List<String> orderTypeTopicNames = new ArrayList<>();
                 for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){

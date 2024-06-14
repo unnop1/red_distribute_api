@@ -22,7 +22,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table (name = "sa_menu_permission")
+@Table (name = "SA_MENU_PERMISSION")
 public class PermissionMenuEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sa_menu_permission_seq")

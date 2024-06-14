@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.service.imp;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,21 @@ public class ConsumerOrderTypeImp implements ConsumerOrderTypeService {
         ConsumerOrderTypeEntity created = consumerOrderTypeRepo.save(newConsumerOrderType);
 
         return created.getID()+1;
+    }
+
+    @Override
+    public Error updateConsumerOrderType(Long consumerID, List<Long> updateOrderTypeIDs, String updatedBy) {
+        List<ConsumerLJoinOrderType> consumerOdts = consumerOrderTypeRepo.ConsumerOrderTypeName(consumerID);
+        List<Long> deleteOlds = new ArrayList<Long>();
+        for (ConsumerLJoinOrderType consumerOdtOld : consumerOdts) {
+            deleteOlds.add(consumerOdtOld.getID());
+        }
+        consumerOrderTypeRepo.deleteAllByIdInBatch(deleteOlds);
+        for (Long updateOrderTypeID : updateOrderTypeIDs) {
+            registerConsumerOrderType(consumerID, updateOrderTypeID, updatedBy);
+        }
+        
+        return null;
     }
 
     

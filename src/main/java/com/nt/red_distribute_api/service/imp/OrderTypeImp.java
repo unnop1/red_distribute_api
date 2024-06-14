@@ -4,20 +4,13 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.nt.red_distribute_api.Util.DateTime;
-import com.nt.red_distribute_api.config.AuthConfig;
-import com.nt.red_distribute_api.dto.req.consumer.AddConsumerReq;
-import com.nt.red_distribute_api.dto.req.consumer.UpdateByConsumerReq;
 import com.nt.red_distribute_api.dto.req.ordertype.AddOrderTypeReq;
 import com.nt.red_distribute_api.dto.req.ordertype.UpdateOrderTypeReq;
-import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
-import com.nt.red_distribute_api.repo.ConsumerRepo;
 import com.nt.red_distribute_api.repo.OrderTypeRepo;
-import com.nt.red_distribute_api.service.ConsumerService;
 import com.nt.red_distribute_api.service.OrderTypeService;
 
 @Service
@@ -25,6 +18,12 @@ public class OrderTypeImp implements OrderTypeService {
 
     @Autowired
     private OrderTypeRepo orderTypeRepo;
+
+    @Override
+    public List<OrderTypeEntity> ListAll() {
+        List<OrderTypeEntity> listOrderTypeIDs = orderTypeRepo.findAll();
+        return listOrderTypeIDs;
+    }
 
     @Override
     public List<OrderTypeEntity> ListOrderTypeByIDs(List<Long> orderTypeIDs) {
