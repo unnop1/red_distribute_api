@@ -10,6 +10,7 @@ import com.nt.red_distribute_api.dto.req.consumer.UpdateByConsumerReq;
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
 import com.nt.red_distribute_api.dto.req.manage_system.ListConsumerByOrderTypeReq;
 import com.nt.red_distribute_api.dto.req.ordertype.AddOrderTypeReq;
+import com.nt.red_distribute_api.dto.req.ordertype.OrderTypeMoreDetailReq;
 import com.nt.red_distribute_api.dto.req.ordertype.UpdateOrderTypeReq;
 import com.nt.red_distribute_api.dto.req.sa_metric_notification.AddMetricNotificationReq;
 import com.nt.red_distribute_api.dto.req.sa_metric_notification.UpdateMetricReq;
@@ -396,6 +397,59 @@ public class ManageSystemController {
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             resp.setMessage("Error while purge : " + e.getMessage());
             return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @PostMapping("/order_type/by_id")
+    public ResponseEntity<Object> GetOrderTypeMoreDetail(
+        @RequestBody OrderTypeMoreDetailReq req,
+        HttpServletRequest request
+    ) {
+        try{
+            
+            
+            String ipAddress = request.getRemoteAddr();
+            String requestHeader = request.getHeader("Authorization");
+                
+            VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+
+            OrderTypeEntity ordertypeData = orderTypeService.getOrderTypeDetail(req.getOrdertype_id());
+
+            AuditLog auditLog = new AuditLog();
+            auditLog.setAction("get");
+            auditLog.setAuditable("ordertype");
+            auditLog.setUsername(vsf.getUsername());
+            auditLog.setBrowser(vsf.getBrowser());
+            auditLog.setDevice(vsf.getDevice());
+            auditLog.setAuditable_id(req.getOrdertype_id());
+            auditLog.setOperating_system(vsf.getSystem());
+            auditLog.setIp_address(ipAddress);
+            auditLog.setComment("GetOrderTypeMoreDetail");
+            auditLog.setCreated_date(DateTime.getTimeStampNow());
+            auditService.AddAuditLog(auditLog);
+            
+            DefaultControllerResp response = new DefaultControllerResp();
+            
+            if (ordertypeData == null) {
+                response.setCount(0);
+                response.setRecordsFiltered(0);
+                response.setRecordsTotal(0);
+                response.setMessage("Not Found");
+                response.setStatusCode(404);
+                return new ResponseEntity<>( response, HttpStatus.NOT_FOUND);
+            } else {
+                response.setCount(1);
+                response.setRecordsFiltered(1);
+                response.setRecordsTotal(1);
+                response.setMessage("Success");
+                response.setData(ordertypeData);
+                response.setStatusCode(200);
+                return new ResponseEntity<>( response, HttpStatus.OK);
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(e.getMessage());
         }
     }
     
