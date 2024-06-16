@@ -14,7 +14,7 @@ import com.nt.red_distribute_api.entity.view.trigger.DashboardTrigger;
 import java.sql.Timestamp;
 public interface TriggerRepo extends JpaRepository<TriggerMessageEntity,Long> {
 
-    @Query(value = "SELECT * FROM trigger_message WHERE id=?1 ", nativeQuery = true)
+    @Query(value = "SELECT * FROM trigger_message WHERE ID=?1 ", nativeQuery = true)
     public TriggerMessageEntity findTriggerById(Long triggerID);
 
     /* WITH TIME */

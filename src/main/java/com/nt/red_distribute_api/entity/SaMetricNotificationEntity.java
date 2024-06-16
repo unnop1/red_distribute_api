@@ -20,7 +20,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table (name = "SA_METRIC_NOTIFICATION")
+@Table (name = "SA_METRIC_NOTIFICATION", schema = "${replace_schema}")
 public class SaMetricNotificationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sa_metric_notification_seq")
@@ -40,9 +40,9 @@ public class SaMetricNotificationEntity {
     @Column(name = "TOPUP_NOT_CONNECT", unique = false,nullable = true)
     private Integer TOPUP_NOT_CONNECT = 0;
 
-    @JsonBackReference
+    @Lob
     @Column(name = "TRIGGER_NOTI_JSON", unique = false,nullable = true)
-    private Clob TRIGGER_NOTI_JSON = null;
+    private String TRIGGER_NOTI_JSON = null;
 
     @Column(name = "UPDATED_DATE", unique = false,nullable = true)
     private Timestamp UPDATED_DATE = null;

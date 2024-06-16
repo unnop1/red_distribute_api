@@ -3,11 +3,6 @@ package com.nt.red_distribute_api.entity;
 
 import java.sql.Timestamp;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.SequenceGenerator;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +15,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table(name = "NOTIFICATION_MESSAGE")
+@Table(name = "NOTIFICATION_MESSAGE", schema = "${replace_schema}")
 public class NotificationMsgEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "notification_message_seq")

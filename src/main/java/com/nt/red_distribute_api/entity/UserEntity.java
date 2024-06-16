@@ -21,7 +21,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table (name = "USER_DB")
+@Table (name = "USER_DB", schema = "${replace_schema}")
 public class UserEntity implements UserDetails {
         @Id
         @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_db_seq")

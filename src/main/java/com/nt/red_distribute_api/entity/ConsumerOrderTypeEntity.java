@@ -14,7 +14,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table(name = "CONSUMER_ORDERTYPE")
+@Table(name = "CONSUMER_ORDERTYPE", schema = "${replace_schema}")
 public class ConsumerOrderTypeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "consumer_ordertype_seq")

@@ -1,10 +1,5 @@
 package com.nt.red_distribute_api.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.SequenceGenerator;
-
 import java.sql.Timestamp;
 
 import jakarta.persistence.*;
@@ -19,7 +14,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table(name = "CONSUMER")
+@Table(name = "CONSUMER", schema = "${replace_schema}")
 public class ConsumerEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "consumer_seq")
@@ -42,7 +37,7 @@ public class ConsumerEntity {
     @Column(name = "DEPARTMENTNAME", nullable = true)
     private String departmentName=null;
 
-    @Column(name = "CONTRACTNAME", nullable = true)
+    @Column(name = "CONTACTNAME", nullable = true)
     private String contactName=null;
 
     @Column(name = "EMAIL", nullable = true)
@@ -72,6 +67,6 @@ public class ConsumerEntity {
     @Column(name = "UPDATED_DATE", nullable = true)
     private Timestamp updated_date=null;
 
-    @Column(name = "UPDATE_BY", nullable = true)
+    @Column(name = "UPDATED_BY", nullable = true)
     private String updated_by=null;
 }

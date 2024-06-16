@@ -11,6 +11,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -22,7 +23,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table (name = "SA_MENU_PERMISSION")
+@Table (name = "SA_MENU_PERMISSION", schema = "${replace_schema}")
 public class PermissionMenuEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sa_menu_permission_seq")
@@ -33,9 +34,9 @@ public class PermissionMenuEntity {
     @Column(name = "PERMISSION_NAME", unique = false,nullable = true)
     private String permission_Name=null;
 
-    @JsonBackReference
+    @Lob
     @Column(name = "PERMISSION_JSON", unique = false,nullable = true)
-    private Clob permission_json=null;
+    private String permission_json=null;
 
     @Column(name = "CREATED_DATE", unique = false,nullable = true)
     private Timestamp created_Date=null;

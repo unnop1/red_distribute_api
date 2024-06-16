@@ -10,5 +10,6 @@ import lombok.Setter;
 public class VerifyConsumerResp {
     private ConsumerEntity consumerData;
     private Boolean isVerify=false;
+    private String remark;
     
 }

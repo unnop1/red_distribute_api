@@ -1,9 +1,6 @@
 package com.nt.red_distribute_api.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.nt.red_distribute_api.Auth.JwtHelper;
-import com.nt.red_distribute_api.Util.Convert;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.auth.JwtRequest;
@@ -22,13 +19,7 @@ import com.nt.red_distribute_api.service.LogLoginService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
 import com.nt.red_distribute_api.service.UserService;
 
-import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.PrintWriter;
-import java.sql.Clob;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
@@ -37,17 +28,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.function.ServerResponse;
-import org.springframework.web.servlet.function.ServerResponse.BodyBuilder;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -172,15 +159,10 @@ public class AuthController {
 
             PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
             String permissionJSonStr;
-            try {
-                if(permissionMenuEntity!=null){
-                    permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
-                    loginResp.setPermissionJson(permissionJSonStr);
-                    loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
-                }
-            } catch (java.io.IOException | SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            if(permissionMenuEntity!=null){
+                // permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
+                loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
             }
             
 
@@ -250,15 +232,10 @@ public class AuthController {
                 // permissionMenu
                 PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
                 String permissionJSonStr;
-                try {
-                    if(permissionMenuEntity!=null){
-                        permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
-                        userResp.setPermissionJson(permissionJSonStr);
-                        userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
-                    }
-                } catch (java.io.IOException | SQLException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                if(permissionMenuEntity!=null){
+                    // permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                    userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
+                    userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
                 }
                 
 

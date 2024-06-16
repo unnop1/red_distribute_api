@@ -16,7 +16,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
                   SELECT * 
                   FROM 
                       consumer
-                  WHERE username=?1
+                  WHERE USERNAME=?1
                    """,
                  nativeQuery = true)
     public ConsumerEntity ConsumerByUsername(String username);
@@ -28,12 +28,12 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
 
     @Query(value = """
                   SELECT 
-                      con.id, con.system_name, con.contactname, con.email, con.phonenumber, 
-                      (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+                      con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, 
+                      (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
                   FROM 
                       consumer_ordertype cod
                   LEFT JOIN 
-                      consumer con ON con.id = cod.consumer_id
+                      consumer con ON con.ID = cod.CONSUMER_ID
                    """,
                  nativeQuery = true)
     public List<ListConsumerTopic> ListConsumer(
@@ -46,20 +46,20 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
                   FROM 
                       consumer_ordertype cod
                   LEFT JOIN 
-                      consumer con ON con.id = cod.consumer_id 
+                      consumer con ON con.ID = cod.CONSUMER_ID 
                    """,
                  nativeQuery = true)
     public Integer getListConsumerTotal();
 
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE ( con.system_name like %:search% OR con.contactname like  %:search% OR con.email like  %:search% OR con.phonenumber like  %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE ( con.SYSTEM_NAME like %:search% OR con.CONTACTNAME like  %:search% OR con.EMAIL like  %:search% OR con.PHONENUMBER like  %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerAllLike(
@@ -73,8 +73,8 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE ( con.system_name like %:search% OR con.contactname like  %:search% OR con.email like  %:search% OR con.phonenumber like  %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE ( con.SYSTEM_NAME like %:search% OR con.CONTACTNAME like  %:search% OR con.EMAIL like  %:search% OR con.PHONENUMBER like  %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerAllLikeTotal(
@@ -85,13 +85,13 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // system name
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE ( con.system_name like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE ( con.SYSTEM_NAME like %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerSystemNameLike(
@@ -105,8 +105,8 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE ( con.system_name like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE ( con.SYSTEM_NAME like %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerSystemNameLikeTotal(
@@ -117,13 +117,13 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // contactname
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE ( con.contactname like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE ( con.CONTACTNAME like %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerContactNameLike(
@@ -137,9 +137,9 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.contactname like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.CONTACTNAME like %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerContactNameLikeTotal(
@@ -150,13 +150,13 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // email
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE ( con.email like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE ( con.EMAIL like %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerEmailLike(
@@ -170,8 +170,8 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE ( con.email like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE ( con.EMAIL like %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerEmailLikeTotal(
@@ -181,13 +181,13 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // phonenumber
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE ( con.phonenumber like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE ( con.PHONENUMBER like %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerPhoneNumberLike(
@@ -202,8 +202,8 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE ( con.phonenumber like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE ( con.PHONENUMBER like %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerPhoneNumberLikeTotal(
@@ -220,13 +220,13 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
 
     @Query(value = """
                   SELECT 
-                      con.id, con.system_name, con.contactname, con.email, con.phonenumber, 
-                      (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+                      con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, 
+                      (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
                   FROM 
                       consumer_ordertype cod
                   LEFT JOIN 
-                      consumer con ON con.id = cod.consumer_id
-                  WHERE cod.ordertype_id = :ordertype_id 
+                      consumer con ON con.ID = cod.CONSUMER_ID
+                  WHERE cod.ORDERTYPE_ID = :ordertype_id 
                    """,
                  nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerOrderType(
@@ -240,8 +240,8 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
                   FROM 
                       consumer_ordertype cod
                   LEFT JOIN 
-                      consumer con ON con.id = cod.consumer_id
-                  WHERE cod.ordertype_id = :ordertype_id 
+                      consumer con ON con.ID = cod.CONSUMER_ID
+                  WHERE cod.ORDERTYPE_ID = :ordertype_id 
                    """,
                  nativeQuery = true)
     public Integer getListConsumerOrderTypeTotal(
@@ -250,14 +250,14 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
 
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.system_name like %:search% OR con.contactname like  %:search% OR con.email like  %:search% OR con.phonenumber like  %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.SYSTEM_NAME like %:search% OR con.CONTACTNAME like  %:search% OR con.EMAIL like  %:search% OR con.PHONENUMBER like  %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerOrderTypeAllLike(
@@ -272,9 +272,9 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.system_name like %:search% OR con.contactname like  %:search% OR con.email like  %:search% OR con.phonenumber like  %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.SYSTEM_NAME like %:search% OR con.CONTACTNAME like  %:search% OR con.EMAIL like  %:search% OR con.PHONENUMBER like  %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerOrderTypeAllLikeTotal(
@@ -286,14 +286,14 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // system name
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.system_name like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.SYSTEM_NAME like %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerOrderTypeSystemNameLike(
@@ -308,9 +308,9 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.system_name like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.SYSTEM_NAME like %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerOrderTypeSystemNameLikeTotal(
@@ -322,14 +322,14 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // contactname
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.contactname like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.CONTACTNAME like %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerOrderTypeContactNameLike(
@@ -344,9 +344,9 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.contactname like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.CONTACTNAME like %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerOrderTypeContactNameLikeTotal(
@@ -358,14 +358,14 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // email
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.email like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.EMAIL like %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerOrderTypeEmailLike(
@@ -380,9 +380,9 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.email like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.EMAIL like %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerOrderTypeEmailLikeTotal(
@@ -393,14 +393,14 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // phonenumber
     @Query(value = """
         SELECT 
-            con.id, con.system_name, con.contactname, con.email, con.phonenumber,
-            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.id = cod.consumer_id) AS TotalTopic
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.phonenumber like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.PHONENUMBER like %:search% )
         """,
         nativeQuery = true)
     public List<ListConsumerTopic> ListConsumerOrderTypePhoneNumberLike(
@@ -416,9 +416,9 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
         FROM 
             consumer_ordertype cod
         LEFT JOIN 
-            consumer con ON con.id = cod.consumer_id
-        WHERE cod.ordertype_id = :ordertype_id 
-        AND ( con.phonenumber like %:search% )
+            consumer con ON con.ID = cod.CONSUMER_ID
+        WHERE cod.ORDERTYPE_ID = :ordertype_id 
+        AND ( con.PHONENUMBER like %:search% )
         """,
         nativeQuery = true)
     public Integer getListConsumerOrderTypePhoneNumberLikeTotal(

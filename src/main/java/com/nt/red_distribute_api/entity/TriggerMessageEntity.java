@@ -19,7 +19,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Table (name = "TRIGGER_MESSAGE")
+@Table (name = "TRIGGER_MESSAGE", schema = "${replace_schema}")
 public class TriggerMessageEntity {
     @Id
         @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "trigger_message_seq")
@@ -46,13 +46,13 @@ public class TriggerMessageEntity {
         @Column(name = "IS_STATUS", unique = false,nullable = true)
         private Integer IS_STATUS = null;
 
-        @JsonBackReference
+        @Lob
         @Column(name = "MESSAGE_IN", unique = false,nullable = true)
-        private Clob MESSAGE_IN = null;
+        private String MESSAGE_IN = null;
 
-        @JsonBackReference
+        @Lob
         @Column(name = "DATE_MODEL", unique = false,nullable = true)
-        private Clob DATE_MODEL = null;
+        private String DATE_MODEL = null;
 
         @Column(name = "RECEIVE_DATE", unique = false,nullable = true)
         private Timestamp RECEIVE_DATE = null;

@@ -20,11 +20,11 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
     @Query(value = """
       SELECT 
         odt.*,
-        (SELECT COUNT(id) FROM trigger_message trg WHERE trg.ordertype_id = odt.id AND TRUNC(trg.RECEIVE_DATE) = TRUNC(SYSDATE) ) AS TotalTrigger
+        (SELECT COUNT(id) FROM trigger_message trg WHERE trg.ORDERTYPE_ID = odt.ID AND TRUNC(trg.RECEIVE_DATE) = TRUNC(SYSDATE) ) AS TotalTrigger
       FROM 
         ordertype odt
       LEFT JOIN sa_channel_connect sac
-      ON sac.id = odt.SA_CHANNEL_CONNECT_ID
+      ON sac.ID = odt.SA_CHANNEL_CONNECT_ID
         """,
       nativeQuery = true)
     public List<TriggerOrderTypeCount> AllOrderTypeTriggerCount(
@@ -46,12 +46,13 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
     @Query(value = """
                 SELECT 
                     odt.*,
-                    (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ordertype_id = odt.id) AS TotalConsumer,
-                    (SELECT COUNT(id) FROM trigger_message trg WHERE trg.ordertype_id = odt.id) AS TotalTrigger
+                    sac.CHANNEL_NAME,
+                    (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ORDERTYPE_ID = odt.ID) AS TotalConsumer,
+                    (SELECT COUNT(id) FROM trigger_message trg WHERE trg.ORDERTYPE_ID = odt.ID) AS TotalTrigger
                 FROM 
                     ordertype odt
                 LEFT JOIN sa_channel_connect sac
-                ON sac.id = odt.SA_CHANNEL_CONNECT_ID
+                ON sac.ID = odt.SA_CHANNEL_CONNECT_ID
                    """,
                  nativeQuery = true)
     public List<OrderTypeDashboardTrigger> OrderTypeTriggerDashboard(
@@ -60,8 +61,8 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
 
     @Query(value = """
                 SELECT 
-                odt.id, odt.ordertype_name, odt.message_expire, odt.is_delete, odt.is_enable,
-                    (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ordertype_id = odt.id) AS TotalConsumer
+                odt.ID, odt.ORDERTYPE_NAME, odt.MESSAGE_EXPIRE, odt.IS_DELETE, odt.IS_ENABLE,
+                    (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ORDERTYPE_ID = odt.ID) AS TotalConsumer
                 FROM ordertype odt
                 OFFSET ?1 ROWS FETCH NEXT ?2 ROWS ONLY 
                    """,
@@ -82,12 +83,12 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
     @Query(value = """
                 SELECT 
                     odt.*,
-                    (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ordertype_id = odt.id) AS TotalConsumer,
-                    (SELECT COUNT(id) FROM trigger_message trg WHERE trg.ordertype_id = odt.id) AS TotalTrigger
+                    (SELECT COUNT(ID) FROM consumer_ordertype cod WHERE cod.ORDERTYPE_ID = odt.ID) AS TotalConsumer,
+                    (SELECT COUNT(ID) FROM trigger_message trg WHERE trg.ORDERTYPE_ID = odt.ID) AS TotalTrigger
                 FROM 
                     ordertype odt
                 LEFT JOIN sa_channel_connect sac
-                ON sac.id = odt.SA_CHANNEL_CONNECT_ID
+                ON sac.ID = odt.SA_CHANNEL_CONNECT_ID
                 WHERE odt.SA_CHANNEL_CONNECT_ID = :channel_id
                    """,
                  nativeQuery = true)

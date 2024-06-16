@@ -8,10 +8,13 @@ import java.util.Base64;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.dto.req.consumer.AddConsumerReq;
 import com.nt.red_distribute_api.dto.req.consumer.UpdateByConsumerReq;
@@ -20,6 +23,7 @@ import com.nt.red_distribute_api.dto.resp.DefaultControllerResp;
 import com.nt.red_distribute_api.dto.resp.DefaultListResp;
 import com.nt.red_distribute_api.dto.resp.DefaultResp;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
+import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
 import com.nt.red_distribute_api.dto.resp.external.VerifyConsumerResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
@@ -53,6 +57,10 @@ public class ExternalController {
     @Autowired
     private KafkaClientService kafkaClientService;
 
+    public boolean verifyPassword(String rawPassword, String storedEncodedPassword) {
+        return authConfig.passwordEncoder().matches(rawPassword, storedEncodedPassword);
+    }
+
     protected VerifyConsumerResp VerifyAuthentication(String authHeader){
         VerifyConsumerResp verifyData = new VerifyConsumerResp();
         if (authHeader != null && authHeader.startsWith("Basic ")) {
@@ -64,11 +72,11 @@ public class ExternalController {
             final String[] values = credentials.split(":", 2);
             String username = values[0];
             String password = values[1];
-            String passwordEncode = authConfig.passwordEncoder().encode(password);
-
             ConsumerEntity consumer = consumerService.getConsumerByUsername(username);
-            if (consumer.getPassword().equals(passwordEncode)){
-                verifyData.setConsumerData(consumer);
+            String passwordEncode = consumer.getPassword();
+            verifyData.setConsumerData(consumer);
+            verifyData.setRemark("password: " + password+", passwordEncode: " + passwordEncode+ "isverify password:"+verifyPassword(password, passwordEncode));
+            if (verifyPassword(password, passwordEncode)){
                 verifyData.setIsVerify(true);
             }
         }
@@ -77,8 +85,7 @@ public class ExternalController {
 
     @GetMapping("/topics")
     public ResponseEntity<Object> QueueDetail(
-        HttpServletRequest request,
-        @RequestParam(name = "topic_name")String topic_name
+        HttpServletRequest request
     ) {
         DefaultResp resp = new DefaultResp();
         try{
@@ -86,12 +93,13 @@ public class ExternalController {
             VerifyConsumerResp vsp = VerifyAuthentication(requestHeader);
             if (!vsp.getIsVerify()){
                 resp.setError("Authenticated not you.");
-                resp.setMessage("You don't have permission!!!");
+                resp.setMessage("You don't have permission!!! username : " + vsp.getConsumerData().getUsername());
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
-            OrderTypeEntity data = orderTypService.getOrderTypeByName(topic_name);
+            List<OrderTypeEntity> data = orderTypService.ListAll();
             resp.setResult(data);
+            resp.setMessage(vsp.getRemark());
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
@@ -114,7 +122,21 @@ public class ExternalController {
                 resp.setMessage("You don't have permission!!!");
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
-            kafkaClientService.consumerPublishMessage( vsp.getConsumerData().getUsername(),vsp.getConsumerData().getPassword() ,data.getTopic(), data.getMessage());
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            String objectString = mapper.writeValueAsString(data.getMessage());
+
+            String err = kafkaClientService.consumerPublishMessage( 
+                vsp.getConsumerData().getUsername(),
+                vsp.getConsumerData().getPassword(),
+                data.getTopic(), 
+                objectString
+            );
+            if (err !=null) {
+                resp.setMessage(err);
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             resp.setResult(data);
             resp.setMessage("Successfully published");
             return new ResponseEntity<>( resp, HttpStatus.OK);
@@ -125,9 +147,10 @@ public class ExternalController {
         }
     }
 
-    @PostMapping("consume")
+    @GetMapping("consume")
     public ResponseEntity<Object> ConsumeAllMessagesInTopic(
-        HttpServletRequest request
+        HttpServletRequest request,
+        @RequestParam(name = "topic_name") String topicName
     ) {
         DefaultListResp resp = new DefaultListResp();
         try{
@@ -139,14 +162,29 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
-            List<String> messages = kafkaClientService.consumeMessages(
+            ListConsumeMsg consumeMsgs = kafkaClientService.consumeMessages(
                 vsp.getConsumerData().getUsername(),
                 vsp.getConsumerData().getPassword(),
-                requestHeader, requestHeader
+                topicName, vsp.getConsumerData().getConsumer_group()
             );
-
-            resp.setResult(messages);
-            resp.setCount(messages.size());
+            if (consumeMsgs.getErr() != null){
+                resp.setError(consumeMsgs.getErr());
+                resp.setMessage("Error while consuming messages");
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            
+            // if(consumeMsgs.getMessages() != null){
+            //     resp.setResult(consumeMsgs.getMessages());
+            //     resp.setCount(consumeMsgs.getMessages().size());
+            //     return new ResponseEntity<>( resp, HttpStatus.OK);
+            // }
+            
+            try{
+                ObjectMapper objectMapper = new ObjectMapper();
+                resp.setMessage(objectMapper.writeValueAsString(consumeMsgs));
+            }catch (Exception e){
+                resp.setError(e.getMessage());
+            }
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());

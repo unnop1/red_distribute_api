@@ -3,7 +3,6 @@ package com.nt.red_distribute_api.service.imp;
 import java.sql.Timestamp;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.nt.red_distribute_api.Util.DateTime;
@@ -11,7 +10,6 @@ import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.dto.req.consumer.AddConsumerReq;
 import com.nt.red_distribute_api.dto.req.consumer.UpdateByConsumerReq;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
-import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.repo.ConsumerRepo;
 import com.nt.red_distribute_api.service.ConsumerService;
 
