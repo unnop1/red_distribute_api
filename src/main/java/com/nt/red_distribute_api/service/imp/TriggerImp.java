@@ -74,14 +74,14 @@ public class TriggerImp implements TriggerMessageService{
 
         if ( search.isEmpty()){
             if (req.getStartTime().isEmpty() || req.getEndTime().isEmpty()){
-                List<DashboardTrigger> smsConditionEntities = triggerRepo.ListTriggerWITHOUTTime(PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName ));
-                Integer count = triggerRepo.getListTriggerWITHOUTTimeTotalCount();
+                List<DashboardTrigger> smsConditionEntities = triggerRepo.ListTriggerWITHOUTTime(req.getOrderTypeID() ,PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName ));
+                Integer count = triggerRepo.getListTriggerWITHOUTTimeTotalCount(req.getOrderTypeID());
                 resp.setCount(count);
                 resp.setData(smsConditionEntities);
                 return resp;
             }
-            List<DashboardTrigger> smsConditionEntities = triggerRepo.ListTriggerWithTime(startTime, endTime, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName ));
-            Integer count = triggerRepo.getListTriggerWithTimeTotalCount(startTime, endTime);
+            List<DashboardTrigger> smsConditionEntities = triggerRepo.ListTriggerWithTime(req.getOrderTypeID(), startTime, endTime, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName ));
+            Integer count = triggerRepo.getListTriggerWithTimeTotalCount(req.getOrderTypeID(), startTime, endTime);
             resp.setCount(count);
             resp.setData(smsConditionEntities);
             return resp;
@@ -89,53 +89,53 @@ public class TriggerImp implements TriggerMessageService{
             if( !req.getSearchField().isEmpty()){
                 if (searchField.equals("orderid")){
                     if (req.getStartTime().isEmpty() || req.getEndTime().isEmpty()){
-                        List<DashboardTrigger> smsConditionEntities = triggerRepo.ListOrderIDWITHOUTTimeLike(search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-                        Integer count = triggerRepo.getListOrderIDWITHOUTTimeLikeTotalCount(search);
+                        List<DashboardTrigger> smsConditionEntities = triggerRepo.ListOrderIDWITHOUTTimeLike(req.getOrderTypeID(),search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+                        Integer count = triggerRepo.getListOrderIDWITHOUTTimeLikeTotalCount(req.getOrderTypeID(),search);
                         resp.setCount(count);
                         resp.setData(smsConditionEntities);
                         return resp;
                     }
-                    List<DashboardTrigger> smsConditionEntities = triggerRepo.ListOrderIDWithTimeLike(startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-                    Integer count = triggerRepo.getListOrderIDWithTimeLikeTotalCount(startTime, endTime, search);
+                    List<DashboardTrigger> smsConditionEntities = triggerRepo.ListOrderIDWithTimeLike(req.getOrderTypeID(),startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+                    Integer count = triggerRepo.getListOrderIDWithTimeLikeTotalCount(req.getOrderTypeID(),startTime, endTime, search);
                     resp.setCount(count);
                     resp.setData(smsConditionEntities);
                     return resp;
                 }else if (searchField.equals("phonenumber")){
                     if (req.getStartTime().isEmpty() || req.getEndTime().isEmpty()){
-                        List<DashboardTrigger> smsConditionEntities = triggerRepo.ListPhoneNumberWITHOUTTimeLike(search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-                        Integer count = triggerRepo.getListPhoneNumberWITHOUTTimeLikeTotalCount(search);
+                        List<DashboardTrigger> smsConditionEntities = triggerRepo.ListPhoneNumberWITHOUTTimeLike(req.getOrderTypeID(),search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+                        Integer count = triggerRepo.getListPhoneNumberWITHOUTTimeLikeTotalCount(req.getOrderTypeID(),search);
                         resp.setCount(count);
                         resp.setData(smsConditionEntities);
                         return resp;
                     }
-                    List<DashboardTrigger> smsConditionEntities = triggerRepo.ListPhoneNumberWithTimeLike(startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-                    Integer count = triggerRepo.getListPhoneNumberWithTimeLikeTotalCount(startTime, endTime, search);
+                    List<DashboardTrigger> smsConditionEntities = triggerRepo.ListPhoneNumberWithTimeLike(req.getOrderTypeID(),startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+                    Integer count = triggerRepo.getListPhoneNumberWithTimeLikeTotalCount(req.getOrderTypeID(),startTime, endTime, search);
                     resp.setCount(count);
                     resp.setData(smsConditionEntities);
                     return resp;
                 }else if (searchField.equals("ordertype_name")){
                     if (req.getStartTime().isEmpty() || req.getEndTime().isEmpty()){
-                        List<DashboardTrigger> smsConditionEntities = triggerRepo.ListORDERTYPENAMEWITHOUTTimeLike(search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-                        Integer count = triggerRepo.getListORDERTYPENAMEWITHOUTTimeLikeTotalCount(search);
+                        List<DashboardTrigger> smsConditionEntities = triggerRepo.ListORDERTYPENAMEWITHOUTTimeLike(req.getOrderTypeID(),search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+                        Integer count = triggerRepo.getListORDERTYPENAMEWITHOUTTimeLikeTotalCount(req.getOrderTypeID(),search);
                         resp.setCount(count);
                         resp.setData(smsConditionEntities);
                         return resp;
                     }
-                    List<DashboardTrigger> smsConditionEntities = triggerRepo.ListORDERTYPENAMEWithTimeLike(startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-                    Integer count = triggerRepo.getListORDERTYPENAMEWithTimeLikeTotalCount(startTime, endTime, search);
+                    List<DashboardTrigger> smsConditionEntities = triggerRepo.ListORDERTYPENAMEWithTimeLike(req.getOrderTypeID(),startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+                    Integer count = triggerRepo.getListORDERTYPENAMEWithTimeLikeTotalCount(req.getOrderTypeID(),startTime, endTime, search);
                     resp.setCount(count);
                     resp.setData(smsConditionEntities);
                     return resp;
                 } else if (searchField.equals("publish_channel")){
                     if (req.getStartTime().isEmpty() || req.getEndTime().isEmpty()){
-                        List<DashboardTrigger> smsConditionEntities = triggerRepo.ListPUBLISHCHANNELWITHOUTTimeLike(search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-                        Integer count = triggerRepo.getListPUBLISHCHANNELWITHOUTTimeLikeTotalCount(search);
+                        List<DashboardTrigger> smsConditionEntities = triggerRepo.ListPUBLISHCHANNELWITHOUTTimeLike(req.getOrderTypeID(),search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+                        Integer count = triggerRepo.getListPUBLISHCHANNELWITHOUTTimeLikeTotalCount(req.getOrderTypeID(),search);
                         resp.setCount(count);
                         resp.setData(smsConditionEntities);
                         return resp;
                     }
-                    List<DashboardTrigger> smsConditionEntities = triggerRepo.ListORDERTYPENAMEWithTimeLike(startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-                    Integer count = triggerRepo.getListORDERTYPENAMEWithTimeLikeTotalCount(startTime, endTime, search);
+                    List<DashboardTrigger> smsConditionEntities = triggerRepo.ListORDERTYPENAMEWithTimeLike(req.getOrderTypeID(),startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+                    Integer count = triggerRepo.getListORDERTYPENAMEWithTimeLikeTotalCount(req.getOrderTypeID(),startTime, endTime, search);
                     resp.setCount(count);
                     resp.setData(smsConditionEntities);
                     return resp;
@@ -144,14 +144,14 @@ public class TriggerImp implements TriggerMessageService{
 
             
             if (req.getStartTime().isEmpty() || req.getEndTime().isEmpty()){
-                List<DashboardTrigger> smsConditionEntities = triggerRepo.ListTriggerWITHOUTTimeAllLike(search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-                Integer count = triggerRepo.getListTriggerWITHOUTTimeAllLikeTotalCount(search);
+                List<DashboardTrigger> smsConditionEntities = triggerRepo.ListTriggerWITHOUTTimeAllLike(req.getOrderTypeID(),search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+                Integer count = triggerRepo.getListTriggerWITHOUTTimeAllLikeTotalCount(req.getOrderTypeID(), search);
                 resp.setCount(count);
                 resp.setData(smsConditionEntities);
                 return resp;
             }
-            List<DashboardTrigger> smsConditionEntities = triggerRepo.ListTriggerWithTimeAllLike(startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
-            Integer count = triggerRepo.getListTriggerWithTimeAllLikeTotalCount(startTime, endTime, search);
+            List<DashboardTrigger> smsConditionEntities = triggerRepo.ListTriggerWithTimeAllLike(req.getOrderTypeID(),startTime, endTime, search, PageRequest.of(page, limit, Sort.Direction.fromString(sortBy), sortName));
+            Integer count = triggerRepo.getListTriggerWithTimeAllLikeTotalCount(req.getOrderTypeID(),startTime, endTime, search);
             resp.setCount(count);
             resp.setData(smsConditionEntities);
             return resp;

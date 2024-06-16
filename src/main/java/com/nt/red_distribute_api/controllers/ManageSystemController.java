@@ -626,6 +626,10 @@ public class ManageSystemController {
             // delete consumer in database
             consumerService.deleteConsumer(consumerID, vsf.getUsername());
 
+            // delete consumer in database
+            List<Long> clearList = new ArrayList<Long>();
+            consumerOrderTypeService.updateConsumerOrderType(consumerID, clearList, vsf.getUsername());
+
             // list consumer acls in kafka
             List<UserAclsInfo> userAcls = kafkaClientService.ListUserAcls(consumer.getUsername());
 

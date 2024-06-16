@@ -21,33 +21,40 @@ public interface TriggerRepo extends JpaRepository<TriggerMessageEntity,Long> {
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE 
                     FROM trigger_message trg 
-                    WHERE (trg.RECEIVE_DATE >= :start_time) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
+                    AND (trg.RECEIVE_DATE >= :start_time) 
                     AND (trg.RECEIVE_DATE <= :end_time) 
                     """
                     ,nativeQuery = true)
-    public List<DashboardTrigger> ListTriggerWithTime(@Param(value = "start_time") Timestamp startTime,
+    public List<DashboardTrigger> ListTriggerWithTime(
+                                            @Param(value = "order_type_id")Long orderTypeID,
+                                            @Param(value = "start_time") Timestamp startTime,
                                             @Param(value = "end_time")Timestamp endTime,
                                             Pageable pageable);
 
     @Query(value = """
                     SELECT COUNT(*)
                     FROM trigger_message trg 
-                    WHERE (trg.RECEIVE_DATE >= :start_time) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
+                    AND (trg.RECEIVE_DATE >= :start_time) 
                     AND (trg.RECEIVE_DATE <= :end_time) 
                     """,
                     nativeQuery = true)
-    public Integer getListTriggerWithTimeTotalCount(@Param(value = "start_time") Timestamp startTime,
+    public Integer getListTriggerWithTimeTotalCount(@Param(value = "order_type_id")Long orderTypeID, @Param(value = "start_time") Timestamp startTime,
     @Param(value = "end_time")Timestamp endTime);
 
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg 
-                    WHERE (trg.RECEIVE_DATE >= :start_time) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
+                    AND (trg.RECEIVE_DATE >= :start_time) 
                     AND (trg.RECEIVE_DATE <= :end_time) 
                     AND ( trg.ORDERID like %:search% OR trg.PHONENUMBER like %:search% OR trg.ORDERTYPE_NAME like %:search% OR trg.PUBLISH_CHANNEL like %:search% ) 
                     """,
                     nativeQuery = true)
-    public List<DashboardTrigger> ListTriggerWithTimeAllLike(@Param(value = "start_time") Timestamp startTime,
+    public List<DashboardTrigger> ListTriggerWithTimeAllLike(
+        @Param(value = "order_type_id")Long orderTypeID,
+        @Param(value = "start_time") Timestamp startTime,
                                             @Param(value = "end_time")Timestamp endTime,
                                             @Param(value = "search") String search,
                                             Pageable pageable);
@@ -55,27 +62,33 @@ public interface TriggerRepo extends JpaRepository<TriggerMessageEntity,Long> {
     @Query(value = """
         SELECT COUNT(*)
         FROM trigger_message trg 
-        WHERE (trg.RECEIVE_DATE >= :start_time) 
+        WHERE trg.ORDERTYPE_ID=:order_type_id
+        AND (trg.RECEIVE_DATE >= :start_time) 
         AND (trg.RECEIVE_DATE <= :end_time) 
         AND ( trg.ORDERID like %:search% OR trg.PHONENUMBER like %:search% OR trg.ORDERTYPE_NAME like %:search% OR trg.PUBLISH_CHANNEL like %:search% ) 
         """,
         nativeQuery = true
     )
-    public Integer getListTriggerWithTimeAllLikeTotalCount(@Param(value = "start_time") Timestamp startTime,
-                                                        @Param(value = "end_time")Timestamp endTime,
-                                                        @Param(value = "search") String search);
+    public Integer getListTriggerWithTimeAllLikeTotalCount(
+        @Param(value = "order_type_id")Long orderTypeID,    
+        @Param(value = "start_time") Timestamp startTime,
+        @Param(value = "end_time")Timestamp endTime,
+        @Param(value = "search") String search);
 
     // ORDERID
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg 
-                    WHERE (trg.RECEIVE_DATE >= :start_time) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
+                    AND (trg.RECEIVE_DATE >= :start_time) 
                     AND (trg.RECEIVE_DATE <= :end_time) 
                     AND ( trg.ORDERID like %:search% ) 
                     """,
                     nativeQuery = true
     )
-    public List<DashboardTrigger> ListOrderIDWithTimeLike(@Param(value = "start_time") Timestamp startTime,
+    public List<DashboardTrigger> ListOrderIDWithTimeLike(
+                                            @Param(value = "order_type_id")Long orderTypeID,
+                                            @Param(value = "start_time") Timestamp startTime,
                                             @Param(value = "end_time")Timestamp endTime,
                                             @Param(value = "search") String search,
                                             Pageable pageable);
@@ -83,12 +96,15 @@ public interface TriggerRepo extends JpaRepository<TriggerMessageEntity,Long> {
     @Query(value = """
                     SELECT COUNT(*)
                     FROM trigger_message trg 
-                    WHERE (trg.RECEIVE_DATE >= :start_time) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
+                    AND (trg.RECEIVE_DATE >= :start_time) 
                     AND (trg.RECEIVE_DATE <= :end_time) 
                     AND ( trg.ORDERID like %:search% ) 
                     """,
                     nativeQuery = true)
-    public Integer getListOrderIDWithTimeLikeTotalCount(@Param(value = "start_time") Timestamp startTime,
+    public Integer getListOrderIDWithTimeLikeTotalCount(
+                                                        @Param(value = "order_type_id")Long orderTypeID,
+                                                        @Param(value = "start_time") Timestamp startTime,
                                                         @Param(value = "end_time")Timestamp endTime,
                                                         @Param(value = "search") String search);
 
@@ -97,13 +113,16 @@ public interface TriggerRepo extends JpaRepository<TriggerMessageEntity,Long> {
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg 
-                    WHERE (trg.RECEIVE_DATE >= :start_time) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
+                    AND(trg.RECEIVE_DATE >= :start_time) 
                     AND (trg.RECEIVE_DATE <= :end_time) 
                     AND ( trg.PhoneNumber like %:search% ) 
                     """,
                     nativeQuery = true
     )
-    public List<DashboardTrigger> ListPhoneNumberWithTimeLike(@Param(value = "start_time") Timestamp startTime,
+    public List<DashboardTrigger> ListPhoneNumberWithTimeLike(
+                                            @Param(value = "order_type_id")Long orderTypeID,
+                                            @Param(value = "start_time") Timestamp startTime,
                                             @Param(value = "end_time")Timestamp endTime,
                                             @Param(value = "search") String search,
                                             Pageable pageable);
@@ -111,12 +130,15 @@ public interface TriggerRepo extends JpaRepository<TriggerMessageEntity,Long> {
     @Query(value = """
                     SELECT COUNT(*)
                     FROM trigger_message trg 
-                    WHERE (trg.RECEIVE_DATE >= :start_time) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
+                    AND (trg.RECEIVE_DATE >= :start_time) 
                     AND (trg.RECEIVE_DATE <= :end_time) 
                     AND ( trg.PhoneNumber like %:search% ) 
                     """,
                     nativeQuery = true)
-    public Integer getListPhoneNumberWithTimeLikeTotalCount(@Param(value = "start_time") Timestamp startTime,
+    public Integer getListPhoneNumberWithTimeLikeTotalCount(
+                                                        @Param(value = "order_type_id")Long orderTypeID,    
+                                                        @Param(value = "start_time") Timestamp startTime,
                                                         @Param(value = "end_time")Timestamp endTime,
                                                         @Param(value = "search") String search);
 
@@ -124,28 +146,34 @@ public interface TriggerRepo extends JpaRepository<TriggerMessageEntity,Long> {
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg 
-                    WHERE (trg.RECEIVE_DATE >= :start_time) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
+                    AND (trg.RECEIVE_DATE >= :start_time) 
                     AND (trg.RECEIVE_DATE <= :end_time) 
                     AND ( trg.ORDERTYPE_NAME like %:search% ) 
                     """,
                     nativeQuery = true
     )
-    public List<DashboardTrigger> ListORDERTYPENAMEWithTimeLike(@Param(value = "start_time") Timestamp startTime,
-                                            @Param(value = "end_time")Timestamp endTime,
-                                            @Param(value = "search") String search,
-                                            Pageable pageable);
+    public List<DashboardTrigger> ListORDERTYPENAMEWithTimeLike(
+        @Param(value = "order_type_id")Long orderTypeID,    
+        @Param(value = "start_time") Timestamp startTime,
+        @Param(value = "end_time")Timestamp endTime,
+        @Param(value = "search") String search,
+        Pageable pageable);
 
     @Query(value = """
                     SELECT COUNT(*)
                     FROM trigger_message trg 
-                    WHERE (trg.RECEIVE_DATE >= :start_time) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
+                    AND (trg.RECEIVE_DATE >= :start_time) 
                     AND (trg.RECEIVE_DATE <= :end_time) 
                     AND ( trg.ORDERTYPE_NAME like %:search% ) 
                     """,
                     nativeQuery = true)
-    public Integer getListORDERTYPENAMEWithTimeLikeTotalCount(@Param(value = "start_time") Timestamp startTime,
-                                                        @Param(value = "end_time")Timestamp endTime,
-                                                        @Param(value = "search") String search);
+    public Integer getListORDERTYPENAMEWithTimeLikeTotalCount(
+        @Param(value = "order_type_id")Long orderTypeID,
+        @Param(value = "start_time") Timestamp startTime,
+        @Param(value = "end_time")Timestamp endTime,
+        @Param(value = "search") String search);
 
     // PUBLISH_CHANNEL
     @Query(value =  """
@@ -179,55 +207,64 @@ public interface TriggerRepo extends JpaRepository<TriggerMessageEntity,Long> {
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg  
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
                     """
                     ,nativeQuery = true)
-    public List<DashboardTrigger> ListTriggerWITHOUTTime(Pageable pageable);
+    public List<DashboardTrigger> ListTriggerWITHOUTTime(@Param(value = "order_type_id")Long orderTypeID,Pageable pageable);
 
     @Query(value = """
                     SELECT COUNT(*)
                     FROM trigger_message trg  
+                    WHERE trg.ORDERTYPE_ID=:order_type_id
                     """,
                     nativeQuery = true)
-    public Integer getListTriggerWITHOUTTimeTotalCount();
+    public Integer getListTriggerWITHOUTTimeTotalCount(@Param(value = "order_type_id")Long orderTypeID);
 
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg  
-                    WHERE ( trg.ORDERID like %:search% OR trg.PHONENUMBER like %:search% OR trg.ORDERTYPE_NAME like %:search% OR trg.PUBLISH_CHANNEL like %:search% ) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id 
+                    AND ( trg.ORDERID like %:search% OR trg.PHONENUMBER like %:search% OR trg.ORDERTYPE_NAME like %:search% OR trg.PUBLISH_CHANNEL like %:search% ) 
                     """,
                     nativeQuery = true)
     public List<DashboardTrigger> ListTriggerWITHOUTTimeAllLike(
+                                            @Param(value = "order_type_id")Long orderTypeID,
                                             @Param(value = "search") String search,
                                             Pageable pageable);
 
     @Query(value = """
         SELECT COUNT(*)
         FROM trigger_message trg 
-        WHERE ( trg.ORDERID like %:search% OR trg.PHONENUMBER like %:search% OR trg.ORDERTYPE_NAME like %:search% OR trg.PUBLISH_CHANNEL like %:search% ) 
+        WHERE trg.ORDERTYPE_ID=:order_type_id 
+        AND ( trg.ORDERID like %:search% OR trg.PHONENUMBER like %:search% OR trg.ORDERTYPE_NAME like %:search% OR trg.PUBLISH_CHANNEL like %:search% ) 
         """,
         nativeQuery = true
     )
-    public Integer getListTriggerWITHOUTTimeAllLikeTotalCount(@Param(value = "search") String search);
+    public Integer getListTriggerWITHOUTTimeAllLikeTotalCount(@Param(value = "order_type_id")Long orderTypeID, @Param(value = "search") String search);
 
     // ORDERID
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg  
-                    WHERE ( trg.ORDERID like %:search% ) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id 
+                    AND ( trg.ORDERID like %:search% ) 
                     """,
                     nativeQuery = true
     )
     public List<DashboardTrigger> ListOrderIDWITHOUTTimeLike(
+                                            @Param(value = "order_type_id")Long orderTypeID,
                                             @Param(value = "search") String search,
                                             Pageable pageable);
 
     @Query(value = """
                     SELECT COUNT(*)
                     FROM trigger_message trg  
-                    WHERE ( trg.ORDERID like %:search% ) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id  
+                    AND ( trg.ORDERID like %:search% ) 
                     """,
                     nativeQuery = true)
     public Integer getListOrderIDWITHOUTTimeLikeTotalCount(
+                                                        @Param(value = "order_type_id")Long orderTypeID,
                                                         @Param(value = "search") String search);
 
                                                         
@@ -235,64 +272,76 @@ public interface TriggerRepo extends JpaRepository<TriggerMessageEntity,Long> {
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg  
-                    WHERE ( trg.PhoneNumber like %:search% ) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id 
+                    AND ( trg.PhoneNumber like %:search% ) 
                     """,
                     nativeQuery = true
     )
     public List<DashboardTrigger> ListPhoneNumberWITHOUTTimeLike(
+                                            @Param(value = "order_type_id")Long orderTypeID,
                                             @Param(value = "search") String search,
                                             Pageable pageable);
 
     @Query(value = """
                     SELECT COUNT(*)
                     FROM trigger_message trg  
-                    WHERE ( trg.PhoneNumber like %:search% ) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id 
+                    AND ( trg.PhoneNumber like %:search% ) 
                     """,
                     nativeQuery = true)
     public Integer getListPhoneNumberWITHOUTTimeLikeTotalCount(
+                                                        @Param(value = "order_type_id")Long orderTypeID,
                                                         @Param(value = "search") String search);
 
     // ORDERTYPE_NAME
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg  
-                    WHERE ( trg.ORDERTYPE_NAME like %:search% ) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id 
+                    AND ( trg.ORDERTYPE_NAME like %:search% ) 
                     """,
                     nativeQuery = true
     )
     public List<DashboardTrigger> ListORDERTYPENAMEWITHOUTTimeLike(
+                                            @Param(value = "order_type_id")Long orderTypeID,
                                             @Param(value = "search") String search,
                                             Pageable pageable);
 
     @Query(value = """
                     SELECT COUNT(*)
                     FROM trigger_message trg  
-                    WHERE ( trg.ORDERTYPE_NAME like %:search% ) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id 
+                    AND ( trg.ORDERTYPE_NAME like %:search% ) 
                     """,
                     nativeQuery = true)
     public Integer getListORDERTYPENAMEWITHOUTTimeLikeTotalCount(
-                                                        @Param(value = "search") String search);
+        @Param(value = "order_type_id")Long orderTypeID,
+        @Param(value = "search") String search);
 
     // PUBLISH_CHANNEL
     @Query(value =  """
                     SELECT trg.ID,trg.ORDERID,trg.PHONENUMBER, trg.ORDERTYPE_NAME,trg.PUBLISH_CHANNEL,trg.RECEIVE_DATE,trg.SEND_DATE
                     FROM trigger_message trg  
-                    WHERE ( trg.PUBLISH_CHANNEL like %:search% ) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id 
+                    AND ( trg.PUBLISH_CHANNEL like %:search% ) 
                     """,
                     nativeQuery = true
     )
     public List<DashboardTrigger> ListPUBLISHCHANNELWITHOUTTimeLike(
-                                            @Param(value = "search") String search,
-                                            Pageable pageable);
+        @Param(value = "order_type_id")Long orderTypeID,
+        @Param(value = "search") String search,
+        Pageable pageable);
 
     @Query(value = """
                     SELECT COUNT(*)
                     FROM trigger_message trg  
-                    WHERE ( trg.PUBLISH_CHANNEL like %:search% ) 
+                    WHERE trg.ORDERTYPE_ID=:order_type_id 
+                    AND ( trg.PUBLISH_CHANNEL like %:search% ) 
                     """,
                     nativeQuery = true)
     public Integer getListPUBLISHCHANNELWITHOUTTimeLikeTotalCount(
-                                                        @Param(value = "search") String search);
+        @Param(value = "order_type_id")Long orderTypeID,
+        @Param(value = "search") String search);
     
     
 }

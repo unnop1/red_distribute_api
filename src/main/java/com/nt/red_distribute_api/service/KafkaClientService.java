@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -59,8 +60,11 @@ import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
@@ -78,6 +82,12 @@ public class KafkaClientService {
     private final Object lock = new Object();
 
     private Properties props = new Properties();
+
+    private static final int MAX_POLL_TIMEOUT_MS = 100; // Example: 0.1 seconds
+
+    // Maximum time for the entire consumption loop (in milliseconds)
+    private static final long MAX_CONSUME_TIME_MS = 3000; // Example: 3 seconds
+
 
     @PostConstruct
     public void init() {
@@ -415,118 +425,156 @@ public class KafkaClientService {
         }
     }
 
-    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId) {
-        
-        long pollTimeoutMs = 100;          // Poll timeout in milliseconds
-        long maxInactivityMs = 3000;
-
+    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int messageLimit) {
         ListConsumeMsg resp = new ListConsumeMsg();
         List<String> messageList = new ArrayList<>();
+        String bootstrapServer = "10.44.84.74:9092,10.44.84.76:9092,10.44.84.77:9092";
+        String groupId = groupConsumerId;
         Properties consumeProps = new Properties();
         consumeProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-        consumeProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupConsumerId);
-        consumeProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        consumeProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        
+        consumeProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        consumeProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumeProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
         // SASL configuration
         consumeProps.put("security.protocol", "SASL_PLAINTEXT");
         consumeProps.put("sasl.mechanism", "SCRAM-SHA-256");
-        consumeProps.put("sasl.jaas.config", 
-            "org.apache.kafka.common.security.scram.ScramLoginModule required " +
-            "username=\""+username+"\" " +
-            "password=\""+password+"\";");
+        consumeProps.put("sasl.jaas.config", String.format(
+            "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
+            username, password
+        ));
 
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-            
-        try{
-            // Create the Kafka consumer
-            
-            // Subscribe to the topic
-            consumer.subscribe(Collections.singletonList(topic));
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps);
+        consumer.subscribe(Collections.singletonList(topic));
 
-            // Poll for new data
         
-            while (System.currentTimeMillis() - pollTimeoutMs < maxInactivityMs) {
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(pollTimeoutMs));
-                if (records.isEmpty()) {
-                    continue;
-                }
-                for (ConsumerRecord<String, String> record : records) {
-                    messageList.add(record.value());
-                }
-                pollTimeoutMs = System.currentTimeMillis();  // Reset the inactivity timer
-            }
-        }catch (Exception e) {
-            resp.setErr(e.getMessage());
-        } finally {
-            consumer.close();
-        }
+        Instant startTime = Instant.now();
+        new Thread(() -> {
+            int consumedMessages = 0;
+            try {
+                while (consumedMessages < messageLimit) {
+                    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(MAX_POLL_TIMEOUT_MS));
+                    if (records.isEmpty()) {
+                        continue; // No records received within timeout, poll again
+                    }
+                    for (ConsumerRecord<String, String> record : records) {
+                        System.out.printf("Consumed record(key=%s, value=%s, partition=%d, offset=%d)%n",
+                                record.key(), record.value(), record.partition(), record.offset());
+                        consumedMessages++;
+                        messageList.add(record.value());
+                        if (consumedMessages >= messageLimit) {
+                            break;
+                        }
+                    }
 
+                    // Check elapsed time and break if exceeded
+                    if (Duration.between(startTime, Instant.now()).toMillis() > MAX_CONSUME_TIME_MS) {
+                        System.out.println("Breaking out of consumer loop due to maximum consume time exceeded.");
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                resp.setErr(e.getMessage());
+            } finally {
+                consumer.close();
+            }
+        }).start();
+        
         resp.setMessages(messageList);
         return resp;
         
     }
 
     public String adminPublishMessage(String topic, String message) {
-        String errMsg = null;
-        // Create the Kafka producer
-        KafkaProducer<String, String> producer = new KafkaProducer<>(props);
+        String bootstrapServer = "10.44.84.74:9092,10.44.84.76:9092,10.44.84.77:9092";
+        String errMsg = "";
 
-        // Prepare the message to send
-        String key = ""; // Optional, can be null
-        String value = message;
-        
-        // Create a ProducerRecord
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+        Properties publishProps = new Properties();
+        publishProps.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        publishProps.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        publishProps.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        publishProps.setProperty("security.protocol", "SASL_PLAINTEXT");
+        publishProps.setProperty("sasl.mechanism", "SCRAM-SHA-256");
+        publishProps.setProperty("sasl.jaas.config",
+                "org.apache.kafka.common.security.scram.ScramLoginModule required " +
+                        "username=\"admin\" " +
+                        "password=\"admin-secret\";");
 
-        // Send the record
+        KafkaProducer<String, String> producer = new KafkaProducer<>(publishProps);
         try {
+            // Create the Kafka producer
+            
+            System.out.println("Kafka Producer created successfully.");
+
+            // Prepare the message to send
+            String key = ""; // Optional, can be null
+            String value = message;
+
+            // Create a ProducerRecord
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+
+            // Send the record
             Future<RecordMetadata> future = producer.send(record);
             RecordMetadata metadata = future.get(); // Synchronously wait for the result
-            // System.out.printf("Sent record(key=%s value=%s) meta(partition=%d, offset=%d)%n",
-            //     record.key(), record.value(), metadata.partition(), metadata.offset());
+            System.out.printf("Sent record(key=%s value=%s) meta(partition=%d, offset=%d)%n",
+                    record.key(), record.value(), metadata.partition(), metadata.offset());
         } catch (Exception e) {
             e.printStackTrace();
-            errMsg = "error in kafka: "+e.getMessage();
+            errMsg = "error in kafka: " + e.getMessage();
+            System.err.println(errMsg);
         } finally {
-            producer.close();
+            // Ensure producer is closed
+            if (producer != null) {
+                producer.close();
+            }
         }
         return errMsg;
     }
 
     public String consumerPublishMessage(String username, String password, String topic, String message) {
+        String bootstrapServer = "10.44.84.74:9092,10.44.84.76:9092,10.44.84.77:9092";
         String errMsg = null;
-        
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.springframework.kafka.support.serializer.JsonSerializer");
-        props.put("security.protocol", "SASL_PLAINTEXT");
-        props.put("sasl.mechanism", "SCRAM-SHA-256");
-        props.put("sasl.jaas.config", 
-            "org.apache.kafka.common.security.scram.ScramLoginModule required " +
-            "username=\"" + username + "\" " +
-            "password=\"" + password + "\";");
-        
-        // Create the Kafka producer
-        KafkaProducer<String, String> producer = new KafkaProducer<>(props);
 
-        // Prepare the message to send
-        String key = ""; // Optional, can be null
-        String value = message;
-        
-        // Create a ProducerRecord
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+        Properties publishProps = new Properties();
+        publishProps.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        publishProps.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        publishProps.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        publishProps.setProperty("security.protocol", "SASL_PLAINTEXT");
+        publishProps.setProperty("sasl.mechanism", "SCRAM-SHA-256");
+        publishProps.setProperty("sasl.jaas.config",
+                "org.apache.kafka.common.security.scram.ScramLoginModule required " +
+                        "username=\"" + username + "\" " +
+                        "password=\"" + password + "\";");
 
-        // Send the record
+        KafkaProducer<String, String> producer = new KafkaProducer<>(publishProps);
         try {
+            // Create the Kafka producer
+            
+            System.out.println("Kafka Producer created successfully.");
+
+            // Prepare the message to send
+            String key = ""; // Optional, can be null
+            String value = message;
+
+            // Create a ProducerRecord
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+
+            // Send the record
             Future<RecordMetadata> future = producer.send(record);
             RecordMetadata metadata = future.get(); // Synchronously wait for the result
             System.out.printf("Sent record(key=%s value=%s) meta(partition=%d, offset=%d)%n",
-                record.key(), record.value(), metadata.partition(), metadata.offset());
+                    record.key(), record.value(), metadata.partition(), metadata.offset());
         } catch (Exception e) {
             e.printStackTrace();
-            errMsg = "error in kafka: "+e.getMessage();
+            errMsg = "error in kafka: " + e.getMessage();
+            System.err.println(errMsg);
         } finally {
-            producer.close();
+            // Ensure producer is closed
+            if (producer != null) {
+                producer.close();
+            }
         }
         return errMsg;
     }

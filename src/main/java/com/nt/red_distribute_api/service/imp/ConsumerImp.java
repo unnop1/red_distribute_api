@@ -101,15 +101,7 @@ public class ConsumerImp implements ConsumerService {
         ConsumerEntity existingEntity = consumerRepo.findById(consumerID).orElse(null);
         
         if (existingEntity != null) {
-            Timestamp timeNow = DateTime.getTimeStampNow();
-            existingEntity.setIs_delete(1);
-            existingEntity.setIs_delete_by(deletedBy);
-            existingEntity.setIs_delete_date(timeNow);
-            existingEntity.setUpdated_by(deletedBy);
-            existingEntity.setUpdated_date(timeNow);
-
-            // Save the updated entity back to the database
-            consumerRepo.save(existingEntity);
+            consumerRepo.delete(existingEntity);
         }
     }
 

@@ -56,7 +56,7 @@ public class ConsumerOrderTypeImp implements ConsumerOrderTypeService {
         for (ConsumerLJoinOrderType consumerOdtOld : consumerOdts) {
             deleteOlds.add(consumerOdtOld.getID());
         }
-        consumerOrderTypeRepo.deleteAllByIdInBatch(deleteOlds);
+        consumerOrderTypeRepo.deleteAllById(deleteOlds);
         for (Long updateOrderTypeID : updateOrderTypeIDs) {
             registerConsumerOrderType(consumerID, updateOrderTypeID, updatedBy);
         }

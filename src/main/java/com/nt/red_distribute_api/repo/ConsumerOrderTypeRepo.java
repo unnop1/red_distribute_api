@@ -3,6 +3,8 @@ package com.nt.red_distribute_api.repo;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import com.nt.red_distribute_api.entity.ConsumerOrderTypeEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEntity,Long> {
 
     @Query(value = """
-                  SELECT cod.CONSUMER_ID,odt.ORDERTYPE_NAME, odt.ORDERTYPE_ID
+                  SELECT cod.CONSUMER_ID,odt.ORDERTYPE_NAME, odt.ID, cod.ORDERTYPE_ID
                   FROM consumer_ordertype cod
                   LEFT join ordertype odt
                   ON cod.ORDERTYPE_ID = odt.ID
@@ -19,6 +21,15 @@ public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEn
                  nativeQuery = true)
     public List<ConsumerLJoinOrderType> ConsumerOrderTypeName(
       Long consumerID
+    );
+
+    @Query(value = """
+                  DELETE FROM consumer_ordertype cod
+                  WHERE od.CONSUMER_ID IN (:consumer_ids)
+                   """,
+                 nativeQuery = true)
+    public List<ConsumerLJoinOrderType> deleteConsumerOrderTypeByIDs(
+      @Param(value = "consumer_ids") List<Long> consumerIDs
     );
 
     

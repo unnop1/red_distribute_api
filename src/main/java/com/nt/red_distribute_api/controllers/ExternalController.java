@@ -8,18 +8,14 @@ import java.util.Base64;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.config.AuthConfig;
-import com.nt.red_distribute_api.dto.req.consumer.AddConsumerReq;
-import com.nt.red_distribute_api.dto.req.consumer.UpdateByConsumerReq;
+import com.nt.red_distribute_api.dto.req.external.ConsumerMessageReq;
 import com.nt.red_distribute_api.dto.req.external.PublishMessageReq;
-import com.nt.red_distribute_api.dto.resp.DefaultControllerResp;
 import com.nt.red_distribute_api.dto.resp.DefaultListResp;
 import com.nt.red_distribute_api.dto.resp.DefaultResp;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
@@ -27,14 +23,12 @@ import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
 import com.nt.red_distribute_api.dto.resp.external.VerifyConsumerResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
-import com.nt.red_distribute_api.entity.UserEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
 import com.nt.red_distribute_api.service.KafkaClientService;
+import com.nt.red_distribute_api.service.KafkaProducerService;
 import com.nt.red_distribute_api.service.OrderTypeService;
-import com.nt.red_distribute_api.service.UserService;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
@@ -53,6 +47,9 @@ public class ExternalController {
 
     @Autowired
     private ConsumerService consumerService;
+
+    @Autowired
+    private KafkaProducerService kafkaProducerService;
 
     @Autowired
     private KafkaClientService kafkaClientService;
@@ -77,6 +74,7 @@ public class ExternalController {
             verifyData.setConsumerData(consumer);
             verifyData.setRemark("password: " + password+", passwordEncode: " + passwordEncode+ "isverify password:"+verifyPassword(password, passwordEncode));
             if (verifyPassword(password, passwordEncode)){
+                consumer.setPassword(password);
                 verifyData.setIsVerify(true);
             }
         }
@@ -147,10 +145,10 @@ public class ExternalController {
         }
     }
 
-    @GetMapping("consume")
+    @PostMapping("consume")
     public ResponseEntity<Object> ConsumeAllMessagesInTopic(
         HttpServletRequest request,
-        @RequestParam(name = "topic_name") String topicName
+        @RequestBody ConsumerMessageReq req
     ) {
         DefaultListResp resp = new DefaultListResp();
         try{
@@ -165,7 +163,8 @@ public class ExternalController {
             ListConsumeMsg consumeMsgs = kafkaClientService.consumeMessages(
                 vsp.getConsumerData().getUsername(),
                 vsp.getConsumerData().getPassword(),
-                topicName, vsp.getConsumerData().getConsumer_group()
+                req.getTopicName(), vsp.getConsumerData().getConsumer_group(),
+                1000
             );
             if (consumeMsgs.getErr() != null){
                 resp.setError(consumeMsgs.getErr());
@@ -173,18 +172,18 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             
-            // if(consumeMsgs.getMessages() != null){
-            //     resp.setResult(consumeMsgs.getMessages());
-            //     resp.setCount(consumeMsgs.getMessages().size());
-            //     return new ResponseEntity<>( resp, HttpStatus.OK);
-            // }
-            
-            try{
-                ObjectMapper objectMapper = new ObjectMapper();
-                resp.setMessage(objectMapper.writeValueAsString(consumeMsgs));
-            }catch (Exception e){
-                resp.setError(e.getMessage());
+            if(consumeMsgs.getMessages() != null){
+                resp.setResult(consumeMsgs.getMessages());
+                resp.setCount(consumeMsgs.getMessages().size());
+                return new ResponseEntity<>( resp, HttpStatus.OK);
             }
+            
+            // try{
+            //     ObjectMapper objectMapper = new ObjectMapper();
+            //     // resp.setMessage(objectMapper.writeValueAsString(consumeMsgs));
+            // }catch (Exception e){
+            //     resp.setError(e.getMessage());
+            // }
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
@@ -228,7 +227,7 @@ public class ExternalController {
             List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
             
             kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
-            
+            resp.setResult("subscribed consumer "+vsp.getConsumerData().getID()+", username:"+vsp.getConsumerData().getUsername());
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
