@@ -51,8 +51,8 @@ public class TriggerMessageEntity {
         private String MESSAGE_IN = null;
 
         @Lob
-        @Column(name = "DATE_MODEL", unique = false,nullable = true)
-        private String DATE_MODEL = null;
+        @Column(name = "DATA_MODEL", unique = false,nullable = true)
+        private String DATA_MODEL = null;
 
         @Column(name = "RECEIVE_DATE", unique = false,nullable = true)
         private Timestamp RECEIVE_DATE = null;

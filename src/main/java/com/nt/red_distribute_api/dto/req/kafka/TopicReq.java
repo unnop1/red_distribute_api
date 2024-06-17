@@ -11,7 +11,7 @@ import lombok.ToString;
 @ToString
 public class TopicReq {
     private String topicName;
-    private Integer partitions=1;
+    private Integer partitions=100;
     private String retentionMs="86400000";
     private short replicationFactor=3;
 }

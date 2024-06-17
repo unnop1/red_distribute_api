@@ -28,7 +28,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
 
     @Query(value = """
                   SELECT 
-                      con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, 
+                      con.ID, cod.ID as CONSUMER_ORDERTYPE_ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, 
                       (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
                   FROM 
                       consumer_ordertype cod

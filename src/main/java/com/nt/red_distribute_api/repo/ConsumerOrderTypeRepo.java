@@ -25,11 +25,11 @@ public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEn
 
     @Query(value = """
                   DELETE FROM consumer_ordertype cod
-                  WHERE od.CONSUMER_ID IN (:consumer_ids)
+                  WHERE cod.CONSUMER_ID=:consumer_id
                    """,
                  nativeQuery = true)
-    public List<ConsumerLJoinOrderType> deleteConsumerOrderTypeByIDs(
-      @Param(value = "consumer_ids") List<Long> consumerIDs
+    public List<ConsumerLJoinOrderType> deleteConsumerOrderTypeByConsumerID(
+      @Param(value = "consumer_id") Long consumerID
     );
 
     

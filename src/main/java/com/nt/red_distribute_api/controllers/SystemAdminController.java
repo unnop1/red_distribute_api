@@ -9,7 +9,6 @@ import com.nt.red_distribute_api.dto.req.permission.UpdateByPermissionReq;
 import com.nt.red_distribute_api.dto.resp.DefaultControllerResp;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
-import com.nt.red_distribute_api.entity.AuditLogEntity;
 import com.nt.red_distribute_api.entity.PermissionMenuEntity;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
@@ -95,17 +94,14 @@ public class SystemAdminController {
         @RequestParam(name = "Search", defaultValue = "")String search,
         @RequestParam(name = "Search_field", defaultValue = "")String searchField
     ){
-        try {
-            DefaultControllerResp resp = new DefaultControllerResp();
+        String ipAddress = request.getRemoteAddr();
+        String requestHeader = request.getHeader("Authorization");
+            
+        VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
         
-            String ipAddress = request.getRemoteAddr();
-            String requestHeader = request.getHeader("Authorization");
-                
-            VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
-            
-            
-            System.out.println("sortBy:" + sortBy);
-            
+        DefaultControllerResp resp = new DefaultControllerResp();
+        System.out.println("sortBy:" + sortBy);
+        try {
             PermissionListReq req = new PermissionListReq(draw, sortBy, sortName, start, length, search, searchField);
             PaginationDataResp listSaMnPm = permissionMenuService.ListMenuPermission(req);
             AuditLog auditLog = new AuditLog();
@@ -130,12 +126,11 @@ public class SystemAdminController {
 
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
-            DefaultControllerResp resperr = new DefaultControllerResp();
-            resperr.setCount(0);
-            resperr.setData(null);
-            resperr.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            resperr.setMessage("Error while getting : " + e.getMessage());
-            return new ResponseEntity<>( resperr, HttpStatus.INTERNAL_SERVER_ERROR);
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while getting : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

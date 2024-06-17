@@ -49,7 +49,7 @@ public class ConsumerImp implements ConsumerService {
         
         ConsumerEntity created = consumerRepo.save(newConsumer);
 
-        return created.getID();
+        return created.getID()+1;
     }
 
     @Override
