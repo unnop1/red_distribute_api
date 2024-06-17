@@ -69,6 +69,10 @@ public class ConsumerImp implements ConsumerService {
                 existingEntity.setContactName(updates.getContact_name());
             }
 
+            if(updates.getConsumer_group()!= null){
+                existingEntity.setConsumer_group(updates.getConsumer_group());
+            }
+
             if (updates.getEmail() != null ){
                 existingEntity.setEmail(updates.getEmail());
             }

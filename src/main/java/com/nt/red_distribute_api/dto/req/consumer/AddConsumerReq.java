@@ -13,7 +13,7 @@ public class AddConsumerReq {
     private String username=null;
 
     @JsonProperty("consumer_group")
-    private String consumer_group="UNKNOWN_CONSUMER";
+    private String consumer_group=null;
 
     @JsonProperty("system_name")
     private String system_name=null;

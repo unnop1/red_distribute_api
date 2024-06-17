@@ -48,7 +48,7 @@ public class PermissionMenuImp implements PermissionMenuService {
             }
             String searchName = req.getSearch();
             String searchField = req.getSearchField();
-            String sortName = req.getSortName();
+            String sortName = req.getSortName().toUpperCase();
             String sortBy = req.getSortBy();
 
             if ( searchName.isEmpty()){

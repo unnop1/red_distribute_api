@@ -32,9 +32,9 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
                       con.ID, cod.ID as CONSUMER_ORDERTYPE_ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
                       (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
                   FROM 
-                      consumer_ordertype cod
+                      consumer con
                   LEFT JOIN 
-                      consumer con ON con.ID = cod.CONSUMER_ID
+                      consumer_ordertype cod ON con.ID = cod.CONSUMER_ID
                    """,
                  nativeQuery = true)
     public List<ListConsumerTopic> ListConsumer(

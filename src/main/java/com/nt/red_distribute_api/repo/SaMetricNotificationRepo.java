@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.nt.red_distribute_api.entity.NotificationMsgEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
 
 public interface SaMetricNotificationRepo extends JpaRepository<SaMetricNotificationEntity,Long> {
