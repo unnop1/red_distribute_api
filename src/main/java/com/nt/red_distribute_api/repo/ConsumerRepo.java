@@ -2,13 +2,14 @@ package com.nt.red_distribute_api.repo;
 
 
 import java.util.List;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.view.consumer.ListConsumerTopic;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
 
@@ -28,7 +29,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
 
     @Query(value = """
                   SELECT 
-                      con.ID, cod.ID as CONSUMER_ORDERTYPE_ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, 
+                      con.ID, cod.ID as CONSUMER_ORDERTYPE_ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
                       (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
                   FROM 
                       consumer_ordertype cod
@@ -53,7 +54,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
 
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
@@ -85,7 +86,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // system name
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
@@ -117,7 +118,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // contactname
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
@@ -150,7 +151,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // email
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
@@ -181,7 +182,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // phonenumber
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
@@ -220,7 +221,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
 
     @Query(value = """
                   SELECT 
-                      con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, 
+                      con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
                       (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
                   FROM 
                       consumer_ordertype cod
@@ -250,7 +251,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
 
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
@@ -286,7 +287,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // system name
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
@@ -322,7 +323,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // contactname
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
@@ -358,7 +359,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // email
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod
@@ -393,7 +394,7 @@ public interface ConsumerRepo extends JpaRepository<ConsumerEntity,Long> {
     // phonenumber
     @Query(value = """
         SELECT 
-            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER,
+            con.ID, con.SYSTEM_NAME, con.CONTACTNAME, con.EMAIL, con.PHONENUMBER, con.IS_ENABLE, 
             (SELECT COUNT(id) FROM consumer_ordertype cod WHERE con.ID = cod.CONSUMER_ID) AS TotalTopic
         FROM 
             consumer_ordertype cod

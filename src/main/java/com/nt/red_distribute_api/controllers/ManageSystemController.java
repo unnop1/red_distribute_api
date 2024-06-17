@@ -150,7 +150,7 @@ public class ManageSystemController {
             ;
 
             PaginationDataResp data = manageSystemService.ListConsumerByOrderType(req);
-            resp.setData(data);
+            resp.setData(data.getData());
             resp.setCount(data.getCount());
             resp.setRecordsFiltered(data.getCount());
             resp.setRecordsTotal(data.getCount());
