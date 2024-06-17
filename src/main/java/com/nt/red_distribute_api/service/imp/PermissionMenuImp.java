@@ -108,8 +108,8 @@ public class PermissionMenuImp implements PermissionMenuService {
         newPermissionMenu.setPermission_Name(req.getPermissionName());
         Clob permission_jsonClob;
         try {
-            permission_jsonClob = new javax.sql.rowset.serial.SerialClob(req.getPermission_json().toCharArray());
-            newPermissionMenu.setPermission_json(permission_jsonClob);
+            // permission_jsonClob = new javax.sql.rowset.serial.SerialClob(req.getPermission_json().toCharArray());
+            newPermissionMenu.setPermission_json(req.getPermission_json());
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -136,8 +136,8 @@ public class PermissionMenuImp implements PermissionMenuService {
             if (updates.getPermission_json() != null ){
                 try{
                     Clob permission_jsonClob;
-                    permission_jsonClob = new javax.sql.rowset.serial.SerialClob(updates.getPermission_json().toCharArray());
-                    existingEntity.setPermission_json(permission_jsonClob);
+                    // permission_jsonClob = new javax.sql.rowset.serial.SerialClob(updates.getPermission_json().toCharArray());
+                    existingEntity.setPermission_json(updates.getPermission_json());
                 } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();

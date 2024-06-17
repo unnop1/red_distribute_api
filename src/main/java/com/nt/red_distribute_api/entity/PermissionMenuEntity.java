@@ -1,29 +1,24 @@
 package com.nt.red_distribute_api.entity;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.sql.Clob;
 import java.sql.Timestamp;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import jakarta.persistence.*;
 
 @Entity
 @Getter
 @Setter
 @ToString
-@Table (name = "SA_MENU_PERMISSION", schema = "${replace_schema}")
+@Table (name = "SA_MENU_PERMISSION", schema="reddbsms")
 public class PermissionMenuEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sa_menu_permission_seq")
@@ -34,9 +29,9 @@ public class PermissionMenuEntity {
     @Column(name = "PERMISSION_NAME", unique = false,nullable = true)
     private String permission_Name=null;
 
-    @JsonBackReference
+    @Lob
     @Column(name = "PERMISSION_JSON", unique = false,nullable = true)
-    private Clob permission_json=null;
+    private String permission_json=null;
 
     @Column(name = "CREATED_DATE", unique = false,nullable = true)
     private Timestamp created_Date=null;
@@ -49,8 +44,4 @@ public class PermissionMenuEntity {
 
     @Column(name = "UPDATED_BY", unique = false,nullable = true)
     private String updated_By=null;
-
-    @Transient
-    @Column(name = "TotalUser", unique = false,nullable = true)
-    private String totalUser=null;
 }

@@ -161,8 +161,8 @@ public class AuthController {
             PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
             String permissionJSonStr;
             if(permissionMenuEntity!=null){
-                permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
-                loginResp.setPermissionJson(permissionJSonStr);
+                // permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
                 loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
             }
             
@@ -234,8 +234,8 @@ public class AuthController {
                 PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
                 String permissionJSonStr;
                 if(permissionMenuEntity!=null){
-                    permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
-                    userResp.setPermissionJson(permissionJSonStr);
+                    // permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                    userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
                     userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
                 }
                 
