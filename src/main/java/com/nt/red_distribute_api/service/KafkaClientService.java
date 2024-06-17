@@ -12,7 +12,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.AlterUserScramCredentialsResult;
@@ -427,7 +431,7 @@ public class KafkaClientService {
 
     public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int messageLimit) {
         ListConsumeMsg resp = new ListConsumeMsg();
-        List<String> messageList = new ArrayList<>();
+        List<String> messageList = Collections.synchronizedList(new ArrayList<>());
         String bootstrapServer = "10.44.84.74:9092,10.44.84.76:9092,10.44.84.77:9092";
         String groupId = groupConsumerId;
         Properties consumeProps = new Properties();
@@ -448,9 +452,9 @@ public class KafkaClientService {
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps);
         consumer.subscribe(Collections.singletonList(topic));
 
-        
         Instant startTime = Instant.now();
-        new Thread(() -> {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(() -> {
             int consumedMessages = 0;
             try {
                 while (consumedMessages < messageLimit) {
@@ -480,10 +484,20 @@ public class KafkaClientService {
             } finally {
                 consumer.close();
             }
-        }).start();
-        
+        });
+
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(MAX_CONSUME_TIME_MS + 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            resp.setErr(e.getMessage());
+        }
+
         resp.setMessages(messageList);
         return resp;
+
         
     }
 

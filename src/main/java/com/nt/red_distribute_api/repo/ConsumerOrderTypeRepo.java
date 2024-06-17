@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEntity,Long> {
 
     @Query(value = """
-                  SELECT cod.CONSUMER_ID,odt.ORDERTYPE_NAME, odt.ID, cod.ORDERTYPE_ID
+                  SELECT cod.ID, cod.CONSUMER_ID,odt.ORDERTYPE_NAME, cod.ORDERTYPE_ID
                   FROM consumer_ordertype cod
                   LEFT join ordertype odt
                   ON cod.ORDERTYPE_ID = odt.ID

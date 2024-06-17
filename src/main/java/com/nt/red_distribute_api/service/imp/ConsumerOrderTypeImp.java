@@ -51,11 +51,6 @@ public class ConsumerOrderTypeImp implements ConsumerOrderTypeService {
 
     @Override
     public Error updateConsumerOrderType(Long consumerID, List<Long> updateOrderTypeIDs, String updatedBy) {
-        List<ConsumerLJoinOrderType> consumerOdts = consumerOrderTypeRepo.ConsumerOrderTypeName(consumerID);
-        List<Long> deleteOlds = new ArrayList<Long>();
-        for (ConsumerLJoinOrderType consumerOdtOld : consumerOdts) {
-            deleteOlds.add(consumerOdtOld.getID());
-        }
         consumerOrderTypeRepo.deleteConsumerOrderTypeByConsumerID(consumerID);
         for (Long updateOrderTypeID : updateOrderTypeIDs) {
             registerConsumerOrderType(consumerID, updateOrderTypeID, updatedBy);
