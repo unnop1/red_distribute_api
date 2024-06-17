@@ -44,7 +44,9 @@ public class OrderTypeImp implements OrderTypeService {
         newOrderType.setSA_CHANNEL_CONNECT_ID(req.getChannel_id());
         newOrderType.setOrderTypeName(req.getOrder_type_name().toUpperCase());
         newOrderType.setDESCRIPTION(req.getDescription());
-        newOrderType.setMESSAGE_EXPIRE(req.getMessage_expire());
+        if(req.getMessage_expire()!= null) {
+            newOrderType.setMESSAGE_EXPIRE(req.getMessage_expire());
+        }
         newOrderType.setCreated_Date(timeNow);
         newOrderType.setUpdated_Date(timeNow);
         newOrderType.setUpdated_By(createdBy);
