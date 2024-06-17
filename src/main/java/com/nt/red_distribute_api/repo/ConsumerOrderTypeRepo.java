@@ -7,7 +7,11 @@ import org.springframework.data.repository.query.Param;
 
 import com.nt.red_distribute_api.entity.ConsumerOrderTypeEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 
 public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEntity,Long> {
 
@@ -23,14 +27,15 @@ public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEn
       Long consumerID
     );
 
+    @Modifying
+    @Transactional
     @Query(value = """
-                  DELETE FROM consumer_ordertype cod
-                  WHERE cod.CONSUMER_ID=:consumer_id
+                      DELETE FROM consumer_ordertype cod
+                      WHERE cod.CONSUMER_ID=:consumer_id
                    """,
-                 nativeQuery = true)
-    public void deleteConsumerOrderTypeByConsumerID(
-      @Param(value = "consumer_id") Long consumerID
-    );
+           nativeQuery = true)
+    public void deleteConsumerOrderTypeByConsumerID(@Param(value = "consumer_id") Long consumerID);
+
 
     
 
