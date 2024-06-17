@@ -7,4 +7,6 @@ public interface ListConsumerTopic {
     String getEMAIL();
     String getPHONENUMBER();
     Integer getTotalTopic();
+    Integer getIS_ENABLE();
+
 }

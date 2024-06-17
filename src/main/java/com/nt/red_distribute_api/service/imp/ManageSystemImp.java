@@ -1,6 +1,5 @@
 package com.nt.red_distribute_api.service.imp;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +15,6 @@ import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
 import com.nt.red_distribute_api.entity.view.consumer.ListConsumerTopic;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboard;
-import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboardTrigger;
-import com.nt.red_distribute_api.entity.view.trigger.DashboardTrigger;
 import com.nt.red_distribute_api.repo.ConsumerRepo;
 import com.nt.red_distribute_api.repo.OrderTypeRepo;
 import com.nt.red_distribute_api.repo.SaMetricNotificationRepo;
