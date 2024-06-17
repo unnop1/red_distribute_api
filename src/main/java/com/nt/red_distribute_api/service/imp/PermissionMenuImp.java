@@ -2,6 +2,9 @@ package com.nt.red_distribute_api.service.imp;
 
 
 import java.util.List;
+
+import javax.sql.rowset.serial.SerialException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -104,8 +107,14 @@ public class PermissionMenuImp implements PermissionMenuService {
         PermissionMenuEntity newPermissionMenu = new PermissionMenuEntity();
         newPermissionMenu.setPermission_Name(req.getPermissionName());
         Clob permission_jsonClob;
-        // permission_jsonClob = new javax.sql.rowset.serial.SerialClob(req.getPermission_json().toCharArray());
-        newPermissionMenu.setPermission_json(req.getPermission_json());
+        try {
+            permission_jsonClob = new javax.sql.rowset.serial.SerialClob(req.getPermission_json().toCharArray());
+            newPermissionMenu.setPermission_json(permission_jsonClob);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
         
         newPermissionMenu.setCreated_By(createdBy);
         newPermissionMenu.setCreated_Date(timeNow);
@@ -125,9 +134,14 @@ public class PermissionMenuImp implements PermissionMenuService {
             }
 
             if (updates.getPermission_json() != null ){
-                Clob permission_jsonClob;
-                // permission_jsonClob = new javax.sql.rowset.serial.SerialClob(updates.getPermission_json().toCharArray());
-                existingEntity.setPermission_json(updates.getPermission_json());
+                try{
+                    Clob permission_jsonClob;
+                    permission_jsonClob = new javax.sql.rowset.serial.SerialClob(updates.getPermission_json().toCharArray());
+                    existingEntity.setPermission_json(permission_jsonClob);
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
 
             existingEntity.setUpdated_Date(timeNow);

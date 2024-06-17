@@ -34,9 +34,9 @@ public class PermissionMenuEntity {
     @Column(name = "PERMISSION_NAME", unique = false,nullable = true)
     private String permission_Name=null;
 
-    @Lob
+    @JsonBackReference
     @Column(name = "PERMISSION_JSON", unique = false,nullable = true)
-    private String permission_json=null;
+    private Clob permission_json=null;
 
     @Column(name = "CREATED_DATE", unique = false,nullable = true)
     private Timestamp created_Date=null;

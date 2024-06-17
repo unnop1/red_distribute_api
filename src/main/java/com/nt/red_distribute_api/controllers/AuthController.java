@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.controllers;
 
 import com.nt.red_distribute_api.Auth.JwtHelper;
+import com.nt.red_distribute_api.Util.Convert;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.auth.JwtRequest;
@@ -160,8 +161,8 @@ public class AuthController {
             PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
             String permissionJSonStr;
             if(permissionMenuEntity!=null){
-                // permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
-                loginResp.setPermissionJson(permissionMenuEntity.getPermission_json());
+                permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                loginResp.setPermissionJson(permissionJSonStr);
                 loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
             }
             
@@ -233,8 +234,8 @@ public class AuthController {
                 PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
                 String permissionJSonStr;
                 if(permissionMenuEntity!=null){
-                    // permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
-                    userResp.setPermissionJson(permissionMenuEntity.getPermission_json());
+                    permissionJSonStr = Convert.clobToString(permissionMenuEntity.getPermission_json());
+                    userResp.setPermissionJson(permissionJSonStr);
                     userResp.setPermissionName(permissionMenuEntity.getPermission_Name());
                 }
                 
