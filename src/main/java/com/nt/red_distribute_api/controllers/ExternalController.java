@@ -251,7 +251,7 @@ public class ExternalController {
             }
             List<Long> clearOrderTypes = new ArrayList<Long>();
             Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), clearOrderTypes, vsp.getConsumerData().getUsername());
-            if (err.getMessage() != null){
+            if(err!=null){
                 resp.setCount(0);
                 resp.setError(err.getLocalizedMessage());
                 resp.setMessage(err.getMessage());
