@@ -46,9 +46,9 @@ public class TriggerMessageEntity {
         @Column(name = "IS_STATUS", unique = false,nullable = true)
         private Integer IS_STATUS = null;
 
-        @JsonBackReference
+        @Lob
         @Column(name = "MESSAGE_IN", unique = false,nullable = true)
-        private Clob MESSAGE_IN = null;
+        private String MESSAGE_IN = null;
 
         @Lob
         @Column(name = "DATA_MODEL", unique = false,nullable = true)
