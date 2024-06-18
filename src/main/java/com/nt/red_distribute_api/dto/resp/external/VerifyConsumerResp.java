@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 public class VerifyConsumerResp {
     private ConsumerEntity consumerData;
+    private String realPassword;
     private Boolean isVerify=false;
     private String remark;
     

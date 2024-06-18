@@ -76,7 +76,7 @@ public class ExternalController {
                 verifyData.setConsumerData(consumer);
                 verifyData.setRemark("password: " + password+", passwordEncode: " + passwordEncode+ "isverify password:"+verifyPassword(password, passwordEncode));
                 if (verifyPassword(password, passwordEncode)){
-                    consumer.setPassword(password);
+                    verifyData.setRealPassword(password);
                     verifyData.setIsVerify(true);
                 }
             }
@@ -137,7 +137,7 @@ public class ExternalController {
 
             String err = kafkaClientService.consumerPublishMessage( 
                 vsp.getConsumerData().getUsername(),
-                vsp.getConsumerData().getPassword(),
+                vsp.getRealPassword(),
                 data.getTopic(), 
                 objectString
             );
@@ -172,7 +172,7 @@ public class ExternalController {
 
             ListConsumeMsg consumeMsgs = kafkaClientService.consumeMessages(
                 vsp.getConsumerData().getUsername(),
-                vsp.getConsumerData().getPassword(),
+                vsp.getRealPassword(),
                 req.getTopicName(), vsp.getConsumerData().getConsumer_group(),
                 1000
             );
@@ -182,18 +182,14 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             
-            if(consumeMsgs.getMessages() != null){
-                resp.setResult(consumeMsgs.getMessages());
-                resp.setCount(consumeMsgs.getMessages().size());
-                return new ResponseEntity<>( resp, HttpStatus.OK);
+            if(consumeMsgs.getErr() != null){
+                // if(consumeMsgs.getMessages() != null){
+                    resp.setError(consumeMsgs.getErr());
+                    // resp.setCount(consumeMsgs.getMessages().size());
+                    return new ResponseEntity<>( resp, HttpStatus.OK);
             }
-            
-            // try{
-            //     ObjectMapper objectMapper = new ObjectMapper();
-            //     // resp.setMessage(objectMapper.writeValueAsString(consumeMsgs));
-            // }catch (Exception e){
-            //     resp.setError(e.getMessage());
-            // }
+            resp.setCount(consumeMsgs.getMessages().size());
+            resp.setResult(consumeMsgs.getMessages());
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
@@ -237,7 +233,7 @@ public class ExternalController {
             List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
             
             kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
-            resp.setResult("subscribed consumer "+vsp.getConsumerData().getID()+", username:"+vsp.getConsumerData().getUsername());
+            resp.setResult(userAclsTopics);
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
@@ -277,6 +273,7 @@ public class ExternalController {
 
             kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
 
+            resp.setResult(userAclsTopics);
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());

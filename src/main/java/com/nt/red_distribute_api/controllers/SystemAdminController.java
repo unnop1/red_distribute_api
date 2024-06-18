@@ -122,8 +122,8 @@ public class SystemAdminController {
             
             resp.setRecordsFiltered(listSaMnPm.getCount());
             resp.setRecordsTotal(listSaMnPm.getCount());
-            // resp.setCount(listSaMnPm.getCount());
-            resp.setData(respStr);
+            resp.setCount(listSaMnPm.getCount());
+            resp.setData(listSaMnPm.getData());
             resp.setDraw(req.getDraw());
             resp.setStatusCode(HttpStatus.OK.value());
             resp.setMessage("Successfully");
