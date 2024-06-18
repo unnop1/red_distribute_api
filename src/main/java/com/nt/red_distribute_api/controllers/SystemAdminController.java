@@ -1,5 +1,6 @@
 package com.nt.red_distribute_api.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.Auth.JwtHelper;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
@@ -115,11 +116,14 @@ public class SystemAdminController {
             auditLog.setComment("getAllSaMenuPermission");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String respStr = objectMapper.writeValueAsString(listSaMnPm);
             
             resp.setRecordsFiltered(listSaMnPm.getCount());
             resp.setRecordsTotal(listSaMnPm.getCount());
-            resp.setCount(listSaMnPm.getCount());
-            resp.setData(listSaMnPm.getData());
+            // resp.setCount(listSaMnPm.getCount());
+            resp.setData(respStr);
             resp.setDraw(req.getDraw());
             resp.setStatusCode(HttpStatus.OK.value());
             resp.setMessage("Successfully");

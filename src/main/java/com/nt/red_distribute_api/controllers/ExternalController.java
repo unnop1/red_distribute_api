@@ -20,6 +20,7 @@ import com.nt.red_distribute_api.dto.resp.DefaultListResp;
 import com.nt.red_distribute_api.dto.resp.DefaultResp;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
+import com.nt.red_distribute_api.dto.resp.external.TopicDetailResp;
 import com.nt.red_distribute_api.dto.resp.external.VerifyConsumerResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
@@ -70,12 +71,14 @@ public class ExternalController {
             String username = values[0];
             String password = values[1];
             ConsumerEntity consumer = consumerService.getConsumerByUsername(username);
-            String passwordEncode = consumer.getPassword();
-            verifyData.setConsumerData(consumer);
-            verifyData.setRemark("password: " + password+", passwordEncode: " + passwordEncode+ "isverify password:"+verifyPassword(password, passwordEncode));
-            if (verifyPassword(password, passwordEncode)){
-                consumer.setPassword(password);
-                verifyData.setIsVerify(true);
+            if (consumer!= null){
+                String passwordEncode = consumer.getPassword();
+                verifyData.setConsumerData(consumer);
+                verifyData.setRemark("password: " + password+", passwordEncode: " + passwordEncode+ "isverify password:"+verifyPassword(password, passwordEncode));
+                if (verifyPassword(password, passwordEncode)){
+                    consumer.setPassword(password);
+                    verifyData.setIsVerify(true);
+                }
             }
         }
         return verifyData;
@@ -83,7 +86,8 @@ public class ExternalController {
 
     @GetMapping("/topics")
     public ResponseEntity<Object> QueueDetail(
-        HttpServletRequest request
+        HttpServletRequest request,
+        @RequestParam(name="topic_name", defaultValue = "all") String topicName
     ) {
         DefaultResp resp = new DefaultResp();
         try{
@@ -95,7 +99,13 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
-            List<OrderTypeEntity> data = orderTypService.ListAll();
+            // List<OrderTypeEntity> data = orderTypService.ListAll();
+            TopicDetailResp data = kafkaClientService.getTopicDescription(topicName);
+            if (data.getError() != null){
+                resp.setError(data.getError());
+                resp.setMessage("Error while topic_detail : " + data.getError());
+                return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+            }
             resp.setResult(data);
             resp.setMessage(vsp.getRemark());
             return new ResponseEntity<>( resp, HttpStatus.OK);

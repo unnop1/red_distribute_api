@@ -1,6 +1,8 @@
 package com.nt.red_distribute_api.controllers;
 
 import org.springframework.http.MediaType;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.Auth.JwtHelper;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.DefaultListReq;
@@ -8,6 +10,7 @@ import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.consumer.AddConsumerReq;
 import com.nt.red_distribute_api.dto.req.consumer.ListConsumerReq;
 import com.nt.red_distribute_api.dto.req.consumer.UpdateByConsumerReq;
+import com.nt.red_distribute_api.dto.req.external.PublishMessageReq;
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
 import com.nt.red_distribute_api.dto.req.manage_system.ListConsumerByOrderTypeReq;
 import com.nt.red_distribute_api.dto.req.ordertype.AddOrderTypeReq;
@@ -16,9 +19,11 @@ import com.nt.red_distribute_api.dto.req.ordertype.UpdateOrderTypeReq;
 import com.nt.red_distribute_api.dto.req.sa_metric_notification.AddMetricNotificationReq;
 import com.nt.red_distribute_api.dto.req.sa_metric_notification.UpdateMetricReq;
 import com.nt.red_distribute_api.dto.resp.DefaultControllerResp;
+import com.nt.red_distribute_api.dto.resp.DefaultResp;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
+import com.nt.red_distribute_api.dto.resp.external.VerifyConsumerResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
@@ -123,8 +128,8 @@ public class ManageSystemController {
         @RequestParam(name = "draw", defaultValue = "11")Integer draw,
         @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
         @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
-        @RequestParam(name = "start_time")String startTime,
-        @RequestParam(name = "end_time")String endTime,
+        @RequestParam(name = "start_time", defaultValue = "")String startTime,
+        @RequestParam(name = "end_time", defaultValue = "")String endTime,
         @RequestParam(name = "start", defaultValue = "0")Integer start,
         @RequestParam(name = "length", defaultValue = "10")Integer length,
         @RequestParam(name = "Search", defaultValue = "")String search,
@@ -472,7 +477,7 @@ public class ManageSystemController {
             }
 
             Long consumerID = consumerService.registerConsumer(req, vsf.getUsername());
-            String consumerGroup = req.getSystem_name().toLowerCase() + req.getUsername().toLowerCase();
+            String consumerGroup = req.getSystem_name().toUpperCase();
             req.setConsumer_group(consumerGroup);
             System.out.println("registered consumer id: " + consumerID);
             ConsumerEntity consumerDetail = consumerService.consumerDetail(consumerID);
@@ -860,4 +865,34 @@ public class ManageSystemController {
         }
     }
     
+
+    @PostMapping("/publish")
+    public ResponseEntity<Object> publishMessageToTopic(
+        HttpServletRequest request,
+        @RequestBody PublishMessageReq data
+    ) {
+        DefaultResp resp = new DefaultResp();
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+
+            String objectString = mapper.writeValueAsString(data.getMessage());
+
+            String err = kafkaClientService.adminPublishMessage(
+                data.getTopic(), 
+                objectString
+            );
+            if (err !=null) {
+                resp.setMessage(err);
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            resp.setResult(data);
+            resp.setMessage("Successfully published");
+            return new ResponseEntity<>( resp, HttpStatus.OK);
+        }catch (Exception e){
+            resp.setError(e.getLocalizedMessage());
+            resp.setMessage("Error while publish : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

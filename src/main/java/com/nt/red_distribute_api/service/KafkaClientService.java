@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -31,6 +32,7 @@ import org.apache.kafka.clients.admin.DescribeAclsResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
+import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.OffsetSpec;
@@ -38,6 +40,7 @@ import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.ScramCredentialInfo;
 import org.apache.kafka.clients.admin.ScramMechanism;
 import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.clients.admin.TopicListing;
 import org.apache.kafka.clients.admin.UserScramCredentialDeletion;
 import org.apache.kafka.clients.admin.UserScramCredentialUpsertion;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -72,6 +75,7 @@ import org.springframework.stereotype.Service;
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
+import com.nt.red_distribute_api.dto.resp.external.TopicDetailResp;
 
 import jakarta.annotation.PostConstruct;
 
@@ -591,6 +595,69 @@ public class KafkaClientService {
             }
         }
         return errMsg;
+    }
+
+    private void getTopicDetails(Properties properties) {
+        Collection<TopicListing> listings;// Create  an AdminClient using the properties initialized earlier
+        try{
+          listings = getTopicListing(true);
+          listings.forEach(
+          topic -> System.out.println("Name: " + topic.name() + ", isInternal: " + topic.isInternal()));
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+                
+        }
+    }
+
+    public TopicDetailResp getTopicDescription(String topicName) {
+        TopicDetailResp topicDetail = new TopicDetailResp();
+        Collection<TopicListing> listings;
+        // Create  an AdminClient using the properties initialized earlier
+        try {
+            listings = getTopicListing(false);
+            List<String> selectTopics = new ArrayList<>();
+            List<String> topics = listings.stream().map(TopicListing::name)
+            .collect(Collectors.toList());
+
+            for(String topic : topics){
+                if(topicName.toLowerCase().equals("all")){
+                    selectTopics.add(topic);
+                }else{
+                    if(topicName.toUpperCase().equals(topic.toUpperCase())){
+                        selectTopics.add(topic);
+                    }
+                }
+            }
+
+            HashMap<String, Object> details = new HashMap<String, Object>();
+            DescribeTopicsResult result = client.describeTopics(selectTopics);
+            result.values().forEach((key, value) -> {
+                try {
+                    System.out.println(key + ": " + value.get());
+                    details.put(key, value);
+                    return;
+                } catch (InterruptedException e) {
+                    topicDetail.setError(e.getMessage());
+                } catch (ExecutionException e) {
+                    topicDetail.setError(e.getMessage());
+                }
+            });
+            topicDetail.setData(details);
+            
+        } catch (InterruptedException e) {
+            topicDetail.setError(e.getMessage());
+        } catch (ExecutionException e) {
+            topicDetail.setError(e.getMessage());
+        }
+        return topicDetail;
+    }
+
+    private Collection<TopicListing> getTopicListing(boolean isInternal)
+    throws InterruptedException, ExecutionException {
+        ListTopicsOptions options = new ListTopicsOptions();
+        options.listInternal(isInternal);
+        return client.listTopics(options).listings().get();
     }
 
 }

@@ -18,7 +18,7 @@ import jakarta.persistence.*;
 @Getter
 @Setter
 @ToString
-@Table (name = "SA_MENU_PERMISSION", schema="reddbsms")
+@Table (name = "SA_MENU_PERMISSION", schema="${replace_schema}")
 public class PermissionMenuEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sa_menu_permission_seq")
