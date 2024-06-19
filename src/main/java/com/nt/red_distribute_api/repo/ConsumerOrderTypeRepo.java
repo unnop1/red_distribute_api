@@ -16,6 +16,26 @@ import org.springframework.data.jpa.repository.Modifying;
 public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEntity,Long> {
 
     @Query(value = """
+                  SELECT * FROM consumer_ordertype WHERE ID=?1  
+                   """,
+                 nativeQuery = true)
+    public ConsumerOrderTypeEntity getConsumerOrderTypeByID(
+      Long codID
+    );
+
+    @Query(value = """
+                  SELECT cod.ID, cod.CONSUMER_ID,odt.ORDERTYPE_NAME, cod.ORDERTYPE_ID
+                  FROM consumer_ordertype cod
+                  LEFT join ordertype odt
+                  ON cod.ORDERTYPE_ID = odt.ID
+                  WHERE cod.ORDERTYPE_ID=?1
+                   """,
+                 nativeQuery = true)
+    public ConsumerLJoinOrderType getConsumerOrderTypeByOrderTypeID(
+      Long orderTypeID
+    );
+
+    @Query(value = """
                   SELECT cod.ID, cod.CONSUMER_ID,odt.ORDERTYPE_NAME, cod.ORDERTYPE_ID
                   FROM consumer_ordertype cod
                   LEFT join ordertype odt
@@ -35,8 +55,6 @@ public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEn
                    """,
            nativeQuery = true)
     public void deleteConsumerOrderTypeByConsumerID(@Param(value = "consumer_id") Long consumerID);
-
-
     
 
 }

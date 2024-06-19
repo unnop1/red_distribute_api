@@ -405,6 +405,7 @@ public class ManageSystemController {
             return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
     @PostMapping("/order_type/by_id")
     public ResponseEntity<Object> GetOrderTypeMoreDetail(
         @RequestBody OrderTypeMoreDetailReq req,

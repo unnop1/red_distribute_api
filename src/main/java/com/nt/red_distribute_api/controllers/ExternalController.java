@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.dto.req.external.ConsumerMessageReq;
 import com.nt.red_distribute_api.dto.req.external.PublishMessageReq;
+import com.nt.red_distribute_api.dto.req.external.SubAndUnsubscribeReq;
 import com.nt.red_distribute_api.dto.resp.DefaultListResp;
 import com.nt.red_distribute_api.dto.resp.DefaultResp;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
@@ -170,26 +171,39 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
-            ListConsumeMsg consumeMsgs = kafkaClientService.consumeMessages(
-                vsp.getConsumerData().getUsername(),
-                vsp.getRealPassword(),
-                req.getTopicName(), vsp.getConsumerData().getConsumer_group(),
-                1000
-            );
-            if (consumeMsgs.getErr() != null){
-                resp.setError(consumeMsgs.getErr());
-                resp.setMessage("Error while consuming messages");
+            ListConsumeMsg consumeMsgs;
+            try{
+
+                consumeMsgs = kafkaClientService.consumeMessages(
+                    vsp.getConsumerData().getUsername(),
+                    vsp.getRealPassword(),
+                    req.getTopicName(), vsp.getConsumerData().getConsumer_group(),
+                    1000
+                );
+                if (consumeMsgs.getErr() != null){
+                    resp.setError(consumeMsgs.getErr());
+                    resp.setMessage("Error while consuming messages");
+                    return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }catch (Exception e){
+                resp.setMessage("Error while consuming case1:"+ e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            
-            if(consumeMsgs.getErr() != null){
-                // if(consumeMsgs.getMessages() != null){
-                    resp.setError(consumeMsgs.getErr());
-                    // resp.setCount(consumeMsgs.getMessages().size());
-                    return new ResponseEntity<>( resp, HttpStatus.OK);
+
+            try{
+                if(consumeMsgs.getErr() != null){
+                    // if(consumeMsgs.getMessages() != null){
+                        resp.setError(consumeMsgs.getErr());
+                        // resp.setCount(consumeMsgs.getMessages().size());
+                        return new ResponseEntity<>( resp, HttpStatus.OK);
+                }
+                resp.setCount(consumeMsgs.getMessages().size());
+                resp.setResult(consumeMsgs.getMessages());
+            }catch (Exception e){
+                resp.setMessage("Error while consuming case2:"+ e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            resp.setCount(consumeMsgs.getMessages().size());
-            resp.setResult(consumeMsgs.getMessages());
+
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
@@ -200,7 +214,8 @@ public class ExternalController {
 
     @PostMapping("subscribe")
     public ResponseEntity<Object> subscribeTopic(
-        HttpServletRequest request
+        HttpServletRequest request,
+        @RequestBody SubAndUnsubscribeReq req
     ) {
         DefaultListResp resp = new DefaultListResp();
         try{
@@ -212,28 +227,51 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
             
-            List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
-            List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
             List<String> orderTypeTopicNames = new ArrayList<>();
             List<Long> orderTypeIDs = new ArrayList<>();
-            for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
-                orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
+            try{
+                if(req.getTopicName().equals("all")){
+                    List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
+                    for (OrderTypeEntity orderTypeData : orderTypeLists){
+                        orderTypeIDs.add(orderTypeData.getID());
+                    }
+                }else{
+                    OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
+                    if(orderTypeDetail != null){
+                        orderTypeIDs.add(orderTypeDetail.getID());
+                    }
+                }
+                
+            } catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while subscribe case1: " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            for (OrderTypeEntity orderTypeData : orderTypeLists){
-                orderTypeIDs.add(orderTypeData.getID());
-            }
-
-            Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
-            if (err != null){
-                resp.setError(err.getLocalizedMessage());
-                resp.setMessage(err.getMessage());
-                return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
-            }
-
-            List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
             
-            kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
-            resp.setResult(userAclsTopics);
+            try{
+                Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
+                if (err != null){
+                    resp.setError(err.getLocalizedMessage());
+                    resp.setMessage(err.getMessage());
+                    return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+                }
+
+            }catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while subscribe case3: " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            try{
+                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
+                
+                kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
+                resp.setResult(userAclsTopics);
+            }catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while subscribe case4: " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
@@ -244,7 +282,8 @@ public class ExternalController {
 
     @PostMapping("unsubscribe")
     public ResponseEntity<Object> unsubscribeTopic(
-        HttpServletRequest request
+        HttpServletRequest request,
+        @RequestBody SubAndUnsubscribeReq req
     ) {
         DefaultListResp resp = new DefaultListResp();
         try{
@@ -255,25 +294,52 @@ public class ExternalController {
                 resp.setMessage("You don't have permission!!!");
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
-            List<Long> clearOrderTypes = new ArrayList<Long>();
-            Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), clearOrderTypes, vsp.getConsumerData().getUsername());
-            if(err!=null){
-                resp.setCount(0);
-                resp.setError(err.getLocalizedMessage());
-                resp.setMessage(err.getMessage());
-                return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
-            }
-
-            List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
             List<String> orderTypeTopicNames = new ArrayList<>();
-            for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
-                orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
+            List<Long> orderTypeIDs = new ArrayList<>();
+            try{
+                if(req.getTopicName().equals("all")){
+                    List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
+                    for (OrderTypeEntity orderTypeData : orderTypeLists){
+                        orderTypeIDs.add(orderTypeData.getID());
+                    }
+                }else{
+                    OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
+                    if(orderTypeDetail != null){
+                        orderTypeIDs.add(orderTypeDetail.getID());
+                    }
+                }
+                
+            } catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while unsubscribe case1: " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
+            
+            try{
+                Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
+                if (err != null){
+                    resp.setError(err.getLocalizedMessage());
+                    resp.setMessage(err.getMessage());
+                    return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+                }
 
-            kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
+            }catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while unsubscribe case3: " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
 
-            resp.setResult(userAclsTopics);
+            try{
+                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
+                
+                kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
+                resp.setResult(userAclsTopics);
+            }catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while unsubscribe case4: " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());

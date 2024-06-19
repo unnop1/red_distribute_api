@@ -10,4 +10,5 @@ public interface ConsumerOrderTypeService  {
     public List<ConsumerLJoinOrderType> ListConsumerOrderType(Long consumerID);
     public Long registerConsumerOrderType(Long consumerID, Long orderTypeID, String createdBy);
     public Error updateConsumerOrderType(Long consumerID, List<Long> orderTypeIDs, String updatedBy);
+    public Error upsertConsumerOrderType(Long consumerID, List<Long> orderTypeIDs, String updatedBy);
 }

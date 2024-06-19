@@ -11,6 +11,7 @@ import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.entity.ConsumerOrderTypeEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import com.nt.red_distribute_api.repo.ConsumerOrderTypeRepo;
+import com.nt.red_distribute_api.repo.ConsumerRepo;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 
 @Service
@@ -20,7 +21,7 @@ public class ConsumerOrderTypeImp implements ConsumerOrderTypeService {
     private ConsumerOrderTypeRepo consumerOrderTypeRepo;
 
     @Autowired
-    private AuthConfig authConfig;
+    private ConsumerRepo consumerRepo;
 
     @Override
     public List<ConsumerLJoinOrderType> ListConsumerOrderType(Long consumerID) {
@@ -47,6 +48,26 @@ public class ConsumerOrderTypeImp implements ConsumerOrderTypeService {
         consumerOrderTypeRepo.deleteConsumerOrderTypeByConsumerID(consumerID);
         for (Long updateOrderTypeID : updateOrderTypeIDs) {
             registerConsumerOrderType(consumerID, updateOrderTypeID, updatedBy);
+        }
+        
+        return null;
+    }
+
+    @Override
+    public Error upsertConsumerOrderType(Long consumerID, List<Long> updateOrderTypeIDs, String updatedBy) {
+        
+        for(Long updateOrderTypeID : updateOrderTypeIDs){
+            ConsumerLJoinOrderType consumerJoinODT = consumerOrderTypeRepo.getConsumerOrderTypeByOrderTypeID(updateOrderTypeID);
+            if(consumerJoinODT!=null){
+                ConsumerOrderTypeEntity  consumerODT = consumerOrderTypeRepo.getConsumerOrderTypeByID(consumerJoinODT.getID());
+                if(consumerODT == null){
+                    ConsumerOrderTypeEntity newConsumerODT = new ConsumerOrderTypeEntity();
+                    newConsumerODT.setConsumer_id(consumerID);
+                    newConsumerODT.setCreated_by(updatedBy);
+                    newConsumerODT.setOrdertype_id(updateOrderTypeID);
+                    consumerOrderTypeRepo.save(newConsumerODT);
+                }
+            }
         }
         
         return null;

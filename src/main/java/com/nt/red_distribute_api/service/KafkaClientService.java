@@ -39,6 +39,7 @@ import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.ScramCredentialInfo;
 import org.apache.kafka.clients.admin.ScramMechanism;
+import org.apache.kafka.clients.admin.DescribeConfigsResult;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.TopicListing;
 import org.apache.kafka.clients.admin.UserScramCredentialDeletion;
@@ -72,6 +73,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
@@ -597,6 +599,21 @@ public class KafkaClientService {
         return errMsg;
     }
 
+
+    private static Map<String, String> getConfigMap(DescribeConfigsResult result) throws ExecutionException, InterruptedException {
+        Map<ConfigResource, Config> configs = result.all().get();
+        Map<String, String> configMap = new HashMap<>();
+
+        for (Map.Entry<ConfigResource, Config> entry : configs.entrySet()) {
+            Config config = entry.getValue();
+            for (ConfigEntry configEntry : config.entries()) {
+                configMap.put(configEntry.name(), configEntry.value());
+            }
+        }
+
+        return configMap;
+    }
+
     private void getTopicDetails(Properties properties) {
         Collection<TopicListing> listings;// Create  an AdminClient using the properties initialized earlier
         try{
@@ -613,37 +630,63 @@ public class KafkaClientService {
     public TopicDetailResp getTopicDescription(String topicName) {
         TopicDetailResp topicDetail = new TopicDetailResp();
         Collection<TopicListing> listings;
-        // Create  an AdminClient using the properties initialized earlier
+        List<String> selectTopics = new ArrayList<>();
+        List<ConfigResource> resourceTopicList = new ArrayList<>();
+        // Process and print the configurations
+        List<HashMap<String, Object>> dataTopicDetails = new ArrayList<HashMap<String, Object>>();
+        HashMap<String, HashMap<String, Object>> mapConfigTopicDetails = new HashMap<String, HashMap<String, Object>>();
+        
         try {
             listings = getTopicListing(false);
-            List<String> selectTopics = new ArrayList<>();
             List<String> topics = listings.stream().map(TopicListing::name)
             .collect(Collectors.toList());
-
+            
             for(String topic : topics){
                 if(topicName.toLowerCase().equals("all")){
                     selectTopics.add(topic);
+                    mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
                 }else{
                     if(topicName.toUpperCase().equals(topic.toUpperCase())){
                         selectTopics.add(topic);
+                        mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
                     }
                 }
             }
+                                    
+            
+            // Configurations Topic
+            
+            DescribeConfigsResult describeConfigsResult = client.describeConfigs(resourceTopicList);
+            Map<ConfigResource, Config> configs = describeConfigsResult.all().get();
+            int i =
+            for (ConfigResource resource : resourceTopicList) {
+                Config config = configs.get(resource);
+                String configTopicName = resource.name();
+                HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(configTopicName);
+                mapConfigTopicDetails.put(topicName, dataTopic);
+                dataTopicDetails.add(new "configuration", mapConfigTopicDetails);
+            }
+            
 
+            
+            // Describe TOPIC
             HashMap<String, Object> details = new HashMap<String, Object>();
             DescribeTopicsResult result = client.describeTopics(selectTopics);
             result.values().forEach((key, value) -> {
                 try {
+                    String detailTopicName = value.get().name();
                     System.out.println(key + ": " + value.get());
-                    details.put(key, value);
-                    return;
+                    details.put(detailTopicName, value.get());
+                    HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
+
                 } catch (InterruptedException e) {
                     topicDetail.setError(e.getMessage());
                 } catch (ExecutionException e) {
                     topicDetail.setError(e.getMessage());
                 }
             });
-            topicDetail.setData(details);
+
+            topicDetail.setData(dataConfigTopicDetails);
             
         } catch (InterruptedException e) {
             topicDetail.setError(e.getMessage());
