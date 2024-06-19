@@ -189,6 +189,9 @@ public class KafkaClientService {
     public List<UserAclsInfo> initUserAclsTopicList(String username,List<String> topics){
         List<UserAclsInfo> userAclsTopicList = new ArrayList<UserAclsInfo>();
         for(String topic : topics){
+            if (getTopicDescription(topic).getData() == null || getTopicDescription(topic).getError() != null){
+                continue;
+            }
             UserAclsInfo userAclsInfo = new UserAclsInfo();
             userAclsInfo.setHost("*");
             userAclsInfo.setName(topic);
