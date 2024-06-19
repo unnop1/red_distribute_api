@@ -96,7 +96,7 @@ public class ExternalController {
             VerifyConsumerResp vsp = VerifyAuthentication(requestHeader);
             if (!vsp.getIsVerify()){
                 resp.setError("Authenticated not you.");
-                resp.setMessage("You don't have permission!!! username : " + vsp.getConsumerData().getUsername());
+                resp.setMessage("You don't have permission!!!");
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
