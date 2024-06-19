@@ -234,11 +234,13 @@ public class ExternalController {
                     List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
                     for (OrderTypeEntity orderTypeData : orderTypeLists){
                         orderTypeIDs.add(orderTypeData.getID());
+                        orderTypeTopicNames.add(orderTypeData.getOrderTypeName().toUpperCase());
                     }
                 }else{
                     OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
                     if(orderTypeDetail != null){
                         orderTypeIDs.add(orderTypeDetail.getID());
+                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName().toUpperCase());
                     }
                 }
                 
@@ -301,11 +303,13 @@ public class ExternalController {
                     List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
                     for (OrderTypeEntity orderTypeData : orderTypeLists){
                         orderTypeIDs.add(orderTypeData.getID());
+                        orderTypeTopicNames.add(orderTypeData.getOrderTypeName().toUpperCase());
                     }
                 }else{
                     OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
                     if(orderTypeDetail != null){
                         orderTypeIDs.add(orderTypeDetail.getID());
+                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName().toUpperCase());
                     }
                 }
                 
