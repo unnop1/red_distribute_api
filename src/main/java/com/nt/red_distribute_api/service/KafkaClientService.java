@@ -189,15 +189,19 @@ public class KafkaClientService {
     public List<UserAclsInfo> initUserAclsTopicList(String username,List<String> topics){
         List<UserAclsInfo> userAclsTopicList = new ArrayList<UserAclsInfo>();
         for(String topic : topics){
-            UserAclsInfo userAclsInfo = new UserAclsInfo();
-            userAclsInfo.setHost("*");
-            userAclsInfo.setName(topic);
-            userAclsInfo.setOperation(AclOperation.ALL);
-            userAclsInfo.setPattern_type(PatternType.LITERAL);
-            userAclsInfo.setPermission_type(AclPermissionType.ALLOW);
-            userAclsInfo.setPrincipal("User:"+username);
-            userAclsInfo.setResource_type(ResourceType.TOPIC);
-            userAclsTopicList.add(userAclsInfo);
+            try{
+                UserAclsInfo userAclsInfo = new UserAclsInfo();
+                userAclsInfo.setHost("*");
+                userAclsInfo.setName(topic);
+                userAclsInfo.setOperation(AclOperation.ALL);
+                userAclsInfo.setPattern_type(PatternType.LITERAL);
+                userAclsInfo.setPermission_type(AclPermissionType.ALLOW);
+                userAclsInfo.setPrincipal("User:"+username);
+                userAclsInfo.setResource_type(ResourceType.TOPIC);
+                userAclsTopicList.add(userAclsInfo);
+            }catch (Exception e){
+                continue;
+            }
         }
         return userAclsTopicList;
     }
@@ -585,19 +589,6 @@ public class KafkaClientService {
         return configMap;
     }
 
-    private void getTopicDetails(Properties properties) {
-        Collection<TopicListing> listings;// Create  an AdminClient using the properties initialized earlier
-        try{
-          listings = getTopicListing(true);
-          listings.forEach(
-          topic -> System.out.println("Name: " + topic.name() + ", isInternal: " + topic.isInternal()));
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-                
-        }
-    }
-
     public TopicDetailResp getTopicDescription(String topicName) {
         TopicDetailResp topicDetail = new TopicDetailResp();
         Collection<TopicListing> listings;
@@ -655,7 +646,10 @@ public class KafkaClientService {
                 }
             });
 
-            topicDetail.setData(mapConfigTopicDetails);
+            for(String topic : topics){
+                dataTopicDetails.add(mapConfigTopicDetails.get(topic));
+            }
+            topicDetail.setData(dataTopicDetails);
             
         } catch (InterruptedException e) {
             topicDetail.setError(e.getMessage());
