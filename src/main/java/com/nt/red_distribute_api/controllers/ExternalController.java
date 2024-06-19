@@ -270,6 +270,7 @@ public class ExternalController {
                 kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
                 resp.setResult(userAclsTopics);
             }catch (Exception e){
+                resp.setResult(orderTypeTopicNames);
                 resp.setError(e.getLocalizedMessage());
                 resp.setMessage("Error while subscribe case4: " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
