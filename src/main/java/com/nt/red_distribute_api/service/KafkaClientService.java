@@ -189,19 +189,15 @@ public class KafkaClientService {
     public List<UserAclsInfo> initUserAclsTopicList(String username,List<String> topics){
         List<UserAclsInfo> userAclsTopicList = new ArrayList<UserAclsInfo>();
         for(String topic : topics){
-            try{
-                UserAclsInfo userAclsInfo = new UserAclsInfo();
-                userAclsInfo.setHost("*");
-                userAclsInfo.setName(topic);
-                userAclsInfo.setOperation(AclOperation.ALL);
-                userAclsInfo.setPattern_type(PatternType.LITERAL);
-                userAclsInfo.setPermission_type(AclPermissionType.ALLOW);
-                userAclsInfo.setPrincipal("User:"+username);
-                userAclsInfo.setResource_type(ResourceType.TOPIC);
-                userAclsTopicList.add(userAclsInfo);
-            }catch (Exception e){
-                continue;
-            }
+            UserAclsInfo userAclsInfo = new UserAclsInfo();
+            userAclsInfo.setHost("*");
+            userAclsInfo.setName(topic);
+            userAclsInfo.setOperation(AclOperation.ALL);
+            userAclsInfo.setPattern_type(PatternType.LITERAL);
+            userAclsInfo.setPermission_type(AclPermissionType.ALLOW);
+            userAclsInfo.setPrincipal("User:"+username);
+            userAclsInfo.setResource_type(ResourceType.TOPIC);
+            userAclsTopicList.add(userAclsInfo);
         }
         return userAclsTopicList;
     }
@@ -614,30 +610,18 @@ public class KafkaClientService {
                     }
                 }
             }
-                                    
-            
-            // Configurations Topic
-            
-            DescribeConfigsResult describeConfigsResult = client.describeConfigs(resourceTopicList);
-            Map<ConfigResource, Config> configs = describeConfigsResult.all().get();
-            for (ConfigResource resource : resourceTopicList) {
-                Config config = configs.get(resource);
-                String configTopicName = resource.name();
-                HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(configTopicName);
-                dataTopic.put("config", config);
-                mapConfigTopicDetails.put(topicName, dataTopic);
-            }
             
             // Describe TOPIC
-            HashMap<String, Object> details = new HashMap<String, Object>();
             DescribeTopicsResult result = client.describeTopics(selectTopics);
             result.values().forEach((key, value) -> {
                 try {
                     String detailTopicName = value.get().name();
-                    System.out.println(key + ": " + value.get());
-                    details.put(detailTopicName, value.get());
+                    // System.out.println(key + ": " + value.get());
                     HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
-                    dataTopic.put("detail", value.get());
+                    dataTopic.put("topic_name", topicName);
+                    dataTopic.put("is_internal", value.get().isInternal());
+                    dataTopic.put("partitions", value.get().partitions());
+                    dataTopic.put("acl_operation", value.get().authorizedOperations());
                     mapConfigTopicDetails.put(detailTopicName, dataTopic);
                 } catch (InterruptedException e) {
                     topicDetail.setError(e.getMessage());
