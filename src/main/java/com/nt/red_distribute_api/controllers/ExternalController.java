@@ -171,7 +171,7 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
-            ListConsumeMsg consumeMsgs;
+            ListConsumeMsg consumeMsgs=null;
             try{
 
                 consumeMsgs = kafkaClientService.consumeMessages(

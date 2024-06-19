@@ -455,49 +455,20 @@ public class KafkaClientService {
             username, password
         ));
 
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps);
-        consumer.subscribe(Collections.singletonList(topic));
+        try{
+            try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps)) {
+                consumer.subscribe(Collections.singletonList(topic));
+                consumer.seekToBeginning(consumer.assignment());
 
-        Instant startTime = Instant.now();
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(() -> {
-            int consumedMessages = 0;
-            try {
-                while (consumedMessages < messageLimit) {
-                    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(MAX_POLL_TIMEOUT_MS));
-                    if (records.isEmpty()) {
-                        continue; // No records received within timeout, poll again
-                    }
-                    for (ConsumerRecord<String, String> record : records) {
-                        System.out.printf("Consumed record(key=%s, value=%s, partition=%d, offset=%d)%n",
-                                record.key(), record.value(), record.partition(), record.offset());
-                        consumedMessages++;
-                        messageList.add(record.value());
-                        if (consumedMessages >= messageLimit) {
-                            break;
-                        }
-                    }
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
 
-                    // Check elapsed time and break if exceeded
-                    if (Duration.between(startTime, Instant.now()).toMillis() > MAX_CONSUME_TIME_MS) {
-                        System.out.println("Breaking out of consumer loop due to maximum consume time exceeded.");
-                        break;
-                    }
+                for (ConsumerRecord<String, String> record : records) {
+                    messageList.add(record.value());
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            }catch (Exception e){
                 resp.setErr(e.getMessage());
-            } finally {
-                consumer.close();
             }
-        });
-
-        executorService.shutdown();
-        try {
-            executorService.awaitTermination(MAX_CONSUME_TIME_MS + 1000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        }catch (Exception e){
             resp.setErr(e.getMessage());
         }
 
