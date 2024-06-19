@@ -658,16 +658,13 @@ public class KafkaClientService {
             
             DescribeConfigsResult describeConfigsResult = client.describeConfigs(resourceTopicList);
             Map<ConfigResource, Config> configs = describeConfigsResult.all().get();
-            int i =
             for (ConfigResource resource : resourceTopicList) {
                 Config config = configs.get(resource);
                 String configTopicName = resource.name();
                 HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(configTopicName);
+                dataTopic.put("config", config);
                 mapConfigTopicDetails.put(topicName, dataTopic);
-                dataTopicDetails.add(new "configuration", mapConfigTopicDetails);
             }
-            
-
             
             // Describe TOPIC
             HashMap<String, Object> details = new HashMap<String, Object>();
@@ -678,7 +675,8 @@ public class KafkaClientService {
                     System.out.println(key + ": " + value.get());
                     details.put(detailTopicName, value.get());
                     HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
-
+                    dataTopic.put("detail", value.get());
+                    mapConfigTopicDetails.put(detailTopicName, dataTopic);
                 } catch (InterruptedException e) {
                     topicDetail.setError(e.getMessage());
                 } catch (ExecutionException e) {
@@ -686,7 +684,7 @@ public class KafkaClientService {
                 }
             });
 
-            topicDetail.setData(dataConfigTopicDetails);
+            topicDetail.setData(mapConfigTopicDetails);
             
         } catch (InterruptedException e) {
             topicDetail.setError(e.getMessage());
