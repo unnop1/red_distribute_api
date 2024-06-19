@@ -589,8 +589,6 @@ public class KafkaClientService {
         TopicDetailResp topicDetail = new TopicDetailResp();
         Collection<TopicListing> listings;
         List<String> selectTopics = new ArrayList<>();
-        List<ConfigResource> resourceTopicList = new ArrayList<>();
-        // Process and print the configurations
         List<HashMap<String, Object>> dataTopicDetails = new ArrayList<HashMap<String, Object>>();
         HashMap<String, HashMap<String, Object>> mapConfigTopicDetails = new HashMap<String, HashMap<String, Object>>();
         
