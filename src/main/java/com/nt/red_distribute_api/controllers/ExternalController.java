@@ -110,12 +110,12 @@ public class ExternalController {
             try{
                 resp.setResult(data.getData());
                 resp.setMessage("Success!");
+                return new ResponseEntity<>( resp, HttpStatus.OK);
             }catch (Exception e){
                 resp.setError(e.getLocalizedMessage());
                 resp.setMessage("Error while resp topic_detail : " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
             resp.setMessage("Error while topic_detail : " + e.getMessage());
@@ -244,7 +244,7 @@ public class ExternalController {
             List<String> orderTypeTopicNames = new ArrayList<>();
             List<Long> orderTypeIDs = new ArrayList<>();
             try{
-                if(req.getTopicName().equals("all")){
+                if(req.getTopicName().toLowerCase().equals("all")){
                     List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
                     for (OrderTypeEntity orderTypeData : orderTypeLists){
                         orderTypeIDs.add(orderTypeData.getID());
@@ -260,7 +260,7 @@ public class ExternalController {
                 
             } catch (Exception e){
                 resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while subscribe case1: " + e.getMessage());
+                resp.setMessage("Error while list order type for subscribe: " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             
@@ -274,7 +274,7 @@ public class ExternalController {
 
             }catch (Exception e){
                 resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while subscribe case3: " + e.getMessage());
+                resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
@@ -284,22 +284,23 @@ public class ExternalController {
                 try{
                     kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
                     resp.setResult(userAclsTopics);
+                    resp.setCount(orderTypeIDs.size());
                 }catch (Exception e){
                     resp.setResult(orderTypeTopicNames);
                     resp.setError(e.getLocalizedMessage());
-                    resp.setMessage("Error while subscribe case5: " + e.getMessage());
+                    resp.setMessage("Error while createAcls: " + e.getMessage());
                     return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }catch (Exception e){
                 resp.setResult(orderTypeTopicNames);
                 resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while subscribe case4: " + e.getMessage());
+                resp.setMessage("Error while initUserAclsTopicList for subscribe: " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
-            resp.setMessage("Error while subscribe_unsubscribe : " + e.getMessage());
+            resp.setMessage("Error while subscribe : " + e.getMessage());
             return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -318,10 +319,11 @@ public class ExternalController {
                 resp.setMessage("You don't have permission!!!");
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
+            
             List<String> orderTypeTopicNames = new ArrayList<>();
             List<Long> orderTypeIDs = new ArrayList<>();
             try{
-                if(req.getTopicName().equals("all")){
+                if(req.getTopicName().toLowerCase().equals("all")){
                     List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
                     for (OrderTypeEntity orderTypeData : orderTypeLists){
                         orderTypeIDs.add(orderTypeData.getID());
@@ -337,7 +339,7 @@ public class ExternalController {
                 
             } catch (Exception e){
                 resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while unsubscribe case1: " + e.getMessage());
+                resp.setMessage("Error while list order type for unsubscribe: " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             
@@ -351,25 +353,33 @@ public class ExternalController {
 
             }catch (Exception e){
                 resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while unsubscribe case3: " + e.getMessage());
+                resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
             try{
                 List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
                 
-                kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
-                resp.setResult(userAclsTopics);
+                try{
+                    kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
+                    resp.setResult(userAclsTopics);
+                    resp.setCount(orderTypeIDs.size());
+                }catch (Exception e){
+                    resp.setResult(orderTypeTopicNames);
+                    resp.setError(e.getLocalizedMessage());
+                    resp.setMessage("Error while deleteAcls: " + e.getMessage());
+                    return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
             }catch (Exception e){
+                resp.setResult(orderTypeTopicNames);
                 resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while unsubscribe case4: " + e.getMessage());
+                resp.setMessage("Error while initUserAclsTopicList for unsubscribe: " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
-            resp.setMessage("Error while subscribe_unsubscribe : " + e.getMessage());
+            resp.setMessage("Error while unsubscribe : " + e.getMessage());
             return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

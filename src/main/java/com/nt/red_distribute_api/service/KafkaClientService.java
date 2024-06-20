@@ -568,7 +568,7 @@ public class KafkaClientService {
         } catch (Exception e) {
             e.printStackTrace();
             errMsg = "error in kafka: " + e.getMessage();
-            System.err.println(errMsg);
+            // System.err.println(errMsg);
         } finally {
             // Ensure producer is closed
             if (producer != null) {
