@@ -591,6 +591,7 @@ public class KafkaClientService {
                     if(topicName.toUpperCase().equals(topic.toUpperCase())){
                         selectTopics.add(topic);
                         mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
+                        break;
                     }
                 }
             }
