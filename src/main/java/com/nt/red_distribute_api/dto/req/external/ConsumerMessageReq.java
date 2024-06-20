@@ -11,4 +11,10 @@ public class ConsumerMessageReq {
     @JsonProperty("topic_name")
     private String topicName;
 
+    @JsonProperty("offset")
+    private Integer offset=0;
+
+    @JsonProperty("limit")
+    private Integer limit=100;
+
 }

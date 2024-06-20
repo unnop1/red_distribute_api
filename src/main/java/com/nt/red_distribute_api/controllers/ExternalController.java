@@ -107,8 +107,14 @@ public class ExternalController {
                 resp.setMessage("Error while topic_detail : " + data.getError());
                 return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             }
-            resp.setResult(data.getData());
-            resp.setMessage("Success!");
+            try{
+                resp.setResult(data.getData());
+                resp.setMessage("Success!");
+            }catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while resp topic_detail : " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
@@ -178,7 +184,8 @@ public class ExternalController {
                     vsp.getConsumerData().getUsername(),
                     vsp.getRealPassword(),
                     req.getTopicName(), vsp.getConsumerData().getConsumer_group().toUpperCase(),
-                    1000
+                    req.getOffset(),
+                    req.getLimit()
                 );
                 try{
                     if (consumeMsgs.getErr() != null){

@@ -438,7 +438,7 @@ public class KafkaClientService {
         }
     }
 
-    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int messageLimit) {
+    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int offset, int limit) {
         ListConsumeMsg resp = new ListConsumeMsg();
         List<String> messageList = Collections.synchronizedList(new ArrayList<>());
         String groupId = groupConsumerId;
@@ -457,20 +457,28 @@ public class KafkaClientService {
             username, password
         ));
 
-        try{
-            try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps)) {
-                consumer.subscribe(Collections.singletonList(topic));
-                consumer.seekToBeginning(consumer.assignment());
+        int messageLimit = limit; // Limit on the number of messages to consume
+        long startOffset = offset;   // Starting offset
 
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps)) {
+            consumer.subscribe(Collections.singletonList(topic));
+            consumer.poll(Duration.ofSeconds(1)); // Poll to join the group and get assignment
+            consumer.seekToBeginning(consumer.assignment());
+
+            boolean consuming = true;
+            while (consuming) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
-
                 for (ConsumerRecord<String, String> record : records) {
-                    messageList.add(record.value());
+                    if (record.offset() >= startOffset && messageList.size() < messageLimit) {
+                        messageList.add(record.value());
+                    }
+                    if (messageList.size() >= messageLimit) {
+                        consuming = false;
+                        break;
+                    }
                 }
-            }catch (Exception e){
-                resp.setErr(e.getMessage());
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             resp.setErr(e.getMessage());
         }
 
