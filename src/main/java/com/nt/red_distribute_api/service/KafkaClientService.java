@@ -441,7 +441,6 @@ public class KafkaClientService {
     public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int messageLimit) {
         ListConsumeMsg resp = new ListConsumeMsg();
         List<String> messageList = Collections.synchronizedList(new ArrayList<>());
-        String bootstrapServer = "10.44.84.74:9092,10.44.84.76:9092,10.44.84.77:9092";
         String groupId = groupConsumerId;
         Properties consumeProps = new Properties();
         consumeProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
@@ -482,7 +481,6 @@ public class KafkaClientService {
     }
 
     public String adminPublishMessage(String topic, String message) {
-        String bootstrapServer = "10.44.84.74:9092,10.44.84.76:9092,10.44.84.77:9092";
         String errMsg = "";
 
         Properties publishProps = new Properties();
@@ -528,7 +526,6 @@ public class KafkaClientService {
     }
 
     public String consumerPublishMessage(String username, String password, String topic, String message) {
-        String bootstrapServer = "10.44.84.74:9092,10.44.84.76:9092,10.44.84.77:9092";
         String errMsg = null;
 
         Properties publishProps = new Properties();
@@ -574,20 +571,6 @@ public class KafkaClientService {
     }
 
 
-    private static Map<String, String> getConfigMap(DescribeConfigsResult result) throws ExecutionException, InterruptedException {
-        Map<ConfigResource, Config> configs = result.all().get();
-        Map<String, String> configMap = new HashMap<>();
-
-        for (Map.Entry<ConfigResource, Config> entry : configs.entrySet()) {
-            Config config = entry.getValue();
-            for (ConfigEntry configEntry : config.entries()) {
-                configMap.put(configEntry.name(), configEntry.value());
-            }
-        }
-
-        return configMap;
-    }
-
     public TopicDetailResp getTopicDescription(String topicName) {
         TopicDetailResp topicDetail = new TopicDetailResp();
         Collection<TopicListing> listings;
@@ -622,7 +605,7 @@ public class KafkaClientService {
                     dataTopic.put("topic_name", topicName);
                     dataTopic.put("is_internal", value.get().isInternal());
                     dataTopic.put("partitions", value.get().partitions());
-                    dataTopic.put("acl_operation", value.get().authorizedOperations());
+                    // dataTopic.put("acl_operation", value.get().authorizedOperations());
                     mapConfigTopicDetails.put(detailTopicName, dataTopic);
                 } catch (InterruptedException e) {
                     topicDetail.setError(e.getMessage());

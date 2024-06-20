@@ -171,7 +171,7 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
-            ListConsumeMsg consumeMsgs=null;
+            ListConsumeMsg consumeMsgs= new ListConsumeMsg();
             try{
 
                 consumeMsgs = kafkaClientService.consumeMessages(
@@ -186,6 +186,7 @@ public class ExternalController {
                     return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }catch (Exception e){
+                consumeMsgs.setErr(e.getMessage());
                 resp.setMessage("Error while consuming case1:"+ e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -195,7 +196,7 @@ public class ExternalController {
                     // if(consumeMsgs.getMessages() != null){
                         resp.setError(consumeMsgs.getErr());
                         // resp.setCount(consumeMsgs.getMessages().size());
-                        return new ResponseEntity<>( resp, HttpStatus.OK);
+                        return new ResponseEntity<>( resp, HttpStatus.BAD_GATEWAY);
                 }
                 resp.setCount(consumeMsgs.getMessages().size());
                 resp.setResult(consumeMsgs.getMessages());
