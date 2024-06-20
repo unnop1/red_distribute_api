@@ -107,8 +107,8 @@ public class ExternalController {
                 resp.setMessage("Error while topic_detail : " + data.getError());
                 return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             }
-            resp.setResult(data);
-            resp.setMessage(vsp.getRemark());
+            resp.setResult(data.getData());
+            resp.setMessage("Success!");
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
@@ -177,12 +177,18 @@ public class ExternalController {
                 consumeMsgs = kafkaClientService.consumeMessages(
                     vsp.getConsumerData().getUsername(),
                     vsp.getRealPassword(),
-                    req.getTopicName(), vsp.getConsumerData().getConsumer_group(),
+                    req.getTopicName(), vsp.getConsumerData().getConsumer_group().toUpperCase(),
                     1000
                 );
-                if (consumeMsgs.getErr() != null){
-                    resp.setError(consumeMsgs.getErr());
-                    resp.setMessage("Error while consuming messages");
+                try{
+                    if (consumeMsgs.getErr() != null){
+                        resp.setError(consumeMsgs.getErr());
+                        resp.setMessage("Error while consuming messages");
+                        return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+                    } 
+                }catch (Exception e){
+                    consumeMsgs.setErr(e.getMessage());
+                    resp.setMessage("Error while response in case1:"+ e.getMessage());
                     return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }catch (Exception e){
