@@ -614,14 +614,13 @@ public class KafkaClientService {
                     dataTopic.put("topic_name", detailTopicName);
                     dataTopic.put("is_internal", value.get().isInternal());
                     if(value.get().partitions() != null){
-                        List<HashMap<String, Object>> partitions = new ArrayList<HashMap<String, Object>>();
-                        for(TopicPartitionInfo partition : value.get().partitions()){
-                            HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
+                        HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
+                        if(value.get().partitions()!= null){
+                            TopicPartitionInfo partition = value.get().partitions().get(0);
                             partitionInfo.put("partition_total", partition.partition());
-                            partitionInfo.put("replica_total", partition.replicas().size());
-                            partitions.add(partitionInfo);
+                            partitionInfo.put("replica_total", value.get().partitions().size());
                         }
-                        dataTopic.put("partitions", partitions);
+                        dataTopic.put("partition", partitionInfo);
                     }
                     mapConfigTopicDetails.put(detailTopicName, dataTopic);
                 } catch (InterruptedException e) {
