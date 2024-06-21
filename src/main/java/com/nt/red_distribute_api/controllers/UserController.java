@@ -58,17 +58,6 @@ public class UserController {
             ListUserReq req = new ListUserReq(draw, sortBy, sortName, start, length, search, search_field);
             PaginationDataResp smsGateways = userService.getAllUser(req);
             
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction("get");
-            auditLog.setAuditable("user_db");
-            auditLog.setUsername(vsf.getUsername());
-            auditLog.setBrowser(vsf.getBrowser());
-            auditLog.setDevice(vsf.getDevice());
-            auditLog.setOperating_system(vsf.getSystem());
-            auditLog.setIp_address(ipAddress);
-            auditLog.setComment("getAllUser");
-            auditService.AddAuditLog(auditLog);
-            
             response.setRecordsFiltered(smsGateways.getCount());
             response.setRecordsTotal(smsGateways.getCount());
             response.setCount(smsGateways.getCount());
@@ -99,18 +88,6 @@ public class UserController {
         UserInfoResp userResp = new UserInfoResp();
         try{
             UserResp userInfo = userService.findUserById(userId);
-
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction("get");
-            auditLog.setAuditable_id(userId);
-            auditLog.setAuditable("user_db");
-            auditLog.setUsername(vsf.getUsername());
-            auditLog.setBrowser(vsf.getBrowser());
-            auditLog.setDevice(vsf.getDevice());
-            auditLog.setOperating_system(vsf.getSystem());
-            auditLog.setIp_address(ipAddress);
-            auditLog.setComment("getUserInfo");
-            auditService.AddAuditLog(auditLog);
 
             if (userInfo != null){
                 PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userInfo.getSa_menu_permission_id());

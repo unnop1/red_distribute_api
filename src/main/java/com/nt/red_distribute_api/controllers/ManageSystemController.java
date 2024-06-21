@@ -95,18 +95,6 @@ public class ManageSystemController {
         try {
             PaginationDataResp manageOrderTypes = manageSystemService.ListManageOrderTypes(page, limit);
             
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction("get");
-            auditLog.setAuditable("ordertype");
-            auditLog.setUsername(vsf.getUsername());
-            auditLog.setBrowser(vsf.getBrowser());
-            auditLog.setDevice(vsf.getDevice());
-            auditLog.setOperating_system(vsf.getSystem());
-            auditLog.setIp_address(ipAddress);
-            auditLog.setComment("getManageOrderTypes");
-            auditLog.setCreated_date(DateTime.getTimeStampNow());
-            auditService.AddAuditLog(auditLog);
-            
             resp.setCount(manageOrderTypes.getCount());
             resp.setData(manageOrderTypes.getData());
             resp.setStatusCode(HttpStatus.OK.value());
@@ -160,19 +148,6 @@ public class ManageSystemController {
             resp.setRecordsFiltered(data.getCount());
             resp.setRecordsTotal(data.getCount());
             resp.setDraw(draw);
-
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction("get");
-            auditLog.setAuditable("consumer_ordertype");
-            auditLog.setUsername(vsf.getUsername());
-            auditLog.setBrowser(vsf.getBrowser());
-            auditLog.setDevice(vsf.getDevice());
-            auditLog.setOperating_system(vsf.getSystem());
-            auditLog.setIp_address(ipAddress);
-            auditLog.setComment("getAllConsumerByOrderType");
-            auditLog.setCreated_date(DateTime.getTimeStampNow());
-            auditService.AddAuditLog(auditLog);
-
             
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){

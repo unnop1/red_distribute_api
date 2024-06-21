@@ -47,18 +47,7 @@ public class SystemAdminController {
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
             PermissionMenuEntity sapm = permissionMenuService.getMenuPermission(permissionID);
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction("get");
-            auditLog.setAuditable_id(permissionID);
-            auditLog.setAuditable("sa_menu_permission");
-            auditLog.setUsername(vsf.getUsername());
-            auditLog.setBrowser(vsf.getBrowser());
-            auditLog.setDevice(vsf.getDevice());
-            auditLog.setOperating_system(vsf.getSystem());
-            auditLog.setIp_address(ipAddress);
-            auditLog.setComment("getSaMenuPermission");
-            auditLog.setCreated_date(DateTime.getTimeStampNow());
-            auditService.AddAuditLog(auditLog);
+        
             if (sapm != null) {
                 resp.setRecordsFiltered(1);
                 resp.setRecordsTotal(1);
@@ -105,17 +94,6 @@ public class SystemAdminController {
         try {
             PermissionListReq req = new PermissionListReq(draw, sortBy, sortName, start, length, search, searchField);
             PaginationDataResp listSaMnPm = permissionMenuService.ListMenuPermission(req);
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction("get");
-            auditLog.setAuditable("sa_menu_permission");
-            auditLog.setUsername(vsf.getUsername());
-            auditLog.setBrowser(vsf.getBrowser());
-            auditLog.setDevice(vsf.getDevice());
-            auditLog.setOperating_system(vsf.getSystem());
-            auditLog.setIp_address(ipAddress);
-            auditLog.setComment("getAllSaMenuPermission");
-            auditLog.setCreated_date(DateTime.getTimeStampNow());
-            auditService.AddAuditLog(auditLog);
 
             ObjectMapper objectMapper = new ObjectMapper();
             String respStr = objectMapper.writeValueAsString(listSaMnPm);

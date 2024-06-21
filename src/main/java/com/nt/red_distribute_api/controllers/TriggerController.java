@@ -64,18 +64,6 @@ public class TriggerController {
             resp.setData(triggers.getData());
             resp.setRecordsFiltered(triggers.getCount());
             resp.setRecordsTotal(triggers.getCount());
-
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction("get");
-            auditLog.setAuditable("trigger");
-            auditLog.setUsername(vsf.getUsername());
-            auditLog.setBrowser(vsf.getBrowser());
-            auditLog.setDevice(vsf.getDevice());
-            auditLog.setOperating_system(vsf.getSystem());
-            auditLog.setIp_address(ipAddress);
-            auditLog.setComment("getDashBoardTriggers");
-            auditLog.setCreated_date(DateTime.getTimeStampNow());
-            auditService.AddAuditLog(auditLog);
             
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
@@ -129,17 +117,6 @@ public class TriggerController {
             resp.setRecordsFiltered(triggers.getCount());
             resp.setRecordsTotal(triggers.getCount());
 
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction("get");
-            auditLog.setAuditable("trigger");
-            auditLog.setUsername(vsf.getUsername());
-            auditLog.setBrowser(vsf.getBrowser());
-            auditLog.setDevice(vsf.getDevice());
-            auditLog.setOperating_system(vsf.getSystem());
-            auditLog.setIp_address(ipAddress);
-            auditLog.setComment("getAllTriggersByOrderType");
-            auditLog.setCreated_date(DateTime.getTimeStampNow());
-            auditService.AddAuditLog(auditLog);
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setDraw(draw);
@@ -164,18 +141,7 @@ public class TriggerController {
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
             TriggerMessageEntity triggerMsg = triggerService.TriggerDetail(triggerID);
-            AuditLog auditLog = new AuditLog();
-            auditLog.setAction("get");
-            auditLog.setAuditable_id(triggerID);
-            auditLog.setAuditable("trigger_message");
-            auditLog.setUsername(vsf.getUsername());
-            auditLog.setBrowser(vsf.getBrowser());
-            auditLog.setDevice(vsf.getDevice());
-            auditLog.setOperating_system(vsf.getSystem());
-            auditLog.setIp_address(ipAddress);
-            auditLog.setComment("getTriggerDetail");
-            auditLog.setCreated_date(DateTime.getTimeStampNow());
-            auditService.AddAuditLog(auditLog);
+
             if (triggerMsg != null) {
                 resp.setRecordsFiltered(1);
                 resp.setRecordsTotal(1);
