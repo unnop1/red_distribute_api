@@ -110,9 +110,10 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             }
             try{
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-                resp.setResult(mapper.writeValueAsString(data));
+                // ObjectMapper mapper = new ObjectMapper();
+                // mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+                // resp.setResult(mapper.writeValueAsString(data));
+                resp.setResult(data);
                 resp.setMessage("Success!");
                 return new ResponseEntity<>( resp, HttpStatus.OK);
             }catch (Exception e){
