@@ -108,7 +108,9 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             }
             try{
-                resp.setResult(data.getData());
+                ObjectMapper mapper = new ObjectMapper();
+
+                resp.setResult(mapper.writeValueAsString(data));
                 resp.setMessage("Success!");
                 return new ResponseEntity<>( resp, HttpStatus.OK);
             }catch (Exception e){
