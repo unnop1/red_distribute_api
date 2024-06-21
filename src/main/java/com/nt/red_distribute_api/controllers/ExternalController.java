@@ -113,7 +113,7 @@ public class ExternalController {
                 // ObjectMapper mapper = new ObjectMapper();
                 // mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
                 // resp.setResult(mapper.writeValueAsString(data));
-                resp.setResult(data);
+                resp.setResult(data.getData());
                 resp.setMessage("Success!");
                 return new ResponseEntity<>( resp, HttpStatus.OK);
             }catch (Exception e){
