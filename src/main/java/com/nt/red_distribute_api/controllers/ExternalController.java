@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.dto.req.external.ConsumerMessageReq;
@@ -109,7 +111,7 @@ public class ExternalController {
             }
             try{
                 ObjectMapper mapper = new ObjectMapper();
-
+                mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
                 resp.setResult(mapper.writeValueAsString(data));
                 resp.setMessage("Success!");
                 return new ResponseEntity<>( resp, HttpStatus.OK);

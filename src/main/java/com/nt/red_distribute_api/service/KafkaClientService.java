@@ -613,8 +613,8 @@ public class KafkaClientService {
                     HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
                     dataTopic.put("topic_name", topicName);
                     dataTopic.put("is_internal", value.get().isInternal());
-                    dataTopic.put("partitions", value.get().partitions());
-                    // dataTopic.put("acl_operation", value.get().authorizedOperations());
+                    dataTopic.put("partitions", value.get().partitions().toArray());
+                    dataTopic.put("acl_operation", value.get().authorizedOperations().toArray());
                     mapConfigTopicDetails.put(detailTopicName, dataTopic);
                 } catch (InterruptedException e) {
                     topicDetail.setError(e.getMessage());
