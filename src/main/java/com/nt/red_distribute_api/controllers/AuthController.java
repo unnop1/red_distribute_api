@@ -15,6 +15,7 @@ import com.nt.red_distribute_api.entity.LogLoginEntity;
 import com.nt.red_distribute_api.entity.PermissionMenuEntity;
 import com.nt.red_distribute_api.entity.UserEntity;
 import com.nt.red_distribute_api.exp.UserAlreadyExistsException;
+import com.nt.red_distribute_api.log.LogFlie;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.LogLoginService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
@@ -22,7 +23,9 @@ import com.nt.red_distribute_api.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 
 import org.slf4j.Logger;
@@ -61,6 +64,8 @@ public class AuthController {
 
     @Autowired
     private PermissionMenuService permissionMenuService; 
+    
+    private LogFlie log;
 
     @PostMapping("/create")
     public ResponseEntity<AuthSuccessResp> createUser(HttpServletRequest request, @RequestBody UserRequestDto userRequestDto) {
@@ -106,6 +111,8 @@ public class AuthController {
             String ipAddress = request.getRemoteAddr();
             logger.info("IP Address: {}", ipAddress);
             logger.info("jwtUsername: {}", jwtRequest.getUsername());
+            
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
             // Log login
             LoginResp loginResp = new LoginResp();
@@ -122,6 +129,10 @@ public class AuthController {
             UserEntity userDetails = userService.findUserLogin(jwtRequest.getUsername());
             if (userDetails == null) {
                 logger.error("User not found: {}", jwtRequest.getUsername());
+                
+                log.WriteLogFile("AuthController", "login", "Login", "Login failed", df.format(new Date())+" "+jwtRequest.getUsername()+" "+ipAddress+" "+jwtRequest.getDevice()
+                +" "+jwtRequest.getBrowser()+" "+jwtRequest.getSystem());
+                
                 return ResponseEntity.badRequest().body("error: User not found");
                 // return loginResp;
             }
@@ -166,6 +177,9 @@ public class AuthController {
                 loginResp.setPermissionName(permissionMenuEntity.getPermission_Name());
             }
             
+            log.WriteLogFile("AuthController", "login", "Login", "Login success", df.format(new Date())+" "+jwtRequest.getUsername()+" "+ipAddress+" "+jwtRequest.getDevice()
+            +" "+jwtRequest.getBrowser()+" "+jwtRequest.getSystem());
+            
 
             AuditLog auditLog = new AuditLog();
             auditLog.setAction("login");
@@ -179,6 +193,8 @@ public class AuthController {
             auditLog.setComment("authentication login");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+            log.WriteLogFile("AuthController", "login", "Login", "Login success", df.format(new Date())+" insert AddAuditLog AUDIT_LOG "
+            		+jwtRequest.getUsername()+" "+ipAddress+" "+jwtRequest.getDevice()+" "+jwtRequest.getBrowser());
 
             logger.info("Response user info: {}", loginResp.getUserLogin());
             logger.info("Response JWT token: {}", loginResp.getJwtToken());

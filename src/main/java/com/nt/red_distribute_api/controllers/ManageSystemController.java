@@ -28,6 +28,7 @@ import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
+import com.nt.red_distribute_api.log.LogFlie;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
@@ -39,9 +40,11 @@ import com.nt.red_distribute_api.service.SaMetricNotificationService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -79,6 +82,8 @@ public class ManageSystemController {
 
     @Autowired
     private SaMetricNotificationService saMetricNotificationService;
+    
+    private LogFlie log;
 
     @GetMapping("/order_types")
     public ResponseEntity<DefaultControllerResp> getManageOrderTypes(
@@ -179,6 +184,10 @@ public class ManageSystemController {
 
             // create orderType in database
             Long orderTypeID = orderTypeService.registerOrderType(req, vsf.getUsername());
+    	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "createOrderType", "Audit Log", "Function", df.format(new Date())+" insert registerOrderType ORDERTYPE "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser()+" ");
+            
             System.out.println("registered order type id: " + orderTypeID);
             OrderTypeEntity orderTypeDetail = orderTypeService.getOrderTypeDetail(orderTypeID);
             
@@ -189,7 +198,6 @@ public class ManageSystemController {
             topicConfig.setReplicationFactor((short) 2); // fix for test
             topicConfig.setTopicName(orderTypeDetail.getOrderTypeName());
             kafkaClientService.createTopic(topicConfig);
-
 
             AuditLog auditLog = new AuditLog();
             auditLog.setAction("create");
@@ -203,6 +211,9 @@ public class ManageSystemController {
             auditLog.setComment("createOrderType");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+            
+            log.WriteLogFile("ManageSystemController", "createOrderType", "Audit Log", "Function", df.format(new Date())+" insert AddAuditLog AUDIT_LOG "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             resp.setCount(1);
             resp.setData(orderTypeDetail);
@@ -228,6 +239,10 @@ public class ManageSystemController {
         try{
             // update orderType in database
             OrderTypeEntity updateOrderType = orderTypeService.updateOrderType(req, vsf.getUsername());
+    	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "updateOrderType", "Audit Log", "Function", df.format(new Date())+" update updateOrderType ORDERTYPE "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
+            
             if( updateOrderType == null ){
                 response.setCount(0);
                 response.setData(null);
@@ -267,7 +282,8 @@ public class ManageSystemController {
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
         
-
+            log.WriteLogFile("ManageSystemController", "updateOrderType", "Audit Log", "Function", df.format(new Date())+" insert AddAuditLog AUDIT_LOG "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             response.setCount(1);
             response.setMessage("Success");
@@ -305,6 +321,9 @@ public class ManageSystemController {
 
             // delete order_type in database
             orderTypeService.deleteOrderType(orderTypeID, vsf.getUsername());
+    	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "deleteOrderType", "Audit Log", "Function", df.format(new Date())+" delete deleteOrderType ORDERTYPE "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             // delete topic in kafka
             if (orderType != null){
@@ -323,6 +342,9 @@ public class ManageSystemController {
             auditLog.setComment("deleteOrderType");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+            
+            log.WriteLogFile("ManageSystemController", "deleteOrderType", "Audit Log", "Function", df.format(new Date())+" insert AddAuditLog AUDIT_LOG "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             response.setCount(1);
             response.setMessage("Success");
@@ -344,6 +366,10 @@ public class ManageSystemController {
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
+    	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "PurgeOrderTypeData", "Audit Log", "Purge", df.format(new Date())+" "+orderTypeID+" "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser()+" "+"PurgeOrderTypeData");
+            
             OrderTypeEntity orderTypeData = orderTypeService.getOrderTypeDetail(orderTypeID);
             if( orderTypeData == null ){
                 resp.setCount(0);
@@ -352,7 +378,7 @@ public class ManageSystemController {
                 resp.setMessage("Error Not Found order type id "+orderTypeID);
                 return new ResponseEntity<>(resp, HttpStatus.NOT_FOUND);
             }
-
+            
             kafkaClientService.purgeDataInTopic(orderTypeData.getOrderTypeName());
 
             AuditLog auditLog = new AuditLog();
@@ -368,6 +394,8 @@ public class ManageSystemController {
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
 
+            log.WriteLogFile("ManageSystemController", "PurgeOrderTypeData", "Audit Log", "Purge", df.format(new Date())+" insert AddAuditLog AUDIT_LOG "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
             
             resp.setMessage("Purge all messages in order type "+orderTypeData.getOrderTypeName());
 
@@ -408,6 +436,10 @@ public class ManageSystemController {
             auditLog.setComment("GetOrderTypeMoreDetail");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+            
+    	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "GetOrderTypeMoreDetail", "Audit Log", "Function", df.format(new Date())+" insert AddAuditLog AUDIT_LOG "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
             
             DefaultControllerResp response = new DefaultControllerResp();
             
@@ -453,6 +485,10 @@ public class ManageSystemController {
             }
 
             Long consumerID = consumerService.registerConsumer(req, vsf.getUsername());
+    	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "createConsumer", "Audit Log", "Function", df.format(new Date())+" insert registerConsumer CONSUMER "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser()+" ");
+            
             String consumerGroup = req.getSystem_name().toUpperCase();
             req.setConsumer_group(consumerGroup);
             System.out.println("registered consumer id: " + consumerID);
@@ -472,6 +508,8 @@ public class ManageSystemController {
                 // in database
                 for(Long orderTypeID : req.getOrder_type_ids()){
                     consumerOrderTypeService.registerConsumerOrderType(consumerID, orderTypeID, vsf.getUsername());
+                    log.WriteLogFile("ManageSystemController", "createConsumer", "Audit Log", "Function", df.format(new Date())+" insert registerConsumerOrderType CONSUMER "+vsf.getUsername()+" "+ipAddress+" "
+                    		+vsf.getDevice()+" "+vsf.getBrowser());
                 }
 
                 // in kafka
@@ -494,6 +532,8 @@ public class ManageSystemController {
             auditLog.setComment("createConsumer");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+            log.WriteLogFile("ManageSystemController", "createConsumer", "Audit Log", "Function", df.format(new Date())+" insert AddAuditLog AUDIT_LOG "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             resp.setCount(1);
             resp.setData(consumerDetail);
@@ -519,6 +559,9 @@ public class ManageSystemController {
         try{
             // update consumer in database
             ConsumerEntity updateConsumer = consumerService.updateConsumer(req, vsf.getUsername());
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "updateConsumer", "Audit Log", "Function", df.format(new Date())+" update updateConsumer CONSUMER "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             if( updateConsumer == null ){
                 response.setCount(0);
@@ -539,6 +582,8 @@ public class ManageSystemController {
 
             if ( req.getUpdateInfo().getOrder_type_ids() != null ){
                 Error err = consumerOrderTypeService.updateConsumerOrderType(updateConsumer.getID(), req.getUpdateInfo().getOrder_type_ids(), vsf.getUsername());
+                log.WriteLogFile("ManageSystemController", "updateConsumer", "Audit Log", "Function", df.format(new Date())+" update updateConsumerOrderType CONSUMER_ORDERTYPE "
+                		+vsf.getUsername()+" "+ipAddress+" "+vsf.getDevice()+" "+vsf.getBrowser());
                 if (err.getMessage() != null){
                     response.setCount(0);
                     response.setData(err.getMessage());
@@ -568,7 +613,8 @@ public class ManageSystemController {
             auditLog.setComment("updateConsumer");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
-
+            log.WriteLogFile("ManageSystemController", "updateConsumer", "Audit Log", "Function", df.format(new Date())+" insert AddAuditLog AUDIT_LOG "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             response.setCount(1);
             response.setMessage("Success");
@@ -606,10 +652,15 @@ public class ManageSystemController {
 
             // delete consumer in database
             consumerService.deleteConsumer(consumerID, vsf.getUsername());
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "updateConsumer", "Audit Log", "Function", df.format(new Date())+" delete deleteConsumer CONSUMER "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             // delete consumer in database
             List<Long> clearList = new ArrayList<Long>();
             consumerOrderTypeService.updateConsumerOrderType(consumerID, clearList, vsf.getUsername());
+            log.WriteLogFile("ManageSystemController", "updateConsumer", "Audit Log", "Function", df.format(new Date())+" update updateConsumerOrderType CONSUMER_ORDERTYPE "
+            		+vsf.getUsername()+" "+ipAddress+" "+vsf.getDevice()+" "+vsf.getBrowser());
 
             // list consumer acls in kafka
             List<UserAclsInfo> userAcls = kafkaClientService.ListUserAcls(consumer.getUsername());
@@ -629,6 +680,8 @@ public class ManageSystemController {
             auditLog.setComment("deleteConsumer");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+            log.WriteLogFile("ManageSystemController", "updateConsumer", "Audit Log", "Function", df.format(new Date())+" insert AddAuditLog AUDIT_LOG "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             response.setCount(1);
             response.setMessage("Success");
@@ -707,9 +760,14 @@ public class ManageSystemController {
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
             Long metricNotificationID = saMetricNotificationService.registerMetricNotification(req, vsf.getUsername());
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "createManageMetric", "Audit Log", "Function", df.format(new Date())+" insert registerMetricNotification SA_METRIC_NOTIFICATION "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
+            
             SaMetricNotificationEntity saMetricNotificationDetail = saMetricNotificationService.saMetricNotificationDetail(metricNotificationID);
             resp.setCount(1);
             resp.setData(saMetricNotificationDetail);
+
             return new ResponseEntity<>(resp, HttpStatus.CREATED);
         } catch (Exception e) {
             resp.setCount(0);
@@ -729,19 +787,26 @@ public class ManageSystemController {
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
 
         DefaultControllerResp response = new DefaultControllerResp();
+        
         try{
             SaMetricNotificationEntity saMetric = saMetricNotificationService.updateMetricNotification(req, vsf.getUsername());
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            log.WriteLogFile("ManageSystemController", "createManageMetric", "Audit Log", "Function", df.format(new Date())+" update updateMetricNotification SA_METRIC_NOTIFICATION "+vsf.getUsername()+" "+ipAddress+" "
+            		+vsf.getDevice()+" "+vsf.getBrowser());
 
             response.setCount(1);
             response.setMessage("Success");
             response.setData(saMetric);
             
             response.setStatusCode(200);
-
+            
+            log.WriteLogFile("ManageSystemController", "createManageMetric", "Metric", "Connect", df.format(new Date())+" "+saMetric.toString());
+            
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }catch (Exception e){
             response.setCount(0);
             response.setMessage(e.getMessage());
+            log.WriteLogFile("ManageSystemController", "createManageMetric", "Metric", "TriggerOverload", df.format(new Date())+" "+e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
