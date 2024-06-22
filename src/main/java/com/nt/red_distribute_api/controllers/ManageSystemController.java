@@ -185,8 +185,6 @@ public class ManageSystemController {
             // create orderType in kafka server
             TopicReq topicConfig = new TopicReq();
             topicConfig.setRetentionMs(req.getMessage_expire());
-            topicConfig.setPartitions(1);
-            topicConfig.setReplicationFactor((short) 2); // fix for test
             topicConfig.setTopicName(orderTypeDetail.getOrderTypeName());
             kafkaClientService.createTopic(topicConfig);
 
