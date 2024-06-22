@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.nt.red_distribute_api.dto.req.trigger.DashboardReq;
 import com.nt.red_distribute_api.dto.req.trigger.ListTriggerReq;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.entity.TriggerMessageEntity;
@@ -17,7 +18,6 @@ import com.nt.red_distribute_api.entity.view.trigger.TriggerOrderTypeCount;
 import com.nt.red_distribute_api.repo.OrderTypeRepo;
 import com.nt.red_distribute_api.repo.TriggerRepo;
 import com.nt.red_distribute_api.service.TriggerMessageService;
-import com.nt.red_distribute_api.dto.req.trigger.DashboardReq;
 
 @Service
 public class TriggerImp implements TriggerMessageService{
@@ -32,8 +32,8 @@ public class TriggerImp implements TriggerMessageService{
     @Override
     public PaginationDataResp Dashboard(DashboardReq req) {
         PaginationDataResp resp = new PaginationDataResp();
-        // Timestamp startTime = Timestamp.valueOf(req.getStartTime());
-        // Timestamp endTime = Timestamp.valueOf(req.getEndTime());
+        Timestamp startTime = Timestamp.valueOf(req.getStartTime());
+        Timestamp endTime = Timestamp.valueOf(req.getEndTime());
         String sortName = req.getSortName();
         String sortBy = req.getSortBy();
         Long channelID = req.getChannelID();
@@ -41,12 +41,12 @@ public class TriggerImp implements TriggerMessageService{
         System.out.println("channelID:" + channelID );
         System.out.println("sortName:" + sortName + " sortBy:" + sortBy);
         if (channelID == 0){
-            List<OrderTypeDashboardTrigger> dashboards = orderTypeRepo.OrderTypeTriggerDashboard(PageRequest.of(0, 5000, Sort.Direction.fromString(sortBy), sortName));
+            List<OrderTypeDashboardTrigger> dashboards = orderTypeRepo.OrderTypeTriggerDashboardByDate(startTime, endTime, PageRequest.of(0, 5000, Sort.Direction.fromString(sortBy), sortName));
             resp.setData(dashboards);
             resp.setCount(dashboards.size());
             return resp;
         }else{
-            List<OrderTypeDashboardTrigger> dashboards = orderTypeRepo.OrderTypeTriggerDashboardByChannelID(channelID, PageRequest.of(0, 5000, Sort.Direction.fromString(sortBy), sortName));
+            List<OrderTypeDashboardTrigger> dashboards = orderTypeRepo.OrderTypeTriggerDashboardByChannelIDAndDate(startTime, endTime, channelID, PageRequest.of(0, 5000, Sort.Direction.fromString(sortBy), sortName));
             resp.setData(dashboards);
             resp.setCount(dashboards.size());
             return resp;

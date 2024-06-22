@@ -1,9 +1,12 @@
 package com.nt.red_distribute_api.repo;
 
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -11,9 +14,6 @@ import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboard;
 import com.nt.red_distribute_api.entity.view.order_type.OrderTypeDashboardTrigger;
 import com.nt.red_distribute_api.entity.view.trigger.TriggerOrderTypeCount;
-
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
 
@@ -96,6 +96,48 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
     //   @Param(value = "start_time") Timestamp startTime,
     //   @Param(value = "end_time") Timestamp endTime,
       @Param(value = "channel_id") Long channelID,
+      Pageable pageable
+    );
+
+    //// Fillter Date
+    @Query(value = """
+                SELECT 
+                    odt.*,
+                    (SELECT COUNT(ID) FROM consumer_ordertype cod WHERE cod.ORDERTYPE_ID = odt.ID) AS TotalConsumer,
+                    (SELECT COUNT(ID) FROM trigger_message trg WHERE trg.ORDERTYPE_ID = odt.ID 
+                    AND (trg.RECEIVE_DATE >= :start_time) 
+                    AND (trg.RECEIVE_DATE <= :end_time) ) AS TotalTrigger
+                FROM 
+                    ordertype odt
+                LEFT JOIN sa_channel_connect sac
+                ON sac.ID = odt.SA_CHANNEL_CONNECT_ID
+                WHERE odt.SA_CHANNEL_CONNECT_ID = :channel_id
+                   """,
+                 nativeQuery = true)
+    public List<OrderTypeDashboardTrigger> OrderTypeTriggerDashboardByChannelIDAndDate(
+      @Param(value = "start_time") Timestamp startTime,
+      @Param(value = "end_time") Timestamp endTime,
+      @Param(value = "channel_id") Long channelID,
+      Pageable pageable
+    );
+
+    @Query(value = """
+                SELECT 
+                    odt.*,
+                    sac.CHANNEL_NAME,
+                    (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ORDERTYPE_ID = odt.ID) AS TotalConsumer,
+                    (SELECT COUNT(id) FROM trigger_message trg WHERE trg.ORDERTYPE_ID = odt.ID 
+                    AND (trg.RECEIVE_DATE >= :start_time) 
+                    AND (trg.RECEIVE_DATE <= :end_time) ) AS TotalTrigger
+                FROM 
+                    ordertype odt
+                LEFT JOIN sa_channel_connect sac
+                ON sac.ID = odt.SA_CHANNEL_CONNECT_ID
+                   """,
+                 nativeQuery = true)
+    public List<OrderTypeDashboardTrigger> OrderTypeTriggerDashboardByDate(
+      @Param(value = "start_time") Timestamp startTime,
+      @Param(value = "end_time") Timestamp endTime,
       Pageable pageable
     );
 
