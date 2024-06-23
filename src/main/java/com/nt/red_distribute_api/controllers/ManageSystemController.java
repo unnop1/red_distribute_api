@@ -239,7 +239,6 @@ public class ManageSystemController {
                 TopicReq topicUpdate = new TopicReq();
                 topicUpdate.setTopicName(updateOrderType.getOrderTypeName());
                 topicUpdate.setRetentionMs(updateOrderType.getMESSAGE_EXPIRE());
-                topicUpdate.setReplicationFactor((short) 2); // fix for test
                 kafkaClientService.createTopic(topicUpdate);
             }
 
@@ -248,7 +247,6 @@ public class ManageSystemController {
                 TopicReq topicUpdate = new TopicReq();
                 topicUpdate.setTopicName(updateOrderType.getOrderTypeName());
                 topicUpdate.setRetentionMs(updateOrderType.getMESSAGE_EXPIRE());
-                topicUpdate.setReplicationFactor((short) 2); // fix for test
                 kafkaClientService.updateTopic(topicUpdate);
             }
 
@@ -673,10 +671,10 @@ public class ManageSystemController {
 
             PaginationDataResp listConsumers = manageSystemService.ListManageConsumers(req);
 
-            Collection<String> topics = Collections.singletonList("PACKAGE_EXPIRE");
-            String groupId = "sms_module.worker.test";
+            // Collection<String> topics = Collections.singletonList("PACKAGE_EXPIRE");
+            // String groupId = "sms_module.worker.test";
 
-            kafkaClientService.calculateConsumerLag(groupId, topics);
+            // kafkaClientService.calculateConsumerLag(groupId, topics);
             
             resp.setDraw(draw);
             resp.setCount(listConsumers.getCount());
