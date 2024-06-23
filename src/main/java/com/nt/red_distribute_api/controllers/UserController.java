@@ -62,11 +62,13 @@ public class UserController {
             response.setRecordsTotal(smsGateways.getCount());
             response.setCount(smsGateways.getCount());
             response.setMessage("Success");
+            response.setDraw(req.getDraw());
             response.setData(smsGateways.getData());
             response.setStatusCode(200);
 
             return new ResponseEntity<>( response, HttpStatus.OK);
         }catch (Exception e){
+            response.setDraw(draw);
             response.setCount(0);
             response.setData(null);
             response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());

@@ -109,6 +109,7 @@ public class SystemAdminController {
             return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setCount(0);
+            resp.setDraw(draw);
             resp.setData(null);
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             resp.setMessage("Error while getting : " + e.getMessage());

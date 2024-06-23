@@ -18,6 +18,7 @@ import com.nt.red_distribute_api.dto.req.ordertype.OrderTypeMoreDetailReq;
 import com.nt.red_distribute_api.dto.req.ordertype.UpdateOrderTypeReq;
 import com.nt.red_distribute_api.dto.req.sa_metric_notification.AddMetricNotificationReq;
 import com.nt.red_distribute_api.dto.req.sa_metric_notification.UpdateMetricReq;
+import com.nt.red_distribute_api.dto.resp.ConsumerODTDetailResp;
 import com.nt.red_distribute_api.dto.resp.DefaultControllerResp;
 import com.nt.red_distribute_api.dto.resp.DefaultResp;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
@@ -529,9 +530,11 @@ public class ManageSystemController {
 
             // update consumer in kafka server
             List<UserAclsInfo> userAcls = kafkaClientService.ListUserAcls(updateConsumer.getUsername());
-            if (!req.getUpdateInfo().getPassword().isEmpty() || req.getUpdateInfo().getPassword().isBlank()){
-                kafkaClientService.deleteUserAndAcls(updateConsumer.getUsername(), userAcls);
-                kafkaClientService.createUserAndAcls(updateConsumer.getUsername(), req.getUpdateInfo().getPassword(),userAcls,consumerGroup );
+            if(req.getUpdateInfo().getPassword()!=null){
+                if (!req.getUpdateInfo().getPassword().isEmpty() || req.getUpdateInfo().getPassword().isBlank()){
+                    kafkaClientService.deleteUserAndAcls(updateConsumer.getUsername(), userAcls);
+                    kafkaClientService.createUserAndAcls(updateConsumer.getUsername(), req.getUpdateInfo().getPassword(),userAcls,consumerGroup );
+                }
             }
 
             if ( req.getUpdateInfo().getOrder_type_ids() != null ){
@@ -699,7 +702,7 @@ public class ManageSystemController {
     @GetMapping("/consumer")
     public ResponseEntity<DefaultControllerResp> getManageConsumerByID(
         HttpServletRequest request,
-        @RequestParam(name = "consumer_id")Long triggerID
+        @RequestParam(name = "consumer_id")Long consumerID
     ){
         String ipAddress = request.getRemoteAddr();
         String requestHeader = request.getHeader("Authorization");
@@ -708,23 +711,42 @@ public class ManageSystemController {
         
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
-            ConsumerEntity consumerDetail = consumerService.consumerDetail(triggerID);
+            ConsumerEntity consumerDetail = consumerService.consumerDetail(consumerID);
+
+            List<ConsumerLJoinOrderType> cod = consumerOrderTypeService.ListConsumerOrderType(consumerDetail.getID());
 
             if (consumerDetail != null) {
+                ConsumerODTDetailResp condt = new ConsumerODTDetailResp();
+                condt.setId(consumerDetail.getID());
+                condt.setConsumer_group(consumerDetail.getConsumer_group());
+                condt.setCreated_by(consumerDetail.getCreated_by());
+                condt.setCreated_date(consumerDetail.getCreated_date());
+                condt.setDepartmentName(consumerDetail.getDepartmentName());
+                condt.setEmail(consumerDetail.getEmail());
+                condt.setIs_delete(consumerDetail.getIs_delete());
+                condt.setIs_delete_by(consumerDetail.getIs_delete_by());
+                condt.setIs_enable(consumerDetail.getIs_enable());
+                condt.setUsername(consumerDetail.getUsername());
+                condt.setPhoneNumber(consumerDetail.getPhoneNumber());
+                condt.setSystem_name(consumerDetail.getSystem_name());
+                condt.setUpdated_by(consumerDetail.getUpdated_by());
+                condt.setUpdated_date(consumerDetail.getUpdated_date());
+                condt.setOrderTypes(cod);
                 resp.setRecordsFiltered(1);
                 resp.setRecordsTotal(1);
                 resp.setCount(1);
-                resp.setData(consumerDetail);
+                resp.setData(condt);
                 resp.setStatusCode(HttpStatus.OK.value());
                 resp.setMessage("Successfully");
                 return new ResponseEntity<>( resp, HttpStatus.OK);
             }else{
+                resp.setRecordsFiltered(0);
+                resp.setRecordsTotal(0);
                 resp.setCount(0);
-                resp.setData(null);
                 resp.setStatusCode(HttpStatus.NOT_FOUND.value());
-                resp.setMessage("Not found");
-                return new ResponseEntity<>( resp, HttpStatus.NOT_FOUND);
+                resp.setMessage("NOTFOUND");
             }
+            return new ResponseEntity<>( resp, HttpStatus.NOT_FOUND);
             
         }catch (Exception e){
             resp.setCount(0);
