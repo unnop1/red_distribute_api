@@ -77,6 +77,11 @@ public class ConsumerImp implements ConsumerService {
                 existingEntity.setEmail(updates.getEmail());
             }
 
+            if (updates.getPassword() != null ){
+                String passwordEncode = authConfig.passwordEncoder().encode(updates.getPassword());
+                existingEntity.setPassword(passwordEncode);
+            }
+
             if (updates.getPhone_number() != null ){
                 existingEntity.setPhoneNumber(updates.getPhone_number());
             }
@@ -85,8 +90,8 @@ public class ConsumerImp implements ConsumerService {
                 existingEntity.setIs_enable(updates.getIs_enable());
             }
 
-            if (updates.getIs_delete() == 0 ){
-                existingEntity.setIs_delete(0);
+            if (updates.getIs_delete() != null ){
+                existingEntity.setIs_delete(updates.getIs_delete());
             }
 
             existingEntity.setUpdated_by(updatedBy);

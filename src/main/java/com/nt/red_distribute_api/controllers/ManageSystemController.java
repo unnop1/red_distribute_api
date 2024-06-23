@@ -27,6 +27,7 @@ import com.nt.red_distribute_api.dto.resp.external.VerifyConsumerResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
+import com.nt.red_distribute_api.entity.TriggerMessageEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
@@ -528,7 +529,7 @@ public class ManageSystemController {
 
             // update consumer in kafka server
             List<UserAclsInfo> userAcls = kafkaClientService.ListUserAcls(updateConsumer.getUsername());
-            if (!req.getUpdateInfo().getPassword().isEmpty()){
+            if (!req.getUpdateInfo().getPassword().isEmpty() || req.getUpdateInfo().getPassword().isBlank()){
                 kafkaClientService.deleteUserAndAcls(updateConsumer.getUsername(), userAcls);
                 kafkaClientService.createUserAndAcls(updateConsumer.getUsername(), req.getUpdateInfo().getPassword(),userAcls,consumerGroup );
             }
@@ -694,6 +695,46 @@ public class ManageSystemController {
             return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/consumer")
+    public ResponseEntity<DefaultControllerResp> getManageConsumerByID(
+        HttpServletRequest request,
+        @RequestParam(name = "consumer_id")Long triggerID
+    ){
+        String ipAddress = request.getRemoteAddr();
+        String requestHeader = request.getHeader("Authorization");
+            
+        VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+        
+        DefaultControllerResp resp = new DefaultControllerResp();
+        try {
+            ConsumerEntity consumerDetail = consumerService.consumerDetail(triggerID);
+
+            if (consumerDetail != null) {
+                resp.setRecordsFiltered(1);
+                resp.setRecordsTotal(1);
+                resp.setCount(1);
+                resp.setData(consumerDetail);
+                resp.setStatusCode(HttpStatus.OK.value());
+                resp.setMessage("Successfully");
+                return new ResponseEntity<>( resp, HttpStatus.OK);
+            }else{
+                resp.setCount(0);
+                resp.setData(null);
+                resp.setStatusCode(HttpStatus.NOT_FOUND.value());
+                resp.setMessage("Not found");
+                return new ResponseEntity<>( resp, HttpStatus.NOT_FOUND);
+            }
+            
+        }catch (Exception e){
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while getting : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     @PostMapping("/metric")
     public ResponseEntity<DefaultControllerResp> createManageMetric(HttpServletRequest request, @RequestBody AddMetricNotificationReq req) {
