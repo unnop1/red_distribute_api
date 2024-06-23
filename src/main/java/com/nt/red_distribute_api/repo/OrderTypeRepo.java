@@ -64,6 +64,7 @@ public interface OrderTypeRepo extends JpaRepository<OrderTypeEntity,Long> {
                 odt.ID, odt.ORDERTYPE_NAME, odt.MESSAGE_EXPIRE, odt.IS_DELETE, odt.IS_ENABLE,
                     (SELECT COUNT(id) FROM consumer_ordertype cod WHERE cod.ORDERTYPE_ID = odt.ID) AS TotalConsumer
                 FROM ordertype odt
+                WHERE odt.IS_DELETE=0
                 OFFSET ?1 ROWS FETCH NEXT ?2 ROWS ONLY 
                    """,
                  nativeQuery = true)

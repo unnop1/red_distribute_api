@@ -19,12 +19,13 @@ import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.LogLoginService;
 import com.nt.red_distribute_api.service.PermissionMenuService;
 import com.nt.red_distribute_api.service.UserService;
-
+import com.nt.red_distribute_api.log.LogFlie;
 import jakarta.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.HashMap;
-
+import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,8 @@ public class AuthController {
     private LogLoginService logloginService;
 
     @Autowired
-    private PermissionMenuService permissionMenuService; 
+    private PermissionMenuService permissionMenuService;
+    
 
     @PostMapping("/create")
     public ResponseEntity<AuthSuccessResp> createUser(HttpServletRequest request, @RequestBody UserRequestDto userRequestDto) {
@@ -106,6 +108,8 @@ public class AuthController {
             String ipAddress = request.getRemoteAddr();
             logger.info("IP Address: {}", ipAddress);
             logger.info("jwtUsername: {}", jwtRequest.getUsername());
+
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
             // Log login
             LoginResp loginResp = new LoginResp();
@@ -179,6 +183,9 @@ public class AuthController {
             auditLog.setComment("authentication login");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+
+            LogFlie.logMessage("AuthController", "login", "Login", "success", df.format(new Date())+" "+jwtRequest.getUsername()+" "+ipAddress+" "+jwtRequest.getDevice()
+            +" "+jwtRequest.getBrowser()+" "+jwtRequest.getSystem());
 
             logger.info("Response user info: {}", loginResp.getUserLogin());
             logger.info("Response JWT token: {}", loginResp.getJwtToken());
