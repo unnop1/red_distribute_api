@@ -539,12 +539,14 @@ public class ManageSystemController {
 
             if ( req.getUpdateInfo().getOrder_type_ids() != null ){
                 Error err = consumerOrderTypeService.updateConsumerOrderType(updateConsumer.getID(), req.getUpdateInfo().getOrder_type_ids(), vsf.getUsername());
-                if (err.getMessage() != null){
-                    response.setCount(0);
-                    response.setData(err.getMessage());
-                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                    response.setMessage("Error update Consumer and orderType ");
-                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                if(err != null){
+                    if (err.getMessage() != null){
+                        response.setCount(0);
+                        response.setData(err.getMessage());
+                        response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                        response.setMessage("Error update Consumer and orderType ");
+                        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                    }
                 }
 
                 List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(updateConsumer.getID());
@@ -730,6 +732,7 @@ public class ManageSystemController {
                 condt.setPhoneNumber(consumerDetail.getPhoneNumber());
                 condt.setSystem_name(consumerDetail.getSystem_name());
                 condt.setUpdated_by(consumerDetail.getUpdated_by());
+                condt.setContactName(consumerDetail.getContactName());
                 condt.setUpdated_date(consumerDetail.getUpdated_date());
                 condt.setOrderTypes(cod);
                 resp.setRecordsFiltered(1);
@@ -912,7 +915,9 @@ public class ManageSystemController {
 
             String objectString = mapper.writeValueAsString(data.getMessage());
 
-            String err = kafkaClientService.adminPublishMessage(
+            String err = kafkaClientService.consumerPublishMessage(
+                "admin",
+                "admin-secret",
                 data.getTopic(), 
                 objectString
             );
