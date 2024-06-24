@@ -30,6 +30,7 @@ import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
 import com.nt.red_distribute_api.entity.TriggerMessageEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
+import com.nt.red_distribute_api.log.LogFlie;
 import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
@@ -41,9 +42,11 @@ import com.nt.red_distribute_api.service.SaMetricNotificationService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -81,6 +84,8 @@ public class ManageSystemController {
 
     @Autowired
     private SaMetricNotificationService saMetricNotificationService;
+
+    private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
     @GetMapping("/order_types")
     public ResponseEntity<DefaultControllerResp> getManageOrderTypes(
@@ -204,6 +209,23 @@ public class ManageSystemController {
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
 
+            LogFlie.logMessage(
+                "ManageSystemController", 
+                "audit_logs",
+                String.format(
+                    "%s %s %s %s %s %s %s %s %s",
+                    df.format(new Date()),
+                    "insert",
+                    "createOrderType",
+                    "ordertype",
+                    vsf.getUsername(),
+                    ipAddress,
+                    vsf.getDevice(),
+                    vsf.getBrowser(),
+                    vsf.getSystem()
+                )
+            );
+
             resp.setCount(1);
             resp.setData(orderTypeDetail);
             return new ResponseEntity<>(resp, HttpStatus.CREATED);
@@ -264,7 +286,23 @@ public class ManageSystemController {
             auditLog.setComment("updateOrderType");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
-        
+
+            LogFlie.logMessage(
+                "ManageSystemController", 
+                "audit_logs",
+                String.format(
+                    "%s %s %s %s %s %s %s %s %s",
+                    df.format(new Date()),
+                    "update",
+                    "updateOrderType",
+                    "ordertype",
+                    vsf.getUsername(),
+                    ipAddress,
+                    vsf.getDevice(),
+                    vsf.getBrowser(),
+                    vsf.getSystem()
+                )
+            );
 
 
             response.setCount(1);
@@ -322,6 +360,22 @@ public class ManageSystemController {
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
 
+            LogFlie.logMessage(
+                "ManageSystemController", 
+                "audit_logs",
+                String.format(
+                    "%s %s %s %s %s %s %s %s %s",
+                    df.format(new Date()),
+                    "delete",
+                    "deleteOrderType",
+                    "ordertype",
+                    vsf.getUsername(),
+                    ipAddress,
+                    vsf.getDevice(),
+                    vsf.getBrowser(),
+                    vsf.getSystem()
+                )
+            );
             response.setCount(1);
             response.setMessage("Success");
             
@@ -336,7 +390,7 @@ public class ManageSystemController {
     }
 
     @DeleteMapping("/order_type/purge")
-    public ResponseEntity<DefaultControllerResp> PurgeOrderTypeData(HttpServletRequest request, @RequestParam(name="order_type_id")Long orderTypeID) {
+    public ResponseEntity<DefaultControllerResp> PurgeOrderTypeData(HttpServletRequest request, @RequestParam(name="order_type_id")Long orderTypeID, @RequestBody String reMark) {
         String requestHeader = request.getHeader("Authorization");
         String ipAddress = request.getRemoteAddr();
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
@@ -365,6 +419,22 @@ public class ManageSystemController {
             auditLog.setComment("PurgeOrderTypeData");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+
+            LogFlie.logMessage(
+                "ManageSystemController", 
+                "audit_logs",
+                String.format(
+                    "%s %s %s %s %s %s %s %s",
+                    df.format(new Date()),
+                    orderTypeData.getOrderTypeName(),
+                    vsf.getUsername(),
+                    ipAddress,
+                    vsf.getDevice(),
+                    vsf.getBrowser(),
+                    vsf.getSystem(),
+                    reMark
+                )
+            );
 
             
             resp.setMessage("Purge all messages in order type "+orderTypeData.getOrderTypeName());
@@ -493,6 +563,24 @@ public class ManageSystemController {
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
 
+
+            LogFlie.logMessage(
+                "ManageSystemController", 
+                "audit_logs",
+                String.format(
+                    "%s %s %s %s %s %s %s %s %s",
+                    df.format(new Date()),
+                    "insert",
+                    "createConsumer",
+                    "consumer",
+                    vsf.getUsername(),
+                    ipAddress,
+                    vsf.getDevice(),
+                    vsf.getBrowser(),
+                    vsf.getSystem()
+                )
+            );
+
             resp.setCount(1);
             resp.setData(consumerDetail);
             return new ResponseEntity<>(resp, HttpStatus.CREATED);
@@ -572,6 +660,24 @@ public class ManageSystemController {
             auditService.AddAuditLog(auditLog);
 
 
+            LogFlie.logMessage(
+                "ManageSystemController", 
+                "audit_logs",
+                String.format(
+                    "%s %s %s %s %s %s %s %s %s",
+                    df.format(new Date()),
+                    "update",
+                    "updateConsumer",
+                    "consumer",
+                    vsf.getUsername(),
+                    ipAddress,
+                    vsf.getDevice(),
+                    vsf.getBrowser(),
+                    vsf.getSystem()
+                )
+            );
+
+
             response.setCount(1);
             response.setMessage("Success");
             response.setData(req);
@@ -631,6 +737,23 @@ public class ManageSystemController {
             auditLog.setComment("deleteConsumer");
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
+
+            LogFlie.logMessage(
+                "ManageSystemController", 
+                "audit_logs",
+                String.format(
+                    "%s %s %s %s %s %s %s %s %s",
+                    df.format(new Date()),
+                    "delete",
+                    "deleteConsumer",
+                    "consumer",
+                    vsf.getUsername(),
+                    ipAddress,
+                    vsf.getDevice(),
+                    vsf.getBrowser(),
+                    vsf.getSystem()
+                )
+            );
 
             response.setCount(1);
             response.setMessage("Success");

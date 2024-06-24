@@ -62,7 +62,8 @@ public class AuthController {
 
     @Autowired
     private PermissionMenuService permissionMenuService;
-    
+
+    private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");    
 
     @PostMapping("/create")
     public ResponseEntity<AuthSuccessResp> createUser(HttpServletRequest request, @RequestBody UserRequestDto userRequestDto) {
@@ -92,6 +93,24 @@ public class AuthController {
             jwtReq.setDevice(vsf.getDevice());
             jwtReq.setSystem(vsf.getSystem());
 
+            LogFlie.logMessage(
+                "AuthController", 
+                "audit_logs",
+                String.format(
+                    "%s %s %s %s %s %s %s %s %s",
+                    df.format(new Date()),
+                    "insert",
+                    "createUser",
+                    "user_db",
+                    vsf.getUsername(),
+                    ipAddress,
+                    vsf.getDevice(),
+                    vsf.getBrowser(),
+                    vsf.getSystem()
+                )
+            );
+
+
             String token = this.helper.generateToken(jwtReq, userDetails.getEmail());
             return new ResponseEntity<>(new AuthSuccessResp(token), HttpStatus.CREATED);
         } catch (UserAlreadyExistsException ex) {
@@ -104,8 +123,8 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<Object> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, BindingResult bindingResult) throws java.io.IOException {
         // Get the IP address from the request
+        String ipAddress = request.getRemoteAddr();
         try{
-            String ipAddress = request.getRemoteAddr();
             logger.info("IP Address: {}", ipAddress);
             logger.info("jwtUsername: {}", jwtRequest.getUsername());
 
@@ -184,8 +203,19 @@ public class AuthController {
             auditLog.setCreated_date(DateTime.getTimeStampNow());
             auditService.AddAuditLog(auditLog);
 
-            LogFlie.logMessage("AuthController", "login", "Login", "success", df.format(new Date())+" "+jwtRequest.getUsername()+" "+ipAddress+" "+jwtRequest.getDevice()
-            +" "+jwtRequest.getBrowser()+" "+jwtRequest.getSystem());
+            LogFlie.logMessage(
+                "AuthController", 
+                "success",
+                String.format(
+                    "%s %s %s %s %s %s",
+                    df.format(new Date()),
+                    jwtRequest.getUsername(),
+                    ipAddress,
+                    jwtRequest.getDevice(),
+                    jwtRequest.getBrowser(),
+                    jwtRequest.getSystem()
+                )
+            );
 
             logger.info("Response user info: {}", loginResp.getUserLogin());
             logger.info("Response JWT token: {}", loginResp.getJwtToken());
@@ -195,6 +225,19 @@ public class AuthController {
             // return new ResponseEntity<>(loginResp, HttpStatus.OK);
             return ResponseEntity.status(HttpStatus.OK).body(loginResp);
         }catch (Exception e){
+            LogFlie.logMessage(
+                "AuthController", 
+                "fail",
+                String.format(
+                    "%s %s %s %s %s %s",
+                    df.format(new Date()),
+                    jwtRequest.getUsername(),
+                    ipAddress,
+                    jwtRequest.getDevice(),
+                    jwtRequest.getBrowser(),
+                    jwtRequest.getSystem()
+                )
+            );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         // return loginResp;

@@ -1,82 +1,53 @@
 package com.nt.red_distribute_api.log;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.logging.FileHandler;
-import java.util.logging.Formatter;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+
+import org.springframework.boot.logging.java.SimpleFormatter;
 
 public class LogFlie {
 
-	public static void logMessage(String className, String path, String subFolder, String methodName, String messageLog) {
+	public static void logMessage(String className, String path, String messageLog) {
         Logger logger = Logger.getLogger(className);
 
         try {
             Date date = new Date();
             SimpleDateFormat df = new SimpleDateFormat("MMyyyy");
-            String pathLog = "/data/" + path + "/" + subFolder + "/" + df.format(date);
+            
+            // Use JBoss data directory
+            String jbossDataDir = System.getProperty("jboss.server.data.dir");
+            if (jbossDataDir == null) {
+                throw new IOException("JBoss data directory not found");
+            }
+            
+            String pathLog = jbossDataDir + "/" + path + "/";
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             String fileName = dateFormat.format(date) + ".txt";
-            File file = new File(pathLog + "/" + fileName);
 
             // Ensure directory exists, create if it doesn't
             File dir = new File(pathLog);
             if (!dir.exists()) {
-                // Check if we can write to the parent directory
-                File parentDir = dir.getParentFile();
-                if (parentDir != null && parentDir.canWrite()) {
-                    boolean created = dir.mkdirs();
-                    if (!created) {
-                        throw new IOException("Failed to create directory: " + pathLog);
-                    }
-                } else if (parentDir != null && !parentDir.canWrite()) {
-                    // Attempt to set write permissions for the parent directory
-                    if (!parentDir.setWritable(true)) {
-                        throw new IOException("Cannot set write permissions for parent directory: " + parentDir);
-                    }
-                    boolean created = dir.mkdirs();
-                    if (!created) {
-                        throw new IOException("Failed to create directory: " + pathLog);
-                    }
-                } else {
-                    throw new IOException("Cannot access parent directory: " + parentDir);
-                }
-            } else if (!dir.canWrite()) {
-                // Attempt to set write permissions for the directory
-                if (!dir.setWritable(true)) {
-                    throw new IOException("Cannot set write permissions for directory: " + dir);
+                if (!dir.mkdirs()) {
+                    throw new IOException("Failed to create directory: " + pathLog);
                 }
             }
 
-            // Create the log file if it doesn't exist
-            if (!file.exists()) {
-                boolean fileCreated = file.createNewFile();
-                if (!fileCreated) {
-                    throw new IOException("Failed to create log file: " + file.getAbsolutePath());
-                }
-            } else if (!file.canWrite()) {
-                // Attempt to set write permissions for the log file
-                if (!file.setWritable(true)) {
-                    throw new IOException("Cannot set write permissions for log file: " + file);
-                }
-            }
+            // Configure FileHandler for log rotation
+            // Here, we set a file size limit of 1MB (1 * 1024 * 1024 bytes) and a maximum of 5 log files.
+            FileHandler fileHandler = new FileHandler(pathLog + "/" + fileName, 1024 * 1024, 5, true);
+            fileHandler.setFormatter(new SimpleFormatter());
+            logger.addHandler(fileHandler);
+            logger.setUseParentHandlers(false); // Prevents logging to console
 
-            // Configure FileHandler
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(pathLog + "/" +fileName, true))){
-			writer.write(messageLog);
-			writer.newLine();
-			}
-			catch(IOException ex){
-			ex.printStackTrace();
-			}
+            // Log the message
+            logger.info(messageLog);
 
+            // Close the handler to ensure the log is written
+            fileHandler.close();
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Error creating directory or file: " + e.getMessage());
