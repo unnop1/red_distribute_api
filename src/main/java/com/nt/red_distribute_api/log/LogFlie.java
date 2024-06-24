@@ -25,7 +25,7 @@ public class LogFlie {
             }
             
             String pathLog = jbossDataDir + "/" + path + "/";
-            if(jbossDataDir.isEmpty()){
+            if(jbossDataDir.isBlank()){
                 pathLog = path + "/";
             }
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -41,9 +41,9 @@ public class LogFlie {
 
             // Configure FileHandler for log rotation
             // Here, we set a file size limit of 1MB (1 * 1024 * 1024 bytes) and a maximum of 5 log files.
-            System.out.println("save log to : " + pathLog+"/"+fileName);
+            // System.out.println("save log to : " + pathLog+"/"+fileName);
             FileHandler fileHandler = new FileHandler(pathLog + "/" + fileName, 1024 * 1024, 5, true);
-            fileHandler.setFormatter(new SimpleFormatter());
+            fileHandler.setFormatter(new PlainTextFormatter());
             logger.addHandler(fileHandler);
             logger.setUseParentHandlers(false); // Prevents logging to console
 
