@@ -21,10 +21,13 @@ public class LogFlie {
             // Use JBoss data directory
             String jbossDataDir = System.getProperty("jboss.server.data.dir");
             if (jbossDataDir == null) {
-                throw new IOException("JBoss data directory not found");
+                jbossDataDir = "";
             }
             
             String pathLog = jbossDataDir + "/" + path + "/";
+            if(jbossDataDir.isEmpty()){
+                pathLog = path + "/";
+            }
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             String fileName = dateFormat.format(date) + ".txt";
 
@@ -38,6 +41,7 @@ public class LogFlie {
 
             // Configure FileHandler for log rotation
             // Here, we set a file size limit of 1MB (1 * 1024 * 1024 bytes) and a maximum of 5 log files.
+            System.out.println("save log to : " + pathLog+"/"+fileName);
             FileHandler fileHandler = new FileHandler(pathLog + "/" + fileName, 1024 * 1024, 5, true);
             fileHandler.setFormatter(new SimpleFormatter());
             logger.addHandler(fileHandler);
