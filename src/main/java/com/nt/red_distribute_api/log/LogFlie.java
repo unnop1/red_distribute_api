@@ -22,9 +22,6 @@ public class LogFlie {
             String jbossDataDir = "data";
             
             String pathLog = jbossDataDir + "/" + path + "/";
-            if(jbossDataDir.isBlank()){
-                pathLog = path + "/";
-            }
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             String fileName = dateFormat.format(date) + ".txt";
 
