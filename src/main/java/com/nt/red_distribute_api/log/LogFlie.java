@@ -5,9 +5,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.springframework.boot.logging.java.SimpleFormatter;
 
 public class LogFlie {
 
@@ -40,6 +39,10 @@ public class LogFlie {
             fileHandler.setFormatter(new PlainTextFormatter());
             logger.addHandler(fileHandler);
             logger.setUseParentHandlers(false); // Prevents logging to console
+
+            // Set log level to ensure the message is logged
+            logger.setLevel(Level.INFO);
+            fileHandler.setLevel(Level.INFO);
 
             // Log the message
             logger.info(messageLog);
