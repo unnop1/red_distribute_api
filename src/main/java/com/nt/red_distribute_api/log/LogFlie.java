@@ -19,7 +19,7 @@ public class LogFlie {
             SimpleDateFormat df = new SimpleDateFormat("MMyyyy");
             
             // Use JBoss data directory
-            String jbossDataDir = System.getProperty("jboss.server.data.dir");
+            String jbossDataDir = System.getProperty("jboss.domain.data.dir");
             if (jbossDataDir == null) {
                 jbossDataDir = "";
             }
