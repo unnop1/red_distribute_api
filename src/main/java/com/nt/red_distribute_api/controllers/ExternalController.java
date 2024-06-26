@@ -95,6 +95,47 @@ public class ExternalController {
         HttpServletRequest request,
         @RequestParam(name="topic_name", defaultValue = "all") String topicName
     ) {
+    DefaultResp resp = new DefaultResp();
+        try{
+            String requestHeader = request.getHeader("Authorization");
+            VerifyConsumerResp vsp = VerifyAuthentication(requestHeader);
+            if (!vsp.getIsVerify()){
+                resp.setError("Authenticated not you.");
+                resp.setMessage("You don't have permission!!!");
+                return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
+            }
+
+            // List<OrderTypeEntity> data = orderTypService.ListAll();
+            TopicDetailResp data = kafkaClientService.getTopicDescription(topicName);
+            if (data.getError() != null){
+                resp.setError(data.getError());
+                resp.setMessage("Error while topic_detail : " + data.getError());
+                return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+            }
+            try{
+                // ObjectMapper mapper = new ObjectMapper();
+                // mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+                // resp.setResult(mapper.writeValueAsString(data));
+                resp.setResult(data);
+                resp.setMessage("Success!");
+                return new ResponseEntity<>( resp, HttpStatus.OK);
+            }catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while resp topic_detail : " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }catch (Exception e){
+            resp.setError(e.getLocalizedMessage());
+            resp.setMessage("Error while topic_detail : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/topics_test")
+    public ResponseEntity<Object> QueueDetailTest(
+        HttpServletRequest request,
+        @RequestParam(name="topic_name", defaultValue = "all") String topicName
+    ) {
         DefaultResp resp = new DefaultResp();
         try{
             String requestHeader = request.getHeader("Authorization");
