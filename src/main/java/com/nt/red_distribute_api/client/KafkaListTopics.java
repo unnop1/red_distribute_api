@@ -1,5 +1,7 @@
 package com.nt.red_distribute_api.client;
 
+import org.json.JSONArray;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
@@ -13,5 +15,5 @@ public class KafkaListTopics {
     // private Integer pageCount;
 
     @JsonProperty("topics")
-    private Object topics;
+    private JSONArray topics;
 }

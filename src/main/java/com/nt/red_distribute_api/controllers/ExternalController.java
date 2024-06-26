@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -111,10 +113,38 @@ public class ExternalController {
             //     return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             // }
             try{
-                KafkaListTopicsResp kafkaTopicResp = kafkaClientService.getKafkaTopicList();
-                resp.setResult(kafkaTopicResp.getTopics());
-                resp.setMessage("Success!");
-                return new ResponseEntity<>( resp, HttpStatus.OK);
+                KafkaListTopicsResp kafkaTopicResp = kafkaClientService.getKafkaTopicList(topicName);
+
+                if(kafkaTopicResp!= null){
+                    if(kafkaTopicResp.getError()!= null){
+                        resp.setResult(kafkaTopicResp.getError());
+                        resp.setMessage("Error!");
+                        return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+                    }
+
+                    if(topicName.equals("all")){
+                        resp.setResult(kafkaTopicResp.getTopics().getTopics());
+                        resp.setMessage("Success!");
+                        return new ResponseEntity<>( resp, HttpStatus.OK);
+                    }else{
+                        JSONArray listTopics = kafkaTopicResp.getTopics().getTopics();
+                        for(int i=0;i<listTopics.length();i++){
+                            JSONObject foundTopic = listTopics.getJSONObject(i);
+                            if(foundTopic.has("name")){
+                                String foundTopicName = foundTopic.getString("name");
+                                if(foundTopicName.equals(topicName)){
+                                    resp.setResult(foundTopic);
+                                    resp.setMessage("Success!");
+                                    return new ResponseEntity<>( resp, HttpStatus.OK);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                resp.setResult("Not Found Topics");
+                resp.setMessage("NOT FOUND!");
+                return new ResponseEntity<>( resp, HttpStatus.NOT_FOUND);
             }catch (Exception e){
                 resp.setError(e.getLocalizedMessage());
                 resp.setMessage("Error while resp topic_detail : " + e.getMessage());

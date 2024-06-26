@@ -655,7 +655,7 @@ public class KafkaClientService {
         return client.listTopics(options).listings().get();
     }
 
-    public KafkaListTopicsResp getKafkaTopicList()
+    public KafkaListTopicsResp getKafkaTopicList(String topicName)
     throws InterruptedException, ExecutionException {
         KafkaUIClient kafkaUIClient = new KafkaUIClient(kafkaUiHost);
         return kafkaUIClient.GetKafkaListTopics();
