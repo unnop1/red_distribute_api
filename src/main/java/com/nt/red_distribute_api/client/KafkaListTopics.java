@@ -11,8 +11,8 @@ import lombok.Setter;
 @Setter
 public class KafkaListTopics {
 
-    // @JsonProperty("pageCount")
-    // private Integer pageCount;
+    @JsonProperty("pageCount")
+    private Integer pageCount;
 
     @JsonProperty("topics")
     private JSONArray topics;
