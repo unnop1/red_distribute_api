@@ -74,6 +74,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.nt.red_distribute_api.client.KafkaListTopicsResp;
+import com.nt.red_distribute_api.client.KafkaUIClient;
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
@@ -83,6 +85,9 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 public class KafkaClientService {
+
+    @Value("${kafka.kafka-ui.host}")
+    private String kafkaUiHost;
 
     @Value("${kafka.bootstrap.server}")
     private String bootstrapServer;
@@ -648,6 +653,12 @@ public class KafkaClientService {
         ListTopicsOptions options = new ListTopicsOptions();
         options.listInternal(isInternal);
         return client.listTopics(options).listings().get();
+    }
+
+    public KafkaListTopicsResp getKafkaTopicList()
+    throws InterruptedException, ExecutionException {
+        KafkaUIClient kafkaUIClient = new KafkaUIClient(kafkaUiHost);
+        return kafkaUIClient.GetKafkaListTopics();
     }
 
 }

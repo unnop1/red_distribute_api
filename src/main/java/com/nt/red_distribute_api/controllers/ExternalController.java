@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nt.red_distribute_api.client.KafkaListTopicsResp;
 import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.dto.req.external.ConsumerMessageReq;
 import com.nt.red_distribute_api.dto.req.external.PublishMessageReq;
@@ -102,18 +103,16 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
-            // List<OrderTypeEntity> data = orderTypService.ListAll();
-            TopicDetailResp data = kafkaClientService.getTopicDescription(topicName);
-            if (data.getError() != null){
-                resp.setError(data.getError());
-                resp.setMessage("Error while topic_detail : " + data.getError());
-                return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
-            }
+            // // List<OrderTypeEntity> data = orderTypService.ListAll();
+            // TopicDetailResp data = kafkaClientService.getTopicDescription(topicName);
+            // if (data.getError() != null){
+            //     resp.setError(data.getError());
+            //     resp.setMessage("Error while topic_detail : " + data.getError());
+            //     return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+            // }
             try{
-                // ObjectMapper mapper = new ObjectMapper();
-                // mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-                // resp.setResult(mapper.writeValueAsString(data));
-                resp.setResult(data.getData());
+                KafkaListTopicsResp kafkaTopicResp = kafkaClientService.getKafkaTopicList();
+                resp.setResult(kafkaTopicResp.getTopics());
                 resp.setMessage("Success!");
                 return new ResponseEntity<>( resp, HttpStatus.OK);
             }catch (Exception e){
