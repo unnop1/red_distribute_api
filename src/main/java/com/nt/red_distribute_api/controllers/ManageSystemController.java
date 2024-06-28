@@ -625,11 +625,14 @@ public class ManageSystemController {
                 }
             }
 
-            if(req.getUpdateInfo().getIs_enable().equals(0)){
-                kafkaClientService.deleteAcls(updateConsumer.getUsername(), userAcls);
-            } else if(req.getUpdateInfo().getIs_enable().equals(1)){
-                kafkaClientService.createAcls(updateConsumer.getUsername(), userAcls, consumerGroup);
+            if(req.getUpdateInfo().getIs_enable()!=null){
+                if(req.getUpdateInfo().getIs_enable().equals(0)){
+                    kafkaClientService.deleteAcls(updateConsumer.getUsername(), userAcls);
+                } else if(req.getUpdateInfo().getIs_enable().equals(1)){
+                    kafkaClientService.createAcls(updateConsumer.getUsername(), userAcls, consumerGroup);
+                }
             }
+
 
             if ( req.getUpdateInfo().getOrder_type_ids() != null ){
                 Error err = consumerOrderTypeService.updateConsumerOrderType(updateConsumer.getID(), req.getUpdateInfo().getOrder_type_ids(), vsf.getUsername());
