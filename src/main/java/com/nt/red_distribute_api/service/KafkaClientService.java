@@ -191,10 +191,10 @@ public class KafkaClientService {
         return userAndAcls;
     }
 
-    public List<UserAclsInfo> initUserAclsTopicList(String username,List<String> topics){
+    public List<UserAclsInfo> initUserAclsTopicList(String consumerGroupID ,String username,List<String> topics){
         List<UserAclsInfo> userAclsTopicList = new ArrayList<UserAclsInfo>();
         for(String topic : topics){
-            if (getTopicDescription(topic).getData() == null || getTopicDescription(topic).getError() != null){
+            if (getTopicDescription(consumerGroupID, topic).getData() == null || getTopicDescription(consumerGroupID, topic).getError() != null){
                 continue;
             }
             UserAclsInfo userAclsInfo = new UserAclsInfo();
@@ -584,7 +584,7 @@ public class KafkaClientService {
     }
 
 
-    public TopicDetailResp getTopicDescription(String topicName) {
+    public TopicDetailResp getTopicDescription(String consumerGroupID,String topicName) {
         TopicDetailResp topicDetail = new TopicDetailResp();
         Collection<TopicListing> listings;
         List<String> selectTopics = new ArrayList<>();
@@ -618,6 +618,7 @@ public class KafkaClientService {
                     HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
                     dataTopic.put("topic_name", detailTopicName);
                     dataTopic.put("is_internal", value.get().isInternal());
+                    dataTopic.put("message_behind", calculateConsumerLag(consumerGroupID, Collections.singletonList(detailTopicName)));
                     if(value.get().partitions() != null){
                         HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
                         if(value.get().partitions()!= null){

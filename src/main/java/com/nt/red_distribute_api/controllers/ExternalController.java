@@ -105,17 +105,15 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
-            // List<OrderTypeEntity> data = orderTypService.ListAll();
-            TopicDetailResp data = kafkaClientService.getTopicDescription(topicName);
+
+            TopicDetailResp data = kafkaClientService.getTopicDescription(vsp.getConsumerData().getConsumer_group(),topicName);
             if (data.getError() != null){
                 resp.setError(data.getError());
                 resp.setMessage("Error while topic_detail : " + data.getError());
                 return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             }
             try{
-                // ObjectMapper mapper = new ObjectMapper();
-                // mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-                // resp.setResult(mapper.writeValueAsString(data));
+                
                 resp.setResult(data);
                 resp.setMessage("Success!");
                 return new ResponseEntity<>( resp, HttpStatus.OK);
@@ -303,8 +301,7 @@ public class ExternalController {
 
     @PostMapping("subscribe")
     public ResponseEntity<Object> subscribeTopic(
-        HttpServletRequest request,
-        @RequestBody SubAndUnsubscribeReq req
+        HttpServletRequest request
     ) {
         DefaultListResp resp = new DefaultListResp();
         try{
@@ -319,18 +316,10 @@ public class ExternalController {
             List<String> orderTypeTopicNames = new ArrayList<>();
             List<Long> orderTypeIDs = new ArrayList<>();
             try{
-                if(req.getTopicName().toLowerCase().equals("all")){
-                    List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
-                    for (OrderTypeEntity orderTypeData : orderTypeLists){
-                        orderTypeIDs.add(orderTypeData.getID());
-                        orderTypeTopicNames.add(orderTypeData.getOrderTypeName().toUpperCase());
-                    }
-                }else{
-                    OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
-                    if(orderTypeDetail != null){
-                        orderTypeIDs.add(orderTypeDetail.getID());
-                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName().toUpperCase());
-                    }
+                List<ConsumerLJoinOrderType> orderCons = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
+                for (ConsumerLJoinOrderType orderTypeData : orderCons){
+                    orderTypeIDs.add(orderTypeData.getORDERTYPE_ID());
+                    orderTypeTopicNames.add(orderTypeData.getORDERTYPE_NAME().toUpperCase());
                 }
                 
             } catch (Exception e){
@@ -354,7 +343,11 @@ public class ExternalController {
             }
 
             try{
-                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
+                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(
+                    vsp.getConsumerData().getConsumer_group(),
+                    vsp.getConsumerData().getUsername(), 
+                    orderTypeTopicNames
+                );
                 
                 try{
                     kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
@@ -398,18 +391,10 @@ public class ExternalController {
             List<String> orderTypeTopicNames = new ArrayList<>();
             List<Long> orderTypeIDs = new ArrayList<>();
             try{
-                if(req.getTopicName().toLowerCase().equals("all")){
-                    List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
-                    for (OrderTypeEntity orderTypeData : orderTypeLists){
-                        orderTypeIDs.add(orderTypeData.getID());
-                        orderTypeTopicNames.add(orderTypeData.getOrderTypeName().toUpperCase());
-                    }
-                }else{
-                    OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
-                    if(orderTypeDetail != null){
-                        orderTypeIDs.add(orderTypeDetail.getID());
-                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName().toUpperCase());
-                    }
+                List<ConsumerLJoinOrderType> orderCons = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
+                for (ConsumerLJoinOrderType orderTypeData : orderCons){
+                    orderTypeIDs.add(orderTypeData.getORDERTYPE_ID());
+                    orderTypeTopicNames.add(orderTypeData.getORDERTYPE_NAME().toUpperCase());
                 }
                 
             } catch (Exception e){
@@ -433,7 +418,11 @@ public class ExternalController {
             }
 
             try{
-                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
+                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(
+                    vsp.getConsumerData().getConsumer_group(),
+                    vsp.getConsumerData().getUsername(), 
+                    orderTypeTopicNames
+                );
                 
                 try{
                     kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
