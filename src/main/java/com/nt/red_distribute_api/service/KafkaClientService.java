@@ -584,24 +584,21 @@ public class KafkaClientService {
     }
 
 
-    public TopicDetailResp getTopicDescription(String consumerGroupID,String topicName) {
+    public TopicDetailResp getTopicDescription(String consumerGroupID, String topicNames) {
         TopicDetailResp topicDetail = new TopicDetailResp();
-        Collection<TopicListing> listings;
         List<String> selectTopics = new ArrayList<>();
         List<HashMap<String, Object>> dataTopicDetails = new ArrayList<HashMap<String, Object>>();
         HashMap<String, HashMap<String, Object>> mapConfigTopicDetails = new HashMap<String, HashMap<String, Object>>();
         
         try {
-            listings = getTopicListing(false);
-            List<String> topics = listings.stream().map(TopicListing::name)
-            .collect(Collectors.toList());
+            String[] topics = topicNames.split(",");
             
             for(String topic : topics){
-                if(topicName.toLowerCase().equals("all")){
+                if(topic.toLowerCase().equals("all")){
                     selectTopics.add(topic);
                     mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
                 }else{
-                    if(topicName.toUpperCase().equals(topic.toUpperCase())){
+                    if(topic.toUpperCase().equals(topic.toUpperCase())){
                         selectTopics.add(topic);
                         mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
                         break;
@@ -614,11 +611,17 @@ public class KafkaClientService {
             result.values().forEach((key, value) -> {
                 try {
                     String detailTopicName = value.get().name();
+                    Map<TopicPartition, Long> topicBehinds = calculateConsumerLag(consumerGroupID, Collections.singletonList(detailTopicName));
+                    Map<TopicPartition, Long> selectTopicBehinds = new HashMap<TopicPartition, Long>();
+                    Long topicMessageBehindCount = 0l;
+                    for (Long topicPartitionCount : topicBehinds.values()){
+                        topicMessageBehindCount+=topicPartitionCount;
+                    }
                     // System.out.println(key + ": " + value.get());
                     HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
                     dataTopic.put("topic_name", detailTopicName);
                     dataTopic.put("is_internal", value.get().isInternal());
-                    dataTopic.put("message_behind", calculateConsumerLag(consumerGroupID, Collections.singletonList(detailTopicName)));
+                    dataTopic.put("message_behind_count", topicMessageBehindCount);
                     if(value.get().partitions() != null){
                         HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
                         if(value.get().partitions()!= null){
@@ -641,9 +644,7 @@ public class KafkaClientService {
             }
             topicDetail.setData(dataTopicDetails);
             
-        } catch (InterruptedException e) {
-            topicDetail.setError(e.getMessage());
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             topicDetail.setError(e.getMessage());
         }
         return topicDetail;

@@ -92,8 +92,7 @@ public class ExternalController {
 
     @GetMapping("/topics")
     public ResponseEntity<Object> QueueDetail(
-        HttpServletRequest request,
-        @RequestParam(name="topic_name", defaultValue = "all") String topicName
+        HttpServletRequest request
     ) {
     DefaultResp resp = new DefaultResp();
         try{
@@ -105,16 +104,28 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
+            String orderTypeTopicNames = "";
+            try{
+                List<ConsumerLJoinOrderType> orderCons = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
+                for (ConsumerLJoinOrderType orderTypeData : orderCons){
+                    orderTypeTopicNames+=orderTypeData.getORDERTYPE_NAME().toUpperCase()+",";
+                }
+                
+            } catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while list order type for subscribe: " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
 
-            TopicDetailResp data = kafkaClientService.getTopicDescription(vsp.getConsumerData().getConsumer_group(),topicName);
+
+            TopicDetailResp data = kafkaClientService.getTopicDescription(vsp.getConsumerData().getConsumer_group(), orderTypeTopicNames);
             if (data.getError() != null){
                 resp.setError(data.getError());
                 resp.setMessage("Error while topic_detail : " + data.getError());
                 return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             }
             try{
-                
-                resp.setResult(data);
+                resp.setResult(data.getData());
                 resp.setMessage("Success!");
                 return new ResponseEntity<>( resp, HttpStatus.OK);
             }catch (Exception e){
@@ -328,19 +339,19 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             
-            try{
-                Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
-                if (err != null){
-                    resp.setError(err.getLocalizedMessage());
-                    resp.setMessage(err.getMessage());
-                    return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
-                }
+            // try{
+            //     Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
+            //     if (err != null){
+            //         resp.setError(err.getLocalizedMessage());
+            //         resp.setMessage(err.getMessage());
+            //         return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+            //     }
 
-            }catch (Exception e){
-                resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
-                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            // }catch (Exception e){
+            //     resp.setError(e.getLocalizedMessage());
+            //     resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
+            //     return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            // }
 
             try{
                 List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(
@@ -375,8 +386,7 @@ public class ExternalController {
 
     @PostMapping("unsubscribe")
     public ResponseEntity<Object> unsubscribeTopic(
-        HttpServletRequest request,
-        @RequestBody SubAndUnsubscribeReq req
+        HttpServletRequest request
     ) {
         DefaultListResp resp = new DefaultListResp();
         try{
@@ -403,19 +413,19 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             
-            try{
-                Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
-                if (err != null){
-                    resp.setError(err.getLocalizedMessage());
-                    resp.setMessage(err.getMessage());
-                    return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
-                }
+            // try{
+            //     Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
+            //     if (err != null){
+            //         resp.setError(err.getLocalizedMessage());
+            //         resp.setMessage(err.getMessage());
+            //         return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+            //     }
 
-            }catch (Exception e){
-                resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
-                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            // }catch (Exception e){
+            //     resp.setError(e.getLocalizedMessage());
+            //     resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
+            //     return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            // }
 
             try{
                 List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(
