@@ -629,7 +629,13 @@ public class ManageSystemController {
                 if(req.getUpdateInfo().getIs_enable().equals(0)){
                     kafkaClientService.deleteAcls(updateConsumer.getUsername(), userAcls);
                 } else if(req.getUpdateInfo().getIs_enable().equals(1)){
-                    kafkaClientService.createAcls(updateConsumer.getUsername(), userAcls, consumerGroup);
+                    List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(updateConsumer.getID());
+                    List<String> orderTypeTopicNames = new ArrayList<>();
+                    for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
+                        orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
+                    }
+                    List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(updateConsumer.getUsername(), orderTypeTopicNames);
+                    kafkaClientService.createAcls(req.getUpdateInfo().getUsername(), userAclsTopics, consumerGroup);
                 }
             }
 
@@ -645,14 +651,16 @@ public class ManageSystemController {
                         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                     }
                 }
-
-                List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(updateConsumer.getID());
-                List<String> orderTypeTopicNames = new ArrayList<>();
-                for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
-                    orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
+                
+                if(updateConsumer.getIs_enable().equals(1)){
+                    List<ConsumerLJoinOrderType> consumerOrderTypes = consumerOrderTypeService.ListConsumerOrderType(updateConsumer.getID());
+                    List<String> orderTypeTopicNames = new ArrayList<>();
+                    for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
+                        orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
+                    }
+                    List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(updateConsumer.getUsername(), orderTypeTopicNames);
+                    kafkaClientService.createAcls(req.getUpdateInfo().getUsername(), userAclsTopics, consumerGroup);
                 }
-                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(updateConsumer.getUsername(), orderTypeTopicNames);
-                kafkaClientService.createAcls(req.getUpdateInfo().getUsername(), userAclsTopics, consumerGroup);
             }
 
             AuditLog auditLog = new AuditLog();
