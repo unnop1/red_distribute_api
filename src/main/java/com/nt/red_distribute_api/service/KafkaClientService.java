@@ -17,7 +17,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.AlterUserScramCredentialsResult;
@@ -82,6 +83,7 @@ import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
 import com.nt.red_distribute_api.dto.resp.external.TopicDetailResp;
 
 import jakarta.annotation.PostConstruct;
+import oracle.net.aso.l;
 
 @Service
 public class KafkaClientService {
@@ -402,6 +404,39 @@ public class KafkaClientService {
         return consumerLagMap;
     }
 
+    public Long countConsumerLagByTopic(String groupId, String topic) throws InterruptedException, ExecutionException {
+        Long consumerLagCount = 0l;
+
+        // Get end offsets for the topic partitions
+        Map<TopicPartition, OffsetSpec> endOffsetsRequest = new HashMap<>();
+        DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topic));
+        Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
+        for (Map.Entry<String, TopicDescription> entry : topicDescriptionMap.entrySet()) {
+            TopicDescription topicDescription = entry.getValue();
+            for (TopicPartitionInfo partitionInfo : topicDescription.partitions()) {
+                TopicPartition topicPartition = new TopicPartition(topic, partitionInfo.partition());
+                endOffsetsRequest.put(topicPartition, OffsetSpec.latest());
+            }
+        }
+
+        Map<TopicPartition, ListOffsetsResultInfo> endOffsetsResponse = client.listOffsets(endOffsetsRequest).all().get();
+
+        // Get current offsets for the consumer group
+        Map<TopicPartition, OffsetAndMetadata> currentOffsetsResponse = client.listConsumerGroupOffsets(groupId).partitionsToOffsetAndMetadata().get();
+
+        // Calculate lag for each partition
+        for (Map.Entry<TopicPartition, ListOffsetsResultInfo> entry : endOffsetsResponse.entrySet()) {
+            TopicPartition partition = entry.getKey();
+            Long endOffset = entry.getValue().offset();
+            Long currentOffset = currentOffsetsResponse.containsKey(partition) ? currentOffsetsResponse.get(partition).offset() : 0L;
+            Long lag = endOffset - currentOffset;
+            consumerLagCount+=lag;
+            System.out.println("endOffset: "+endOffset+", currentOffset: "+currentOffset + ", lag: "+lag);
+        }
+
+        return consumerLagCount;
+    }
+
     public String purgeDataInTopic(String topicName) {
         synchronized (lock) {
             try {
@@ -443,7 +478,7 @@ public class KafkaClientService {
         }
     }
 
-    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int offset, int limit) {
+    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int timeLimit) {
         ListConsumeMsg resp = new ListConsumeMsg();
         List<String> messageList = Collections.synchronizedList(new ArrayList<>());
         String groupId = groupConsumerId;
@@ -458,39 +493,32 @@ public class KafkaClientService {
         consumeProps.put("security.protocol", "SASL_PLAINTEXT");
         consumeProps.put("sasl.mechanism", "SCRAM-SHA-256");
         consumeProps.put("sasl.jaas.config", String.format(
-            "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
-            username, password
+                "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
+                username, password
         ));
-
-        int messageLimit = limit; // Limit on the number of messages to consume
-        long startOffset = offset;   // Starting offset
-
-        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps)) {
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps);
+        try {
             consumer.subscribe(Collections.singletonList(topic));
-            consumer.poll(Duration.ofSeconds(1)); // Poll to join the group and get assignment
+
+            // Seek to the desired starting offset
             consumer.seekToBeginning(consumer.assignment());
 
-            boolean consuming = true;
-            while (consuming) {
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
-                for (ConsumerRecord<String, String> record : records) {
-                    if (record.offset() >= startOffset && messageList.size() < messageLimit) {
-                        messageList.add(record.value());
-                    }
-                    if (messageList.size() >= messageLimit) {
-                        consuming = false;
-                        break;
-                    }
-                }
+            ConsumerRecords<String, String> records = consumer.poll(timeLimit);
+
+            // Long behindCount = countConsumerLagByTopic(groupId, topic );
+
+            for (ConsumerRecord<String, String> record : records) {
+                messageList.add(record.value());
             }
+
+            consumer.close();
         } catch (Exception e) {
+            consumer.close();
             resp.setErr(e.getMessage());
         }
 
         resp.setMessages(messageList);
         return resp;
-
-        
     }
 
     public String adminPublishMessage(String topic, String message) {
@@ -587,47 +615,19 @@ public class KafkaClientService {
     
     public TopicDetailResp getTopicDescription(String topicName) {
         TopicDetailResp topicDetail = new TopicDetailResp();
-        Collection<TopicListing> listings;
-        List<String> selectTopics = new ArrayList<>();
         List<HashMap<String, Object>> dataTopicDetails = new ArrayList<HashMap<String, Object>>();
         HashMap<String, HashMap<String, Object>> mapConfigTopicDetails = new HashMap<String, HashMap<String, Object>>();
         
         try {
-            listings = getTopicListing(false);
-            List<String> topics = listings.stream().map(TopicListing::name)
-            .collect(Collectors.toList());
-            
-            for(String topic : topics){
-                if(topicName.toLowerCase().equals("all")){
-                    selectTopics.add(topic);
-                    mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
-                }else{
-                    if(topicName.toUpperCase().equals(topic.toUpperCase())){
-                        selectTopics.add(topic);
-                        mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
-                        break;
-                    }
-                }
-            }
-            
+
             // Describe TOPIC
-            DescribeTopicsResult result = client.describeTopics(selectTopics);
+            DescribeTopicsResult result = client.describeTopics(Collections.singletonList(topicName));
             result.values().forEach((key, value) -> {
                 try {
                     String detailTopicName = value.get().name();
                     // System.out.println(key + ": " + value.get());
                     HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
                     dataTopic.put("topic_name", detailTopicName);
-                    dataTopic.put("is_internal", value.get().isInternal());
-                    if(value.get().partitions() != null){
-                        HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
-                        if(value.get().partitions()!= null){
-                            TopicPartitionInfo partition = value.get().partitions().get(0);
-                            partitionInfo.put("partition_total", partition.partition());
-                            partitionInfo.put("replica_total", value.get().partitions().size());
-                        }
-                        dataTopic.put("partition", partitionInfo);
-                    }
                     mapConfigTopicDetails.put(detailTopicName, dataTopic);
                 } catch (InterruptedException e) {
                     topicDetail.setError(e.getMessage());
@@ -635,15 +635,10 @@ public class KafkaClientService {
                     topicDetail.setError(e.getMessage());
                 }
             });
-
-            for(String topic : topics){
-                dataTopicDetails.add(mapConfigTopicDetails.get(topic));
-            }
+            dataTopicDetails.add(mapConfigTopicDetails.get(topicName));
             topicDetail.setData(dataTopicDetails);
             
-        } catch (InterruptedException e) {
-            topicDetail.setError(e.getMessage());
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             topicDetail.setError(e.getMessage());
         }
         return topicDetail;
@@ -673,14 +668,8 @@ public class KafkaClientService {
                 String[] topics = topicNames.split(",");
                 
                 for(String topic : topics){
-                    if(topic.toLowerCase().equals("all")){
-                        selectTopics.add(topic);
-                        mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
-                    }else{
-                        selectTopics.add(topic);
-                        mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
-                        break;
-                    }
+                    selectTopics.add(topic);
+                    mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
                 }
                 
                 // Describe TOPIC
@@ -709,13 +698,12 @@ public class KafkaClientService {
                         if(value.get().partitions() != null){
                             HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
                             if(value.get().partitions()!= null){
-                                TopicPartitionInfo partition = value.get().partitions().get(0);
-                                partitionInfo.put("partition_total", partition.partition());
-                                partitionInfo.put("replica_total", value.get().partitions().size());
+                                partitionInfo.put("partition_total", value.get().partitions().size());
                             }
                             dataTopic.put("partition", partitionInfo);
                         }
-                        mapConfigTopicDetails.put(detailTopicName, dataTopic);
+                        // mapConfigTopicDetails.put(detailTopicName, dataTopic);
+                        mapConfigTopicDetails.put(key, dataTopic);
                     } catch (InterruptedException e) {
                         topicDetail.setError(e.getMessage());
                     } catch (ExecutionException e) {
@@ -723,9 +711,14 @@ public class KafkaClientService {
                     }
                 });
 
-                for(String topic : topics){
-                    dataTopicDetails.add(mapConfigTopicDetails.get(topic));
+
+                for (String outerKey : mapConfigTopicDetails.keySet()) {
+                    System.out.println("Outer Key: " + outerKey);
+                    
+                    HashMap<String, Object> innerMap = mapConfigTopicDetails.get(outerKey);
+                    dataTopicDetails.add(innerMap);
                 }
+                
                 topicDetail.setData(dataTopicDetails);
                 
             } catch (Exception e) {

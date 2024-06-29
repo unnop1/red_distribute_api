@@ -121,7 +121,7 @@ public class ExternalController {
             TopicDetailResp data = kafkaClientService.getTopicDescriptionByConsumer(
                 vsp.getConsumerData().getUsername(), 
                 vsp.getRealPassword(),
-                vsp.getConsumerData().getConsumer_group(), 
+                vsp.getConsumerData().getConsumer_group().toUpperCase(), 
                 orderTypeTopicNames
             );
             if (data.getError() != null){
@@ -273,8 +273,8 @@ public class ExternalController {
                 consumeMsgs = kafkaClientService.consumeMessages(
                     vsp.getConsumerData().getUsername(),
                     vsp.getRealPassword(),
-                    req.getTopicName(), vsp.getConsumerData().getConsumer_group().toUpperCase(),
-                    req.getOffset(),
+                    req.getTopicName(), 
+                    vsp.getConsumerData().getConsumer_group().toUpperCase(),
                     req.getLimit()
                 );
                 try{
@@ -335,10 +335,10 @@ public class ExternalController {
             List<Long> orderTypeIDs = new ArrayList<>();
             try{
                 if(req.getTopicName().toLowerCase().equals("all")){
-                    List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
-                    for (OrderTypeEntity orderTypeData : orderTypeLists){
+                    List<ConsumerLJoinOrderType> orderCons = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
+                    for (ConsumerLJoinOrderType orderTypeData : orderCons){
                         orderTypeIDs.add(orderTypeData.getID());
-                        orderTypeTopicNames.add(orderTypeData.getOrderTypeName().toUpperCase());
+                        orderTypeTopicNames.add(orderTypeData.getORDERTYPE_NAME().toUpperCase());
                     }
                 }else{
                     OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
@@ -414,10 +414,10 @@ public class ExternalController {
             List<Long> orderTypeIDs = new ArrayList<>();
             try{
                 if(req.getTopicName().toLowerCase().equals("all")){
-                    List<OrderTypeEntity> orderTypeLists = orderTypService.ListAll();
-                    for (OrderTypeEntity orderTypeData : orderTypeLists){
+                    List<ConsumerLJoinOrderType> orderCons = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
+                    for (ConsumerLJoinOrderType orderTypeData : orderCons){
                         orderTypeIDs.add(orderTypeData.getID());
-                        orderTypeTopicNames.add(orderTypeData.getOrderTypeName().toUpperCase());
+                        orderTypeTopicNames.add(orderTypeData.getORDERTYPE_NAME().toUpperCase());
                     }
                 }else{
                     OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
