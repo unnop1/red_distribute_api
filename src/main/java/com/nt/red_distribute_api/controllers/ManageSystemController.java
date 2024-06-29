@@ -635,7 +635,7 @@ public class ManageSystemController {
                         orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
                     }
                     List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(updateConsumer.getUsername(), orderTypeTopicNames);
-                    kafkaClientService.createAcls(req.getUpdateInfo().getUsername(), userAclsTopics, consumerGroup);
+                    kafkaClientService.createAcls(updateConsumer.getUsername(), userAclsTopics, consumerGroup);
                 }
             }
 
