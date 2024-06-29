@@ -615,32 +615,57 @@ public class KafkaClientService {
     
     public TopicDetailResp getTopicDescription(String topicName) {
         TopicDetailResp topicDetail = new TopicDetailResp();
+
+        // Create the AdminClient with the new configuration
+        List<String> selectTopics = new ArrayList<>();
         List<HashMap<String, Object>> dataTopicDetails = new ArrayList<HashMap<String, Object>>();
         HashMap<String, HashMap<String, Object>> mapConfigTopicDetails = new HashMap<String, HashMap<String, Object>>();
         
         try {
-
+            
+            selectTopics.add(topicName);
+            mapConfigTopicDetails.put(topicName, new HashMap<String, Object>());
+            
             // Describe TOPIC
-            DescribeTopicsResult result = client.describeTopics(Collections.singletonList(topicName));
+            DescribeTopicsResult result = client.describeTopics(selectTopics);
             result.values().forEach((key, value) -> {
                 try {
                     String detailTopicName = value.get().name();
+
                     // System.out.println(key + ": " + value.get());
                     HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
                     dataTopic.put("topic_name", detailTopicName);
-                    mapConfigTopicDetails.put(detailTopicName, dataTopic);
+                    dataTopic.put("is_internal", value.get().isInternal());
+                    if(value.get().partitions() != null){
+                        HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
+                        if(value.get().partitions()!= null){
+                            partitionInfo.put("partition_total", value.get().partitions().size());
+                        }
+                        dataTopic.put("partition", partitionInfo);
+                    }
+                    // mapConfigTopicDetails.put(detailTopicName, dataTopic);
+                    mapConfigTopicDetails.put(key, dataTopic);
                 } catch (InterruptedException e) {
                     topicDetail.setError(e.getMessage());
                 } catch (ExecutionException e) {
                     topicDetail.setError(e.getMessage());
                 }
             });
-            dataTopicDetails.add(mapConfigTopicDetails.get(topicName));
+
+
+            for (String outerKey : mapConfigTopicDetails.keySet()) {
+                System.out.println("Outer Key: " + outerKey);
+                
+                HashMap<String, Object> innerMap = mapConfigTopicDetails.get(outerKey);
+                dataTopicDetails.add(innerMap);
+            }
+            
             topicDetail.setData(dataTopicDetails);
             
         } catch (Exception e) {
             topicDetail.setError(e.getMessage());
         }
+        
         return topicDetail;
     }
 

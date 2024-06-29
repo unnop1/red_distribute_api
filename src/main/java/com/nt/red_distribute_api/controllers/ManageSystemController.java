@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.logging.LogFile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -422,7 +423,7 @@ public class ManageSystemController {
 
             LogFlie.logMessage(
                 "ManageSystemController", 
-                "audit_logs",
+                String.format("audit_logs/%s/purge",LogFlie.dateFolderName()),
                 String.format(
                     "%s %s %s %s %s %s %s %s",
                     df.format(new Date()),
