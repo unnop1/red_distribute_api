@@ -95,7 +95,7 @@ public class AuthController {
 
             LogFlie.logMessage(
                 "AuthController", 
-                "audit_logs",
+                String.format("audit_logs/%s/add",LogFlie.dateFolderName()),
                 String.format(
                     "%s %s %s %s %s %s %s %s %s",
                     df.format(new Date()),
@@ -205,7 +205,7 @@ public class AuthController {
 
             LogFlie.logMessage(
                 "AuthController", 
-                "success",
+                String.format("login/%s/login_success",LogFlie.dateFolderName()),
                 String.format(
                     "%s %s %s %s %s %s",
                     df.format(new Date()),
@@ -227,7 +227,7 @@ public class AuthController {
         }catch (Exception e){
             LogFlie.logMessage(
                 "AuthController", 
-                "fail",
+                String.format("login/%s/login_fail",LogFlie.dateFolderName()),
                 String.format(
                     "%s %s %s %s %s %s",
                     df.format(new Date()),

@@ -141,7 +141,7 @@ public class UserController {
 
             LogFlie.logMessage(
                 "UserController", 
-                "audit_logs",
+                String.format("audit_logs/%s/update",LogFlie.dateFolderName()),
                 String.format(
                     "%s %s %s %s %s %s %s %s %s",
                     df.format(new Date()),
@@ -195,7 +195,7 @@ public class UserController {
 
             LogFlie.logMessage(
                 "UserController", 
-                "audit_logs",
+                String.format("audit_logs/%s/delete",LogFlie.dateFolderName()),
                 String.format(
                     "%s %s %s %s %s %s %s %s %s",
                     df.format(new Date()),

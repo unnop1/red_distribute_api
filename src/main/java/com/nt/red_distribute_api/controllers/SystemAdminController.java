@@ -149,7 +149,7 @@ public class SystemAdminController {
 
             LogFlie.logMessage(
                 "SystemAdminController", 
-                "audit_logs",
+                String.format("audit_logs/%s/add",LogFlie.dateFolderName()),
                 String.format(
                     "%s %s %s %s %s %s %s %s %s",
                     df.format(new Date()),
@@ -205,7 +205,7 @@ public class SystemAdminController {
 
             LogFlie.logMessage(
                 "SystemAdminController", 
-                "audit_logs",
+                String.format("audit_logs/%s/update",LogFlie.dateFolderName()),
                 String.format(
                     "%s %s %s %s %s %s %s %s %s",
                     df.format(new Date()),
@@ -261,7 +261,7 @@ public class SystemAdminController {
 
             LogFlie.logMessage(
                 "SystemAdminController", 
-                "audit_logs",
+                String.format("audit_logs/%s/delete",LogFlie.dateFolderName()),
                 String.format(
                     "%s %s %s %s %s %s %s %s %s",
                     df.format(new Date()),
