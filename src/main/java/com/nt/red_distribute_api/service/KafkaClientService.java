@@ -191,10 +191,10 @@ public class KafkaClientService {
         return userAndAcls;
     }
 
-    public List<UserAclsInfo> initUserAclsTopicList(String consumerGroupID ,String username,List<String> topics){
+    public List<UserAclsInfo> initUserAclsTopicList(String username,List<String> topics){
         List<UserAclsInfo> userAclsTopicList = new ArrayList<UserAclsInfo>();
         for(String topic : topics){
-            if (getTopicDescription(consumerGroupID, topic).getData() == null || getTopicDescription(consumerGroupID, topic).getError() != null){
+            if (getTopicDescription(topic).getData() == null || getTopicDescription(topic).getError() != null){
                 continue;
             }
             UserAclsInfo userAclsInfo = new UserAclsInfo();
@@ -584,21 +584,25 @@ public class KafkaClientService {
     }
 
 
-    public TopicDetailResp getTopicDescription(String consumerGroupID, String topicNames) {
+    
+    public TopicDetailResp getTopicDescription(String topicName) {
         TopicDetailResp topicDetail = new TopicDetailResp();
+        Collection<TopicListing> listings;
         List<String> selectTopics = new ArrayList<>();
         List<HashMap<String, Object>> dataTopicDetails = new ArrayList<HashMap<String, Object>>();
         HashMap<String, HashMap<String, Object>> mapConfigTopicDetails = new HashMap<String, HashMap<String, Object>>();
         
         try {
-            String[] topics = topicNames.split(",");
+            listings = getTopicListing(false);
+            List<String> topics = listings.stream().map(TopicListing::name)
+            .collect(Collectors.toList());
             
             for(String topic : topics){
-                if(topic.toLowerCase().equals("all")){
+                if(topicName.toLowerCase().equals("all")){
                     selectTopics.add(topic);
                     mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
                 }else{
-                    if(topic.toUpperCase().equals(topic.toUpperCase())){
+                    if(topicName.toUpperCase().equals(topic.toUpperCase())){
                         selectTopics.add(topic);
                         mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
                         break;
@@ -611,17 +615,10 @@ public class KafkaClientService {
             result.values().forEach((key, value) -> {
                 try {
                     String detailTopicName = value.get().name();
-                    Map<TopicPartition, Long> topicBehinds = calculateConsumerLag(consumerGroupID, Collections.singletonList(detailTopicName));
-                    Map<TopicPartition, Long> selectTopicBehinds = new HashMap<TopicPartition, Long>();
-                    Long topicMessageBehindCount = 0l;
-                    for (Long topicPartitionCount : topicBehinds.values()){
-                        topicMessageBehindCount+=topicPartitionCount;
-                    }
                     // System.out.println(key + ": " + value.get());
                     HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
                     dataTopic.put("topic_name", detailTopicName);
                     dataTopic.put("is_internal", value.get().isInternal());
-                    dataTopic.put("message_behind_count", topicMessageBehindCount);
                     if(value.get().partitions() != null){
                         HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
                         if(value.get().partitions()!= null){
@@ -644,8 +641,96 @@ public class KafkaClientService {
             }
             topicDetail.setData(dataTopicDetails);
             
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             topicDetail.setError(e.getMessage());
+        } catch (ExecutionException e) {
+            topicDetail.setError(e.getMessage());
+        }
+        return topicDetail;
+    }
+
+    public TopicDetailResp getTopicDescriptionByConsumer(String username, String password, String consumerGroupID, String topicNames) {
+        TopicDetailResp topicDetail = new TopicDetailResp();
+        Properties detailProps = new Properties();
+        detailProps.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        detailProps.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        detailProps.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        detailProps.setProperty("security.protocol", "SASL_PLAINTEXT");
+        detailProps.setProperty("sasl.mechanism", "SCRAM-SHA-256");
+        detailProps.setProperty("sasl.jaas.config",
+                "org.apache.kafka.common.security.scram.ScramLoginModule required " +
+                        "username=\"" + username + "\" " +
+                        "password=\"" + password + "\";");
+
+        // Create the AdminClient with the new configuration
+        try (AdminClient detailClient = AdminClient.create(detailProps)) {
+        
+            List<String> selectTopics = new ArrayList<>();
+            List<HashMap<String, Object>> dataTopicDetails = new ArrayList<HashMap<String, Object>>();
+            HashMap<String, HashMap<String, Object>> mapConfigTopicDetails = new HashMap<String, HashMap<String, Object>>();
+            
+            try {
+                String[] topics = topicNames.split(",");
+                
+                for(String topic : topics){
+                    if(topic.toLowerCase().equals("all")){
+                        selectTopics.add(topic);
+                        mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
+                    }else{
+                        selectTopics.add(topic);
+                        mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
+                        break;
+                    }
+                }
+                
+                // Describe TOPIC
+                DescribeTopicsResult result = detailClient.describeTopics(selectTopics);
+                result.values().forEach((key, value) -> {
+                    try {
+                        String detailTopicName = value.get().name();
+                        Map<TopicPartition, Long> topicBehinds = calculateConsumerLag(consumerGroupID, Collections.singletonList(detailTopicName));
+                        List<Object> selectTopicBehindsList = new ArrayList<>();
+
+                        for (Map.Entry<TopicPartition, Long> entry : topicBehinds.entrySet()) {
+                            TopicPartition topicPartition = entry.getKey();
+                            Long lag = entry.getValue();
+                            if (lag > 0) {
+                                Map<TopicPartition, Long> selectTopicBehinds = new HashMap<>();
+                                selectTopicBehinds.put(topicPartition, lag); // Use the lag value directly
+                                selectTopicBehindsList.add(selectTopicBehinds);
+                            }
+                        }
+
+                        // System.out.println(key + ": " + value.get());
+                        HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
+                        dataTopic.put("topic_name", detailTopicName);
+                        dataTopic.put("is_internal", value.get().isInternal());
+                        dataTopic.put("message_behinds", selectTopicBehindsList);
+                        if(value.get().partitions() != null){
+                            HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
+                            if(value.get().partitions()!= null){
+                                TopicPartitionInfo partition = value.get().partitions().get(0);
+                                partitionInfo.put("partition_total", partition.partition());
+                                partitionInfo.put("replica_total", value.get().partitions().size());
+                            }
+                            dataTopic.put("partition", partitionInfo);
+                        }
+                        mapConfigTopicDetails.put(detailTopicName, dataTopic);
+                    } catch (InterruptedException e) {
+                        topicDetail.setError(e.getMessage());
+                    } catch (ExecutionException e) {
+                        topicDetail.setError(e.getMessage());
+                    }
+                });
+
+                for(String topic : topics){
+                    dataTopicDetails.add(mapConfigTopicDetails.get(topic));
+                }
+                topicDetail.setData(dataTopicDetails);
+                
+            } catch (Exception e) {
+                topicDetail.setError(e.getMessage());
+            }
         }
         return topicDetail;
     }

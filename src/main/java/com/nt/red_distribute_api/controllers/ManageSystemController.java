@@ -543,7 +543,7 @@ public class ManageSystemController {
                 }
 
                 // in kafka
-                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(consumerGroup, consumerDetail.getUsername(), orderTypeTopicNames);
+                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(consumerDetail.getUsername(), orderTypeTopicNames);
                 kafkaClientService.createAcls(consumerDetail.getUsername(), userAclsTopics, consumerGroup);
 
             }
@@ -651,7 +651,7 @@ public class ManageSystemController {
                 for (ConsumerLJoinOrderType consumerOrderType : consumerOrderTypes){
                     orderTypeTopicNames.add(consumerOrderType.getORDERTYPE_NAME());
                 }
-                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(consumerGroup ,updateConsumer.getUsername(), orderTypeTopicNames);
+                List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(updateConsumer.getUsername(), orderTypeTopicNames);
                 kafkaClientService.createAcls(req.getUpdateInfo().getUsername(), userAclsTopics, consumerGroup);
             }
 
