@@ -275,7 +275,8 @@ public class ExternalController {
                     vsp.getRealPassword(),
                     req.getTopicName(), 
                     vsp.getConsumerData().getConsumer_group().toUpperCase(),
-                    req.getLimit()
+                    0,
+                    10
                 );
                 try{
                     if (consumeMsgs.getErr() != null){

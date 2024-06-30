@@ -478,7 +478,7 @@ public class KafkaClientService {
         }
     }
 
-    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int timeLimit) {
+    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int offset, int limit) {
         ListConsumeMsg resp = new ListConsumeMsg();
         List<String> messageList = Collections.synchronizedList(new ArrayList<>());
         String groupId = groupConsumerId;
@@ -498,19 +498,53 @@ public class KafkaClientService {
         ));
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps);
         try {
+            // consumer.subscribe(Arrays.asList(topic));
+
+            // // ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
+
+            // // for (ConsumerRecord<String, String> record : records) {
+            // //     messageList.add(record.value());
+            // // }
+
+            // consumer.seekToBeginning(consumer.assignment());
+
+            // ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
+
+            // // Long countBehind = countConsumerLagByTopic(groupId, topic);
+            // // int index = 0;
+            // for (ConsumerRecord<String, String> record : records) {
+            //     messageList.add(record.value());
+            // }
+            // consumer.unsubscribe();
+            // consumer.commitAsync();
+            // consumer.close();
+
             consumer.subscribe(Collections.singletonList(topic));
 
-            // Seek to the desired starting offset
-            consumer.seekToBeginning(consumer.assignment());
-
-            ConsumerRecords<String, String> records = consumer.poll(timeLimit);
-
-            // Long behindCount = countConsumerLagByTopic(groupId, topic );
-
-            for (ConsumerRecord<String, String> record : records) {
-                messageList.add(record.value());
+            // Poll to ensure the consumer gets partition assignments
+            consumer.poll(Duration.ofSeconds(1));
+            
+            // Assign partitions manually and seek to the given offset
+            Set<TopicPartition> partitions = consumer.assignment();
+            for (TopicPartition partition : partitions) {
+                consumer.seek(partition, offset);
             }
 
+            boolean moreRecords = true;
+            while (moreRecords && messageList.size() < limit) {
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
+
+                for (ConsumerRecord<String, String> record : records) {
+                    messageList.add(record.value());
+                    if (messageList.size() >= limit) {
+                        moreRecords = false;
+                        break;
+                    }
+                }
+
+                // Commit the offsets after processing the records
+                consumer.commitSync();
+            }
             consumer.close();
         } catch (Exception e) {
             consumer.close();
