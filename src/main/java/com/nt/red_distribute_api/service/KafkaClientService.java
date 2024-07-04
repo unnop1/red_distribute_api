@@ -779,7 +779,7 @@ public class KafkaClientService {
                     
                     HashMap<String, Object> innerMap = mapConfigTopicDetails.get(outerKey);
                     Long count  = getTopicMessageTotal(outerKey);
-                    innerMap.put("count", count);
+                    innerMap.put("message_count", count);
                     dataTopicDetails.add(innerMap);
                     
                 }
