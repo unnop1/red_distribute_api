@@ -778,7 +778,7 @@ public class KafkaClientService {
                     System.out.println("Outer Key: " + outerKey);
                     
                     HashMap<String, Object> innerMap = mapConfigTopicDetails.get(outerKey);
-                    Long count  = getTopicMessageTotal(outerKey);
+                    Long count  = getTopicMessageTotal(consumerGroupID, outerKey);
                     innerMap.put("message_count", count);
                     dataTopicDetails.add(innerMap);
                     
@@ -806,9 +806,16 @@ public class KafkaClientService {
         return kafkaUIClient.GetKafkaListTopics();
     }
 
-    public Long getTopicMessageTotal(String topic) throws ExecutionException, InterruptedException {
+    public Long getTopicMessageTotal(String groupID,String topic) throws ExecutionException, InterruptedException {
         // ดึงข้อมูล partitions ของ topic
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+        Properties config = new Properties();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, groupID);
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+
+
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config);
         List<TopicPartition> partitions = new ArrayList<>();
         for (int partition : consumer.partitionsFor(topic).stream().map(p -> p.partition()).toList()) {
             partitions.add(new TopicPartition(topic, partition));
