@@ -24,6 +24,8 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.AlterUserScramCredentialsResult;
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
+import org.apache.kafka.clients.admin.ConsumerGroupDescription;
+import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.CreateAclsResult;
 import org.apache.kafka.clients.admin.CreateTopicsOptions;
 import org.apache.kafka.clients.admin.DeleteAclsResult;
@@ -31,6 +33,7 @@ import org.apache.kafka.clients.admin.DeleteRecordsResult;
 import org.apache.kafka.clients.admin.DeletedRecords;
 import org.apache.kafka.clients.admin.DescribeAclsResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
+import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
@@ -487,7 +490,7 @@ public class KafkaClientService {
         consumeProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         consumeProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumeProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest"); // latest
 
         // SASL configuration
         consumeProps.put("security.protocol", "SASL_PLAINTEXT");
@@ -798,6 +801,35 @@ public class KafkaClientService {
     throws InterruptedException, ExecutionException {
         KafkaUIClient kafkaUIClient = new KafkaUIClient(kafkaUiHost);
         return kafkaUIClient.GetKafkaListTopics();
+    }
+
+    public List<Object> getTopicOffset() throws ExecutionException, InterruptedException {
+        List<Object> topics = new ArrayList<Object>();
+        Collection<ConsumerGroupListing> consumerGroups = client.listConsumerGroups().all().get();
+        for (ConsumerGroupListing groupListing : consumerGroups) {
+            String groupId = groupListing.groupId();
+            System.out.println("Consumer Group: " + groupId);
+
+            // ดึงรายละเอียดของ consumer group
+            ConsumerGroupDescription groupDescription = client.describeConsumerGroups(List.of(groupId)).all().get().get(groupId);
+            System.out.println("Description: " + groupDescription);
+
+            // ดึง offsets ของ consumer group
+            ListConsumerGroupOffsetsResult offsetsResult = client.listConsumerGroupOffsets(groupId);
+            Map<TopicPartition, OffsetAndMetadata> offsets = offsetsResult.partitionsToOffsetAndMetadata().get();
+            List<Object> consumerGroup = new ArrayList<Object>();
+            HashMap<String, Object> metadata = new HashMap<String, Object>();
+            for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
+                System.out.println("Topic: " + entry.getKey().topic() + ", Partition: " + entry.getKey().partition() + ", Offset: " + entry.getValue().offset());
+                consumerGroup.add("Topic: " + entry.getKey().topic() + ", Partition: " + entry.getKey().partition() + ", Offset: " + entry.getValue().offset());
+                
+            }
+            metadata.put(groupId, consumerGroup);
+            topics.add(metadata);
+        }
+
+        client.close();
+        return topics;
     }
 
 }

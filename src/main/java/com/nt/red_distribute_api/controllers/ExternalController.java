@@ -5,6 +5,7 @@ package com.nt.red_distribute_api.controllers;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -130,7 +131,12 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             }
             try{
-                resp.setResult(data.getData());
+                HashMap<String, Object> rep = new HashMap<String, Object>();
+                List<Object> topicOffset = kafkaClientService.getTopicOffset();
+                rep.put("topicOffset", topicOffset);
+                rep.put("data", data.getData());
+                resp.setResult(rep);
+                // resp.setResult(data.getData());
                 resp.setMessage("Success!");
                 // resp.setMessage(orderTypeTopicNames);
                 return new ResponseEntity<>( resp, HttpStatus.OK);
