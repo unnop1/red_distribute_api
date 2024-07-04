@@ -778,7 +778,10 @@ public class KafkaClientService {
                     System.out.println("Outer Key: " + outerKey);
                     
                     HashMap<String, Object> innerMap = mapConfigTopicDetails.get(outerKey);
+                    Long count  = getTopicMessageTotal(outerKey);
+                    innerMap.put("count", count);
                     dataTopicDetails.add(innerMap);
+                    
                 }
                 
                 topicDetail.setData(dataTopicDetails);
@@ -803,33 +806,29 @@ public class KafkaClientService {
         return kafkaUIClient.GetKafkaListTopics();
     }
 
-    public List<Object> getTopicOffset() throws ExecutionException, InterruptedException {
-        List<Object> topics = new ArrayList<Object>();
-        Collection<ConsumerGroupListing> consumerGroups = client.listConsumerGroups().all().get();
-        for (ConsumerGroupListing groupListing : consumerGroups) {
-            String groupId = groupListing.groupId();
-            System.out.println("Consumer Group: " + groupId);
-
-            // ดึงรายละเอียดของ consumer group
-            ConsumerGroupDescription groupDescription = client.describeConsumerGroups(List.of(groupId)).all().get().get(groupId);
-            System.out.println("Description: " + groupDescription);
-
-            // ดึง offsets ของ consumer group
-            ListConsumerGroupOffsetsResult offsetsResult = client.listConsumerGroupOffsets(groupId);
-            Map<TopicPartition, OffsetAndMetadata> offsets = offsetsResult.partitionsToOffsetAndMetadata().get();
-            List<Object> consumerGroup = new ArrayList<Object>();
-            HashMap<String, Object> metadata = new HashMap<String, Object>();
-            for (Map.Entry<TopicPartition, OffsetAndMetadata> entry : offsets.entrySet()) {
-                System.out.println("Topic: " + entry.getKey().topic() + ", Partition: " + entry.getKey().partition() + ", Offset: " + entry.getValue().offset());
-                consumerGroup.add("Topic: " + entry.getKey().topic() + ", Partition: " + entry.getKey().partition() + ", Offset: " + entry.getValue().offset());
-                
-            }
-            metadata.put(groupId, consumerGroup);
-            topics.add(metadata);
+    public Long getTopicMessageTotal(String topic) throws ExecutionException, InterruptedException {
+        // ดึงข้อมูล partitions ของ topic
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+        List<TopicPartition> partitions = new ArrayList<>();
+        for (int partition : consumer.partitionsFor(topic).stream().map(p -> p.partition()).toList()) {
+            partitions.add(new TopicPartition(topic, partition));
         }
 
-        client.close();
-        return topics;
+        // ดึง beginning offsets และ end offsets ของแต่ละ partition
+        Map<TopicPartition, Long> beginningOffsets = consumer.beginningOffsets(partitions);
+        Map<TopicPartition, Long> endOffsets = consumer.endOffsets(partitions);
+
+        // คำนวณจำนวน message ทั้งหมด
+        long totalMessages = 0;
+        for (TopicPartition partition : partitions) {
+            long beginningOffset = beginningOffsets.get(partition);
+            long endOffset = endOffsets.get(partition);
+            totalMessages += (endOffset - beginningOffset);
+        }
+
+        System.out.println("Total number of messages in topic " + topic + ": " + totalMessages);
+
+        return totalMessages;
     }
 
 }

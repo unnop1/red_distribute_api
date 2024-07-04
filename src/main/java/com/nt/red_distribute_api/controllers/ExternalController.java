@@ -131,12 +131,12 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             }
             try{
-                HashMap<String, Object> rep = new HashMap<String, Object>();
-                List<Object> topicOffset = kafkaClientService.getTopicOffset();
-                rep.put("topicOffset", topicOffset);
-                rep.put("data", data.getData());
-                resp.setResult(rep);
-                // resp.setResult(data.getData());
+                // HashMap<String, Object> rep = new HashMap<String, Object>();
+                // List<Object> topicOffset = kafkaClientService.getTopicOffset();
+                // rep.put("topicOffset", topicOffset);
+                // rep.put("data", data.getData());
+                // resp.setResult(rep);
+                resp.setResult(data.getData());
                 resp.setMessage("Success!");
                 // resp.setMessage(orderTypeTopicNames);
                 return new ResponseEntity<>( resp, HttpStatus.OK);
