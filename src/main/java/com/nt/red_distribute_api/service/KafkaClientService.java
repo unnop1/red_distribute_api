@@ -83,6 +83,7 @@ import com.nt.red_distribute_api.client.KafkaUIClient;
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
+import com.nt.red_distribute_api.dto.resp.external.TopicCount;
 import com.nt.red_distribute_api.dto.resp.external.TopicDetailResp;
 
 import jakarta.annotation.PostConstruct;
@@ -757,14 +758,18 @@ public class KafkaClientService {
                         dataTopic.put("topic_name", detailTopicName);
                         dataTopic.put("is_internal", value.get().isInternal());
                         dataTopic.put("message_behinds", selectTopicBehindsList);
+                        TopicCount topicCount  = getTopicMessageTotal(username, password,consumerGroupID, detailTopicName);
+                        dataTopic.put("message_count", topicCount.getCount());
+                        // dataTopic.put("partition_info", topicCount.getPartition());
                         if(value.get().partitions() != null){
                             HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
                             if(value.get().partitions()!= null){
+                                partitionInfo.put("partition_info", topicCount.getPartition());
                                 partitionInfo.put("partition_total", value.get().partitions().size());
                             }
                             dataTopic.put("partition", partitionInfo);
                         }
-                        // mapConfigTopicDetails.put(detailTopicName, dataTopic);
+                        
                         mapConfigTopicDetails.put(key, dataTopic);
                     } catch (InterruptedException e) {
                         topicDetail.setError(e.getMessage());
@@ -778,8 +783,6 @@ public class KafkaClientService {
                     System.out.println("Outer Key: " + outerKey);
                     
                     HashMap<String, Object> innerMap = mapConfigTopicDetails.get(outerKey);
-                    Long count  = getTopicMessageTotal(username, password,consumerGroupID, outerKey);
-                    innerMap.put("message_count", count);
                     dataTopicDetails.add(innerMap);
                     
                 }
@@ -806,8 +809,9 @@ public class KafkaClientService {
         return kafkaUIClient.GetKafkaListTopics();
     }
 
-    public Long getTopicMessageTotal(String username, String password, String groupID,String topic) throws ExecutionException, InterruptedException {
+    public TopicCount getTopicMessageTotal(String username, String password, String groupID,String topic) throws ExecutionException, InterruptedException {
         // ดึงข้อมูล partitions ของ topic
+        TopicCount topicCount = new TopicCount();
         Properties config = new Properties();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, groupID);
@@ -832,15 +836,22 @@ public class KafkaClientService {
 
         // คำนวณจำนวน message ทั้งหมด
         long totalMessages = 0;
+        HashMap<String, Object> topicInfo = new HashMap<>();
         for (TopicPartition partition : partitions) {
             long beginningOffset = beginningOffsets.get(partition);
             long endOffset = endOffsets.get(partition);
+            HashMap<String, Long> countOffset = new HashMap<>();
+            countOffset.put("start_offset", beginningOffset);
+            countOffset.put("end_offset", endOffset);
             totalMessages += (endOffset - beginningOffset);
+            topicInfo.put(partition.topic()+"-"+partition.partition(), countOffset);
         }
+        topicCount.setCount(totalMessages);
+        topicCount.setPartition(topicInfo);
 
         System.out.println("Total number of messages in topic " + topic + ": " + totalMessages);
 
-        return totalMessages;
+        return topicCount;
     }
 
 }
