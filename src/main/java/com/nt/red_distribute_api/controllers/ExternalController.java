@@ -2,6 +2,7 @@ package com.nt.red_distribute_api.controllers;
 
 
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -14,9 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.client.KafkaListTopicsResp;
 import com.nt.red_distribute_api.config.AuthConfig;
@@ -222,7 +225,9 @@ public class ExternalController {
     @PostMapping("/publish")
     public ResponseEntity<Object> publishMessageToTopic(
         HttpServletRequest request,
-        @RequestBody PublishMessageReq data
+        @RequestPart("topic") String topic,
+        @RequestPart("messages") MultipartFile file
+        
     ) {
         DefaultResp resp = new DefaultResp();
         try{
@@ -234,23 +239,50 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
+            // Process file
             ObjectMapper mapper = new ObjectMapper();
+            try {
+                // Read file content and parse it as a JSON array
+                String content = new String(file.getBytes());
+                JsonNode jsonArray = mapper.readTree(content);
 
-            String objectString = mapper.writeValueAsString(data.getMessage());
+                // Loop through the JSON array and print each JSON object
+                if (jsonArray.isArray()) {
+                    String errorMsgs = null;
+                    for (JsonNode jsonMessage : jsonArray) {
+                        System.out.println(jsonMessage.toString());
+                        String err = kafkaClientService.consumerPublishMessage( 
+                            vsp.getConsumerData().getUsername(),
+                            vsp.getRealPassword(),
+                            topic, 
+                            jsonMessage.toString()
+                        );
+                        if (err !=null) {
+                            errorMsgs = errorMsgs+"\n"+err;
+                            continue;
+                        }
+                    }
 
-            String err = kafkaClientService.consumerPublishMessage( 
-                vsp.getConsumerData().getUsername(),
-                vsp.getRealPassword(),
-                data.getTopic(), 
-                objectString
-            );
-            if (err !=null) {
-                resp.setMessage(err);
-                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+                    if (errorMsgs != null) {
+                        resp.setError(errorMsgs);
+                        resp.setMessage("error occurred");
+                        return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+                    }
+                    resp.setResult(jsonArray);
+                    resp.setMessage("Successfully published");
+                    return new ResponseEntity<>( resp, HttpStatus.OK);
+                }else{
+                    resp.setResult(jsonArray);
+                    resp.setMessage("No data available");
+                    return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+                }
+                
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed Error while publish :"+e.getMessage());
             }
-            resp.setResult(data);
-            resp.setMessage("Successfully published");
-            return new ResponseEntity<>( resp, HttpStatus.OK);
+            
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
             resp.setMessage("Error while publish : " + e.getMessage());
