@@ -123,9 +123,9 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<Object> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, BindingResult bindingResult) throws java.io.IOException {
         // Get the IP address from the request
-        String ipAddress = request.getRemoteAddr();
+        // String ipAddress = request.getRemoteAddr();
         try{
-            logger.info("IP Address: {}", ipAddress);
+            // logger.info("IP Address: {}", ipAddress);
             logger.info("jwtUsername: {}", jwtRequest.getUsername());
 
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -137,7 +137,7 @@ public class AuthController {
             loglogin.setBrowser(jwtRequest.getBrowser());
             loglogin.setDevice(jwtRequest.getDevice());
             loglogin.setSystem(jwtRequest.getSystem());
-            loglogin.setIp_address(ipAddress);
+            loglogin.setIp_address(jwtRequest.getIpAddress());
             loglogin.setLogin_datetime(loginDateTime);
             loglogin.setCreate_date(loginDateTime);
             loglogin.setUsername(jwtRequest.getUsername());
@@ -157,7 +157,7 @@ public class AuthController {
             HashMap<String, Object> updateInfo = new HashMap<>();
             updateInfo.put("currentToken", token);
             updateInfo.put("last_login", loginDateTime);
-            updateInfo.put("last_login_ipaddress", ipAddress);
+            updateInfo.put("last_login_ipaddress", jwtRequest.getIpAddress());
             this.userService.updateUserLogLogin(userDetails.getId(), updateInfo);
 
             UserResp userInfo = new UserResp();
@@ -168,7 +168,7 @@ public class AuthController {
             userInfo.setPhoneNumber(userDetails.getPhoneNumber());
             userInfo.setEmail(userDetails.getEmail());
             userInfo.setLast_login(userDetails.getLast_login());
-            userInfo.setLast_login_ipaddress(ipAddress);
+            userInfo.setLast_login_ipaddress(jwtRequest.getIpAddress());
             userInfo.setCreated_by(userDetails.getCreated_by());
             userInfo.setCreated_Date(userDetails.getCreated_Date());
             userInfo.setIs_Enable(userDetails.getIs_Enable());
@@ -194,7 +194,7 @@ public class AuthController {
             auditLog.setAction("login");
             auditLog.setAuditable_id(userDetails.getId());
             auditLog.setAuditable("user_db");
-            auditLog.setIp_address(ipAddress);
+            auditLog.setIp_address(jwtRequest.getIpAddress());
             auditLog.setUsername(userDetails.getUsername());
             auditLog.setDevice(jwtRequest.getDevice());
             auditLog.setBrowser(jwtRequest.getBrowser());
@@ -210,7 +210,7 @@ public class AuthController {
                     "%s %s %s %s %s %s",
                     df.format(new Date()),
                     jwtRequest.getUsername(),
-                    ipAddress,
+                    jwtRequest.getIpAddress(),
                     jwtRequest.getDevice(),
                     jwtRequest.getBrowser(),
                     jwtRequest.getSystem()
@@ -232,7 +232,7 @@ public class AuthController {
                     "%s %s %s %s %s %s",
                     df.format(new Date()),
                     jwtRequest.getUsername(),
-                    ipAddress,
+                    jwtRequest.getIpAddress(),
                     jwtRequest.getDevice(),
                     jwtRequest.getBrowser(),
                     jwtRequest.getSystem()
