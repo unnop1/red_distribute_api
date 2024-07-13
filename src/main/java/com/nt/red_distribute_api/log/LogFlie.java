@@ -23,7 +23,7 @@ public class LogFlie {
             Date date = new Date();
             
             // Use JBoss data directory
-            String jbossDataDir = "/data/logs/distribute-api/";
+            String jbossDataDir = "/data/logs/distribute-api";
             
             String pathLog = jbossDataDir + "/" + path + "/";
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");

@@ -11,7 +11,10 @@ public class ConsumerMessageReq {
     @JsonProperty("topic_name")
     private String topicName;
 
-    @JsonProperty("time_limit")
-    private Integer limit=1;
+    @JsonProperty("offset")
+    private long offset=0;
+
+    @JsonProperty("limit")
+    private Integer limit=10;
 
 }

@@ -68,6 +68,8 @@ import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.config.TopicConfig;
+import org.apache.kafka.common.errors.WakeupException;
+import org.apache.kafka.common.protocol.types.Field.Bool;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
@@ -82,6 +84,7 @@ import com.nt.red_distribute_api.client.KafkaListTopicsResp;
 import com.nt.red_distribute_api.client.KafkaUIClient;
 import com.nt.red_distribute_api.dto.req.kafka.TopicReq;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
+import com.nt.red_distribute_api.dto.resp.external.ConsumeMessage;
 import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
 import com.nt.red_distribute_api.dto.resp.external.TopicCount;
 import com.nt.red_distribute_api.dto.resp.external.TopicDetailResp;
@@ -377,32 +380,41 @@ public class KafkaClientService {
     public Map<TopicPartition, Long> calculateConsumerLag(String groupId, Collection<String> topics) throws InterruptedException, ExecutionException {
         Map<TopicPartition, Long> consumerLagMap = new HashMap<>();
 
-        // Get end offsets for the topic partitions
-        Map<TopicPartition, OffsetSpec> endOffsetsRequest = new HashMap<>();
-        for (String topic : topics) {
-            DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topic));
-            Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
-            for (Map.Entry<String, TopicDescription> entry : topicDescriptionMap.entrySet()) {
-                TopicDescription topicDescription = entry.getValue();
-                for (TopicPartitionInfo partitionInfo : topicDescription.partitions()) {
-                    TopicPartition topicPartition = new TopicPartition(topic, partitionInfo.partition());
-                    endOffsetsRequest.put(topicPartition, OffsetSpec.latest());
+        try {
+            // Get end offsets for the topic partitions
+            Map<TopicPartition, OffsetSpec> endOffsetsRequest = new HashMap<>();
+            for (String topic : topics) {
+                DescribeTopicsResult describeTopicsResult = client.describeTopics(Collections.singletonList(topic));
+                Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
+                for (TopicDescription topicDescription : topicDescriptionMap.values()) {
+                    for (TopicPartitionInfo partitionInfo : topicDescription.partitions()) {
+                        TopicPartition topicPartition = new TopicPartition(topic, partitionInfo.partition());
+                        endOffsetsRequest.put(topicPartition, OffsetSpec.latest());
+                    }
                 }
             }
-        }
-        Map<TopicPartition, ListOffsetsResultInfo> endOffsetsResponse = client.listOffsets(endOffsetsRequest).all().get();
+            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> endOffsetsResponse = client.listOffsets(endOffsetsRequest).all().get();
 
-        // Get current offsets for the consumer group
-        Map<TopicPartition, OffsetAndMetadata> currentOffsetsResponse = client.listConsumerGroupOffsets(groupId).partitionsToOffsetAndMetadata().get();
+            // Get current offsets for the consumer group
+            Map<TopicPartition, OffsetAndMetadata> currentOffsetsResponse = client.listConsumerGroupOffsets(groupId).partitionsToOffsetAndMetadata().get();
 
-        // Calculate lag for each partition
-        for (Map.Entry<TopicPartition, ListOffsetsResultInfo> entry : endOffsetsResponse.entrySet()) {
-            TopicPartition partition = entry.getKey();
-            Long endOffset = entry.getValue().offset();
-            Long currentOffset = currentOffsetsResponse.containsKey(partition) ? currentOffsetsResponse.get(partition).offset() : 0L;
-            Long lag = endOffset - currentOffset;
-            consumerLagMap.put(partition, lag);
-            System.out.println("endOffset: "+endOffset+", currentOffset: "+currentOffset + ", lag: "+lag);
+            // Calculate lag for each partition
+            for (Map.Entry<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> entry : endOffsetsResponse.entrySet()) {
+                TopicPartition partition = entry.getKey();
+                Long endOffset = entry.getValue().offset();
+                Long currentOffset = currentOffsetsResponse.getOrDefault(partition, new OffsetAndMetadata(endOffset)).offset();
+                Long lag = endOffset - currentOffset;
+                consumerLagMap.put(partition, lag);
+                System.out.println("endOffset: " + endOffset + ", currentOffset: " + currentOffset + ", lag: " + lag);
+            }
+        } catch (WakeupException e) {
+            // Handle wakeup exception if necessary
+            throw e;
+        } catch (Exception e) {
+            // Handle other exceptions
+            e.printStackTrace();
+        } finally {
+            client.close();
         }
 
         return consumerLagMap;
@@ -482,16 +494,17 @@ public class KafkaClientService {
         }
     }
 
-    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, int offset, int limit) {
+    public ListConsumeMsg consumeMessages(String username, String password, String topic, String groupConsumerId, long beginOffset, int limit) {
         ListConsumeMsg resp = new ListConsumeMsg();
-        List<String> messageList = Collections.synchronizedList(new ArrayList<>());
+        List<ConsumeMessage> messageList = Collections.synchronizedList(new ArrayList<>());
         String groupId = groupConsumerId;
+        
         Properties consumeProps = new Properties();
         consumeProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         consumeProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         consumeProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumeProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest"); // latest
+        consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // latest, earliest
 
         // SASL configuration
         consumeProps.put("security.protocol", "SASL_PLAINTEXT");
@@ -500,60 +513,62 @@ public class KafkaClientService {
                 "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
                 username, password
         ));
+
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps);
+
         try {
-            // consumer.subscribe(Arrays.asList(topic));
-
-            // // ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
-
-            // // for (ConsumerRecord<String, String> record : records) {
-            // //     messageList.add(record.value());
-            // // }
-
-            // consumer.seekToBeginning(consumer.assignment());
-
-            // ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
-
-            // // Long countBehind = countConsumerLagByTopic(groupId, topic);
-            // // int index = 0;
-            // for (ConsumerRecord<String, String> record : records) {
-            //     messageList.add(record.value());
-            // }
-            // consumer.unsubscribe();
-            // consumer.commitAsync();
-            // consumer.close();
+            TopicCount topicCount  = getTopicMessageTotal(username, password, groupId, topic);
+            resp.setCount((int) topicCount.getCount());
 
             consumer.subscribe(Collections.singletonList(topic));
 
             // Poll to ensure the consumer gets partition assignments
-            consumer.poll(Duration.ofSeconds(1));
-            
+            while (consumer.assignment().isEmpty()) {
+                consumer.poll(Duration.ofMillis(100));
+            }
+
             // Assign partitions manually and seek to the given offset
             Set<TopicPartition> partitions = consumer.assignment();
             for (TopicPartition partition : partitions) {
-                consumer.seek(partition, offset);
+                consumer.seek(partition, beginOffset);
             }
 
-            boolean moreRecords = true;
-            while (moreRecords && messageList.size() < limit) {
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
-
+            int rounds = 1;
+            Boolean isFullMsg = false;
+            // Consume messages
+            while (messageList.size() <= limit) {
+                // System.out.println(" round " + rounds);
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(2));
                 for (ConsumerRecord<String, String> record : records) {
-                    messageList.add(record.value());
+                    // System.out.println("Offset: " + record.offset() + " key: " + record.key() + " value: " + record.value());
+                    if(beginOffset <= record.offset()){
+                        ConsumeMessage conMsg = new ConsumeMessage();
+                        conMsg.setOffset(record.offset());
+                        conMsg.setKey(record.key());
+                        conMsg.setValue(record.value());
+                        messageList.add(conMsg);
+                    }
                     if (messageList.size() >= limit) {
-                        moreRecords = false;
+                        isFullMsg = true;
                         break;
                     }
                 }
-
-                // Commit the offsets after processing the records
-                consumer.commitSync();
+                rounds++;
+                if (rounds >= (limit/10)+2 || isFullMsg) {
+                    break;
+                }
             }
-            consumer.close();
+
+            // Commit the offsets after processing the records
+            consumer.commitSync();
+
         } catch (Exception e) {
-            consumer.close();
             resp.setErr(e.getMessage());
+        } finally {
+            consumer.close();
         }
+
+        
 
         resp.setMessages(messageList);
         return resp;

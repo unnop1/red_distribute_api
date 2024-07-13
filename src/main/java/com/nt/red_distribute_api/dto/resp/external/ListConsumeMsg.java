@@ -9,5 +9,6 @@ import lombok.Setter;
 @Setter
 public class ListConsumeMsg {
     private String err;
-    private List<String> messages;
+    private Integer count;
+    private List<ConsumeMessage> messages;
 }

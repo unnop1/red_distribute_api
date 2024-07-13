@@ -122,6 +122,11 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
+            if(orderTypeTopicNames.length()<=0){
+                resp.setMessage("Consumer have not subscribe any topic!");
+                return new ResponseEntity<>( resp, HttpStatus.OK);
+            }
+
 
             TopicDetailResp data = kafkaClientService.getTopicDescriptionByConsumer(
                 vsp.getConsumerData().getUsername(), 
@@ -314,8 +319,8 @@ public class ExternalController {
                     vsp.getRealPassword(),
                     req.getTopicName(), 
                     vsp.getConsumerData().getConsumer_group().toUpperCase(),
-                    0,
-                    10
+                    req.getOffset(),
+                    req.getLimit()
                 );
                 try{
                     if (consumeMsgs.getErr() != null){
@@ -341,7 +346,7 @@ public class ExternalController {
                         // resp.setCount(consumeMsgs.getMessages().size());
                         return new ResponseEntity<>( resp, HttpStatus.BAD_GATEWAY);
                 }
-                resp.setCount(consumeMsgs.getMessages().size());
+                resp.setCount(consumeMsgs.getCount());
                 resp.setResult(consumeMsgs.getMessages());
             }catch (Exception e){
                 resp.setMessage("Error while consuming case2:"+ e.getMessage());
