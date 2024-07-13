@@ -14,11 +14,11 @@ public class JwtRequest {
     @JsonProperty("password")
     private String password;
     @JsonProperty("device")
-    private String device="Unknown device";
+    private String device="UnknownDevice";
     @JsonProperty("system")
-    private String system="Unknown system";
+    private String system="UnknownSystem";
     @JsonProperty("browser")
-    private String browser="Unknown browser";
+    private String browser="UnknownBrowser";
     @JsonProperty("ip_address")
-    private String ipAddress="Unknown ip_address";
+    private String ipAddress="UnknownIpAddress";
 }

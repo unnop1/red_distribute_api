@@ -11,4 +11,7 @@ public class PublishMessageReq {
     @JsonProperty("topic")
     private String topic;
 
+    @JsonProperty("message")
+    private String message;
+
 }

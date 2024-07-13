@@ -40,7 +40,8 @@ public class SecurityConfig {
                             "external/publish",
                             "external/consume",
                             "external/subscribe",
-                            "external/unsubscribe"
+                            "external/unsubscribe",
+                            "external/export_alarm"
                         ).permitAll().
                         requestMatchers("/",
                                         "/error",

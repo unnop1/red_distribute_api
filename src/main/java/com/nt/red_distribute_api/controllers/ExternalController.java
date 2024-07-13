@@ -37,6 +37,7 @@ import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
+import com.nt.red_distribute_api.service.GafranaService;
 import com.nt.red_distribute_api.service.KafkaClientService;
 import com.nt.red_distribute_api.service.KafkaProducerService;
 import com.nt.red_distribute_api.service.OrderTypeService;
@@ -58,9 +59,9 @@ public class ExternalController {
 
     @Autowired
     private ConsumerService consumerService;
-
+    
     @Autowired
-    private KafkaProducerService kafkaProducerService;
+    private GafranaService gafranaService;
 
     @Autowired
     private KafkaClientService kafkaClientService;
@@ -290,7 +291,7 @@ public class ExternalController {
         }
     }
 
-    @PostMapping("consume")
+    @PostMapping("/consume")
     public ResponseEntity<Object> ConsumeAllMessagesInTopic(
         HttpServletRequest request,
         @RequestBody ConsumerMessageReq req
@@ -355,7 +356,7 @@ public class ExternalController {
         }
     }
 
-    @PostMapping("subscribe")
+    @PostMapping("/subscribe")
     public ResponseEntity<Object> subscribeTopic(
         HttpServletRequest request,
         @RequestBody SubAndUnsubscribeReq req
@@ -434,7 +435,7 @@ public class ExternalController {
         }
     }
 
-    @PostMapping("unsubscribe")
+    @PostMapping("/unsubscribe")
     public ResponseEntity<Object> unsubscribeTopic(
         HttpServletRequest request,
         @RequestBody SubAndUnsubscribeReq req
@@ -509,6 +510,38 @@ public class ExternalController {
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
             resp.setMessage("Error while unsubscribe : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/export_alarm")
+    public ResponseEntity<Object> exportAlarm(
+        HttpServletRequest request,
+        @RequestParam(name="type", defaultValue ="csv") String exportType
+    ) {
+        DefaultListResp resp = new DefaultListResp();
+        try{
+            String requestHeader = request.getHeader("Authorization");
+            VerifyConsumerResp vsp = VerifyAuthentication(requestHeader);
+            if (!vsp.getIsVerify()){
+                resp.setError("Authenticated not you.");
+                resp.setMessage("You don't have permission!!!");
+                return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
+            }
+            
+            
+            try {
+                gafranaService.ExportAlertAlarm();
+    
+                return ResponseEntity.ok("Alert history exported successfully!");
+            } catch (IOException e) {
+                resp.setMessage("Error while get alert history: " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+        }catch (Exception e){
+            resp.setError(e.getLocalizedMessage());
+            resp.setMessage("Error while export alert alarm : " + e.getMessage());
             return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
