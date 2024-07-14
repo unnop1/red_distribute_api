@@ -95,9 +95,6 @@ import oracle.net.aso.l;
 @Service
 public class KafkaClientService {
 
-    @Value("${kafka.kafka-ui.host}")
-    private String kafkaUiHost;
-
     @Value("${kafka.bootstrap.server}")
     private String bootstrapServer;
 
@@ -816,12 +813,6 @@ public class KafkaClientService {
         ListTopicsOptions options = new ListTopicsOptions();
         options.listInternal(isInternal);
         return client.listTopics(options).listings().get();
-    }
-
-    public KafkaListTopicsResp getKafkaTopicList(String topicName)
-    throws InterruptedException, ExecutionException {
-        KafkaUIClient kafkaUIClient = new KafkaUIClient(kafkaUiHost);
-        return kafkaUIClient.GetKafkaListTopics();
     }
 
     public TopicCount getTopicMessageTotal(String username, String password, String groupID,String topic) throws ExecutionException, InterruptedException {

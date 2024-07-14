@@ -35,6 +35,7 @@ import com.nt.red_distribute_api.service.AuditService;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
 import com.nt.red_distribute_api.service.KafkaClientService;
+import com.nt.red_distribute_api.service.KafkaUIService;
 import com.nt.red_distribute_api.service.ManageSystemService;
 import com.nt.red_distribute_api.service.NotificationMessageService;
 import com.nt.red_distribute_api.service.OrderTypeService;
@@ -48,6 +49,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.logging.LogFile;
 import org.springframework.http.HttpStatus;
@@ -67,6 +71,9 @@ public class ManageSystemController {
     
     @Autowired
     private KafkaClientService kafkaClientService;
+
+    @Autowired
+    private KafkaUIService kafkaUIService;
 
     @Autowired
     private ManageSystemService manageSystemService;
@@ -1072,6 +1079,41 @@ public class ManageSystemController {
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
             resp.setMessage("Error while publish : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/queues")
+    public ResponseEntity<Object> getManageQueues(
+        HttpServletRequest request,    
+        @RequestParam(name = "draw", defaultValue = "11")Integer draw,
+        @RequestParam(name = "order[0][dir]", defaultValue = "ASC")String sortBy,
+        @RequestParam(name = "order[0][name]", defaultValue = "created_date")String sortName,
+        @RequestParam(name = "start_time" , defaultValue = "")String startTime,
+        @RequestParam(name = "end_time" , defaultValue = "")String endTime,
+        @RequestParam(name = "start", defaultValue = "0")Integer start,
+        @RequestParam(name = "length", defaultValue = "10")Integer length,
+        @RequestParam(name = "Search", defaultValue = "")String search,
+        @RequestParam(name = "Search_field", defaultValue = "")String searchField
+    ){
+        
+        DefaultControllerResp resp = new DefaultControllerResp();
+        String ipAddress = request.getRemoteAddr();
+        String requestHeader = request.getHeader("Authorization");
+            
+        VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+        try {
+
+            JSONObject data = kafkaUIService.GetConsumerGroup();
+
+            return new ResponseEntity<>( data.toString(), HttpStatus.OK);
+        }catch (Exception e){
+            resp.setDraw(draw);
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while get detail : " + e.getMessage());
             return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -94,6 +94,7 @@ public class JwtHelper {
         claims.put("device", req.getDevice());
         claims.put("browser", req.getBrowser());
         claims.put("system", req.getSystem());
+        claims.put("ip_address", req.getIpAddress());
         return doGenerateToken(claims, req.getUsername());
     }
 
