@@ -6,25 +6,18 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nt.red_distribute_api.client.KafkaListTopicsResp;
 import com.nt.red_distribute_api.config.AuthConfig;
 import com.nt.red_distribute_api.dto.req.external.ConsumerMessageReq;
-import com.nt.red_distribute_api.dto.req.external.PublishMessageReq;
 import com.nt.red_distribute_api.dto.req.external.SubAndUnsubscribeReq;
 import com.nt.red_distribute_api.dto.resp.DefaultListResp;
 import com.nt.red_distribute_api.dto.resp.DefaultResp;
@@ -40,7 +33,6 @@ import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
 import com.nt.red_distribute_api.service.GafranaService;
 import com.nt.red_distribute_api.service.KafkaClientService;
-import com.nt.red_distribute_api.service.KafkaProducerService;
 import com.nt.red_distribute_api.service.OrderTypeService;
 import com.nt.red_distribute_api.service.UserService;
 
