@@ -34,6 +34,7 @@ import com.nt.red_distribute_api.dto.resp.external.TopicDetailResp;
 import com.nt.red_distribute_api.dto.resp.external.VerifyConsumerResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
+import com.nt.red_distribute_api.entity.UserEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
@@ -41,6 +42,8 @@ import com.nt.red_distribute_api.service.GafranaService;
 import com.nt.red_distribute_api.service.KafkaClientService;
 import com.nt.red_distribute_api.service.KafkaProducerService;
 import com.nt.red_distribute_api.service.OrderTypeService;
+import com.nt.red_distribute_api.service.UserService;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
@@ -59,6 +62,9 @@ public class ExternalController {
 
     @Autowired
     private ConsumerService consumerService;
+
+    @Autowired
+    private UserService userService;
     
     @Autowired
     private GafranaService gafranaService;
@@ -85,7 +91,31 @@ public class ExternalController {
             if (consumer!= null){
                 String passwordEncode = consumer.getPassword();
                 verifyData.setConsumerData(consumer);
-                verifyData.setRemark("password: " + password+", passwordEncode: " + passwordEncode+ "isverify password:"+verifyPassword(password, passwordEncode));
+                // verifyData.setRemark("password: " + password+", passwordEncode: " + passwordEncode+ "isverify password:"+verifyPassword(password, passwordEncode));
+                if (verifyPassword(password, passwordEncode)){
+                    verifyData.setRealPassword(password);
+                    verifyData.setIsVerify(true);
+                }
+            }
+        }
+        return verifyData;
+    }
+
+    protected VerifyConsumerResp VerifyDistributeUserAuth(String authHeader){
+        VerifyConsumerResp verifyData = new VerifyConsumerResp();
+        if (authHeader != null && authHeader.startsWith("Basic ")) {
+            // Extract and decode the base64 encoded credentials
+            String base64Credentials = authHeader.substring("Basic".length()).trim();
+            String credentials = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
+            
+            // Split the username and password tokens
+            final String[] values = credentials.split(":", 2);
+            String username = values[0];
+            String password = values[1];
+            UserEntity user = userService.findUserLogin(username);
+            if (user!= null){
+                String passwordEncode = user.getPassword();
+                // verifyData.setRemark("password: " + password+", passwordEncode: " + passwordEncode+ "isverify password:"+verifyPassword(password, passwordEncode));
                 if (verifyPassword(password, passwordEncode)){
                     verifyData.setRealPassword(password);
                     verifyData.setIsVerify(true);
@@ -460,7 +490,7 @@ public class ExternalController {
         DefaultListResp resp = new DefaultListResp();
         try{
             String requestHeader = request.getHeader("Authorization");
-            VerifyConsumerResp vsp = VerifyAuthentication(requestHeader);
+            VerifyConsumerResp vsp = VerifyDistributeUserAuth(requestHeader);
             if (!vsp.getIsVerify()){
                 resp.setError("Authenticated not you.");
                 resp.setMessage("You don't have permission!!!");

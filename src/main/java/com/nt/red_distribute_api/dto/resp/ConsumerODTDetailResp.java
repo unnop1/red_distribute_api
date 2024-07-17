@@ -6,7 +6,6 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 
-import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
 
