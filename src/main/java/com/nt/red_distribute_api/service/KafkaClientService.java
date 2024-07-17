@@ -850,6 +850,9 @@ public class KafkaClientService {
             countOffset.put("start_offset", beginningOffset);
             countOffset.put("end_offset", endOffset);
             totalMessages += (endOffset - beginningOffset);
+            if(beginningOffset == 0 && endOffset == 0 ){
+                continue;
+            }
             topicInfo.put(partition.topic()+"-"+partition.partition(), countOffset);
         }
         topicCount.setCount(totalMessages);

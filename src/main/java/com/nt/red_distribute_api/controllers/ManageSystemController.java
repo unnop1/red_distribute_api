@@ -24,11 +24,9 @@ import com.nt.red_distribute_api.dto.resp.DefaultResp;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
-import com.nt.red_distribute_api.dto.resp.external.VerifyConsumerResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
-import com.nt.red_distribute_api.entity.TriggerMessageEntity;
 import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrderType;
 import com.nt.red_distribute_api.log.LogFlie;
 import com.nt.red_distribute_api.service.AuditService;
@@ -45,15 +43,11 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.logging.LogFile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
