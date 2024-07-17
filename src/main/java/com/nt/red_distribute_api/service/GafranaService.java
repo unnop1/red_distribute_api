@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.nt.red_distribute_api.client.GafranaClient;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Service
 public class GafranaService {
 
@@ -17,13 +19,13 @@ public class GafranaService {
     @Value("${grafana.url}")
     private String grafanaUrl;
 
-    public void ExportAlertAlarm() throws IOException{
+    public void ExportAlertAlarm(HttpServletResponse response) throws IOException{
         GafranaClient client = new GafranaClient(grafanaUrl, apiKey );
 
         // Step 1: Retrieve all alert IDs
         List<Integer> alertIds = client.getAllAlertIds();
 
         // Step 2: Retrieve alert history for each alert ID and write to CSV
-        client.writeAlertHistoryToCsv(alertIds);
+        client.writeAlertHistoryToCsv(alertIds, response);
     }
 }

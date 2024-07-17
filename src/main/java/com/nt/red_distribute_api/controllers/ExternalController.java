@@ -45,6 +45,7 @@ import com.nt.red_distribute_api.service.OrderTypeService;
 import com.nt.red_distribute_api.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -485,6 +486,7 @@ public class ExternalController {
     @PostMapping("/export_alarm")
     public ResponseEntity<Object> exportAlarm(
         HttpServletRequest request,
+        HttpServletResponse response,
         @RequestParam(name="type", defaultValue ="csv") String exportType
     ) {
         DefaultListResp resp = new DefaultListResp();
@@ -499,9 +501,9 @@ public class ExternalController {
             
             
             try {
-                gafranaService.ExportAlertAlarm();
+                gafranaService.ExportAlertAlarm(response);
     
-                return ResponseEntity.ok("Alert history exported successfully!");
+                return ResponseEntity.ok(null);
             } catch (IOException e) {
                 resp.setMessage("Error while get alert history: " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);

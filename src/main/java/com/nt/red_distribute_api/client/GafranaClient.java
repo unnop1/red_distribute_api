@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import org.apache.commons.csv.CSVPrinter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 public class GafranaClient {
     private String grafanaUrl;
@@ -39,8 +42,11 @@ public class GafranaClient {
             return alertIds;
         }
 
-    public void writeAlertHistoryToCsv(List<Integer> alertIds) throws IOException {
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter("alert_history.csv"), CSVFormat.DEFAULT.withHeader(
+    public void writeAlertHistoryToCsv(List<Integer> alertIds, HttpServletResponse response) throws IOException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"alert_history.csv\"");
+
+        try (CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(response.getOutputStream()), CSVFormat.DEFAULT.withHeader(
                 "id", "alertId", "dashboardId", "panelId", "userId", "newState", "prevState", "created", "updated"))) {
 
             for (int alertId : alertIds) {
