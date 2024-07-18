@@ -380,8 +380,8 @@ public class ExternalController {
                 
                 try{
                     kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
-                    resp.setResult(userAclsTopics);
-                    resp.setCount(orderTypeIDs.size());
+                    resp.setResult(orderTypeTopicNames);
+                    resp.setCount(orderTypeTopicNames.size());
                 }catch (Exception e){
                     resp.setResult(orderTypeTopicNames);
                     resp.setError(e.getLocalizedMessage());
