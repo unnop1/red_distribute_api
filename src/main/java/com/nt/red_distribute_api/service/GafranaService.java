@@ -29,17 +29,11 @@ public class GafranaService {
         switch (exportType) {
             case "csv":
                 client.writeAlertHistoryToCsv(alertIds, response);
-                response.setContentType("text/csv");
-                response.setHeader("Content-Disposition", "attachment; filename=\"alert_history.csv\"");
                 break;
             case "text":
-                client.writeAlertHistoryToCsv(alertIds, response);
-                response.setContentType("text/plain");
-                response.setHeader("Content-Disposition", "attachment;filename=alert_history.txt");
+                client.writeAlertHistoryToTextFile(alertIds, response);
                 break;
             default:
-                response.setContentType("text/csv");
-                response.setHeader("Content-Disposition", "attachment; filename=\"alert_history.csv\"");
                 break;
         }
         

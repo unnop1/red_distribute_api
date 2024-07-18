@@ -399,7 +399,7 @@ public class KafkaClientService {
             for (Map.Entry<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> entry : endOffsetsResponse.entrySet()) {
                 TopicPartition partition = entry.getKey();
                 Long endOffset = entry.getValue().offset();
-                Long currentOffset = currentOffsetsResponse.getOrDefault(partition, new OffsetAndMetadata(endOffset)).offset();
+                Long currentOffset = currentOffsetsResponse.getOrDefault(partition, new OffsetAndMetadata(0L)).offset();
                 Long lag = endOffset - currentOffset;
                 consumerLagMap.put(partition, lag);
                 System.out.println("endOffset: " + endOffset + ", currentOffset: " + currentOffset + ", lag: " + lag);

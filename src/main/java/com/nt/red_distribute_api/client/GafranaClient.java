@@ -44,6 +44,8 @@ public class GafranaClient {
         }
 
     public void writeAlertHistoryToCsv(List<Integer> alertIds, HttpServletResponse response) throws IOException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"alert_history.csv\"");
         try (CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(response.getOutputStream()), CSVFormat.DEFAULT.withHeader(
                 "id", "alertId", "dashboardId", "panelId", "userId", "newState", "prevState", "created", "updated"))) {
 
@@ -71,7 +73,8 @@ public class GafranaClient {
     }
 
     public void writeAlertHistoryToTextFile(List<Integer> alertIds, HttpServletResponse response) throws IOException {
-        
+        response.setContentType("text/plain");
+        response.setHeader("Content-Disposition", "attachment;filename=alert_history.txt");
         try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(response.getOutputStream()))) {
             // Write the header
             writer.println("id\talertId\tdashboardId\tpanelId\tuserId\tnewState\tprevState\tcreated\tupdated");

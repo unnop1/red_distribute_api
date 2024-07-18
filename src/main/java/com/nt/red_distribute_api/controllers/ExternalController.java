@@ -461,7 +461,7 @@ public class ExternalController {
                 
                 try{
                     kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
-                    resp.setResult(userAclsTopics);
+                    resp.setResult(orderTypeTopicNames);
                     resp.setCount(orderTypeTopicNames.size());
                 }catch (Exception e){
                     resp.setResult(orderTypeTopicNames);
