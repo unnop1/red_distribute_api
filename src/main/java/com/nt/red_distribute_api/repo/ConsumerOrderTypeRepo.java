@@ -40,6 +40,18 @@ public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEn
                   FROM consumer_ordertype cod
                   LEFT join ordertype odt
                   ON cod.ORDERTYPE_ID = odt.ID
+                  WHERE cod.CONSUMER_ID=?1 AND cod.ORDERTYPE_ID=?2
+                   """,
+                 nativeQuery = true)
+    public ConsumerLJoinOrderType getOneConsumerOrderTypeUnique(
+      Long consumerID, Long orderTypeID
+    );
+
+    @Query(value = """
+                  SELECT cod.ID, cod.CONSUMER_ID,odt.ORDERTYPE_NAME, cod.ORDERTYPE_ID
+                  FROM consumer_ordertype cod
+                  LEFT join ordertype odt
+                  ON cod.ORDERTYPE_ID = odt.ID
                   WHERE cod.CONSUMER_ID=?1
                    """,
                  nativeQuery = true)

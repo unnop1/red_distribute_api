@@ -73,6 +73,18 @@ public class ConsumerOrderTypeImp implements ConsumerOrderTypeService {
         return null;
     }
 
+    @Override
+    public ConsumerLJoinOrderType FindOneConsumerOrderType(Long consumerID, Long orderTypeID) {
+        ConsumerLJoinOrderType consumerJoinODT = consumerOrderTypeRepo.getOneConsumerOrderTypeUnique(consumerID, orderTypeID);
+        return consumerJoinODT;
+    }
+
+    @Override
+    public Error deleteConsumerOrderType(Long ID) {
+        consumerOrderTypeRepo.deleteById(ID);
+        return null;
+    }
+
     
 
     

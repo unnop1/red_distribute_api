@@ -8,7 +8,9 @@ import com.nt.red_distribute_api.entity.view.consumer_ordertype.ConsumerLJoinOrd
 
 public interface ConsumerOrderTypeService  {
     public List<ConsumerLJoinOrderType> ListConsumerOrderType(Long consumerID);
+    public ConsumerLJoinOrderType FindOneConsumerOrderType(Long consumerID, Long orderTypeID);
     public Long registerConsumerOrderType(Long consumerID, Long orderTypeID, String createdBy);
     public Error updateConsumerOrderType(Long consumerID, List<Long> orderTypeIDs, String updatedBy);
     public Error upsertConsumerOrderType(Long consumerID, List<Long> orderTypeIDs, String updatedBy);
+    public Error deleteConsumerOrderType(Long ID);
 }

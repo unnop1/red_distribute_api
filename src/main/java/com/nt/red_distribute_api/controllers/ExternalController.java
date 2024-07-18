@@ -341,12 +341,30 @@ public class ExternalController {
                         orderTypeIDs.add(orderTypeData.getID());
                         orderTypeTopicNames.add(orderTypeData.getORDERTYPE_NAME().toUpperCase());
                     }
+                    try{
+                        Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
+                        if (err != null){
+                            resp.setError(err.getLocalizedMessage());
+                            resp.setMessage(err.getMessage());
+                            return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+                        }
+        
+                    }catch (Exception e){
+                        resp.setError(e.getLocalizedMessage());
+                        resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
+                        return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
                 }else{
-                    OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
+                    OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName().toUpperCase());
                     if(orderTypeDetail != null){
                         orderTypeIDs.add(orderTypeDetail.getID());
-                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName().toUpperCase());
+                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName());
+                        ConsumerLJoinOrderType existOrderType = consumerOrderTypeService.FindOneConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID());
+                        if (existOrderType==null){
+                            consumerOrderTypeService.registerConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID(), vsp.getConsumerData().getUsername());
+                        }
                     }
+                    
                 }
                 
             } catch (Exception e){
@@ -355,19 +373,7 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             
-            try{
-                Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
-                if (err != null){
-                    resp.setError(err.getLocalizedMessage());
-                    resp.setMessage(err.getMessage());
-                    return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
-                }
-
-            }catch (Exception e){
-                resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
-                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            
 
             try{
                 List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
@@ -417,34 +423,36 @@ public class ExternalController {
                 if(req.getTopicName().toLowerCase().equals("all")){
                     List<ConsumerLJoinOrderType> orderCons = consumerOrderTypeService.ListConsumerOrderType(vsp.getConsumerData().getID());
                     for (ConsumerLJoinOrderType orderTypeData : orderCons){
-                        orderTypeIDs.add(orderTypeData.getID());
                         orderTypeTopicNames.add(orderTypeData.getORDERTYPE_NAME().toUpperCase());
                     }
-                }else{
-                    OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName());
-                    if(orderTypeDetail != null){
-                        orderTypeIDs.add(orderTypeDetail.getID());
-                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName().toUpperCase());
+                    try{
+                        Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
+                        if (err != null){
+                            resp.setError(err.getLocalizedMessage());
+                            resp.setMessage(err.getMessage());
+                            return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+                        }
+        
+                    }catch (Exception e){
+                        resp.setError(e.getLocalizedMessage());
+                        resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
+                        return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
                     }
+                }else{
+                    OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName().toUpperCase());
+                    if(orderTypeDetail != null){
+                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName());
+                        ConsumerLJoinOrderType existOrderType = consumerOrderTypeService.FindOneConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID());
+                        if (existOrderType!=null){
+                            consumerOrderTypeService.deleteConsumerOrderType(existOrderType.getID());
+                        }
+                    }
+                    
                 }
                 
             } catch (Exception e){
                 resp.setError(e.getLocalizedMessage());
                 resp.setMessage("Error while list order type for unsubscribe: " + e.getMessage());
-                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            
-            try{
-                Error err = consumerOrderTypeService.updateConsumerOrderType(vsp.getConsumerData().getID(), orderTypeIDs, vsp.getConsumerData().getUsername());
-                if (err != null){
-                    resp.setError(err.getLocalizedMessage());
-                    resp.setMessage(err.getMessage());
-                    return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
-                }
-
-            }catch (Exception e){
-                resp.setError(e.getLocalizedMessage());
-                resp.setMessage("Error while updateConsumerOrderType: " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
@@ -454,7 +462,7 @@ public class ExternalController {
                 try{
                     kafkaClientService.deleteAcls(vsp.getConsumerData().getUsername(), userAclsTopics);
                     resp.setResult(userAclsTopics);
-                    resp.setCount(orderTypeIDs.size());
+                    resp.setCount(orderTypeTopicNames.size());
                 }catch (Exception e){
                     resp.setResult(orderTypeTopicNames);
                     resp.setError(e.getLocalizedMessage());
