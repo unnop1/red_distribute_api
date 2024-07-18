@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -43,9 +44,6 @@ public class GafranaClient {
         }
 
     public void writeAlertHistoryToCsv(List<Integer> alertIds, HttpServletResponse response) throws IOException {
-        response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=\"alert_history.csv\"");
-
         try (CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(response.getOutputStream()), CSVFormat.DEFAULT.withHeader(
                 "id", "alertId", "dashboardId", "panelId", "userId", "newState", "prevState", "created", "updated"))) {
 
@@ -67,6 +65,36 @@ public class GafranaClient {
                             alert.getString("prevState"),
                             alert.getLong("created"),
                             alert.getLong("updated"));
+                }
+            }
+        }
+    }
+
+    public void writeAlertHistoryToTextFile(List<Integer> alertIds, HttpServletResponse response) throws IOException {
+        
+        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(response.getOutputStream()))) {
+            // Write the header
+            writer.println("id\talertId\tdashboardId\tpanelId\tuserId\tnewState\tprevState\tcreated\tupdated");
+
+            for (int alertId : alertIds) {
+                String url = grafanaUrl + "/api/annotations?alertId=" + alertId;
+                String jsonResponse = makeApiRequest(url);
+
+                JSONArray alertHistory = new JSONArray(jsonResponse);
+                for (int i = 0; i < alertHistory.length(); i++) {
+                    JSONObject alert = alertHistory.getJSONObject(i);
+                    writer.printf(
+                        "%d\t%d\t%d\t%d\t%d\t%s\t%s\t%d\t%d%n",
+                        alert.getInt("id"),
+                        alert.getInt("alertId"),
+                        alert.getInt("dashboardId"),
+                        alert.getInt("panelId"),
+                        alert.getInt("userId"),
+                        alert.getString("newState"),
+                        alert.getString("prevState"),
+                        alert.getLong("created"),
+                        alert.getLong("updated")
+                    );
                 }
             }
         }

@@ -493,7 +493,7 @@ public class ExternalController {
             
             
             try {
-                gafranaService.ExportAlertAlarm(response);
+                gafranaService.ExportAlertAlarm(response, exportType);
     
                 return ResponseEntity.ok(null);
             } catch (IOException e) {
