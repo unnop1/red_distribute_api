@@ -76,6 +76,7 @@ import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -757,38 +758,43 @@ public class KafkaClientService {
                 result.values().forEach((key, value) -> {
                     try {
                         String detailTopicName = value.get().name();
-                        // Map<TopicPartition, Long> topicBehinds = calculateConsumerLag(consumerGroupID, Collections.singletonList(detailTopicName));
-                        // List<Object> selectTopicBehindsList = new ArrayList<>();
-
-                        // for (Map.Entry<TopicPartition, Long> entry : topicBehinds.entrySet()) {
-                        //     TopicPartition topicPartition = entry.getKey();
-                        //     Long lag = entry.getValue();
-                        //     if (lag > 0) {
-                        //         Map<TopicPartition, Long> selectTopicBehinds = new HashMap<>();
-                        //         selectTopicBehinds.put(topicPartition, lag); // Use the lag value directly
-                        //         selectTopicBehindsList.add(selectTopicBehinds);
-                        //     }
-                        // }
-
                         // System.out.println(key + ": " + value.get());
+                        List<HashMap<String, Object>> partitionDataList = new ArrayList<HashMap<String, Object>>();
                         HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
                         dataTopic.put("topic_name", detailTopicName);
                         dataTopic.put("is_internal", value.get().isInternal());
-                        // dataTopic.put("message_behinds", selectTopicBehindsList);
                         TopicCount topicCount  = getTopicMessageTotal(username, password,consumerGroupID, detailTopicName);
                         dataTopic.put("message_count", topicCount.getCount());
 
                         JSONObject consumerData = kafkaUiService.GetConsumerGroupByConsumerGroupId(consumerGroupID);
-                        dataTopic.put("consumer", consumerData.toString());;
-                        // dataTopic.put("partition_info", topicCount.getPartition());
-                        // if(value.get().partitions() != null){
-                        //     HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
-                        //     if(value.get().partitions()!= null){
-                        //         partitionInfo.put("partition_info", topicCount.getPartition());
-                        //         partitionInfo.put("partition_total", value.get().partitions().size());
-                        //     }
-                        //     dataTopic.put("partition", partitionInfo);
-                        // }
+
+                        HashMap<String, Object> consumerMapData = new HashMap<String, Object>();
+
+                        JSONArray partitionList = consumerData.getJSONArray("partitions");
+                        for( int i = 0; i < partitionList.length(); i++){
+                            HashMap<String, Object> partitionMap = new HashMap<String, Object>();
+                            JSONObject partition = partitionList.getJSONObject(i);
+                            Integer endOffset = partition.getInt("endOffset");
+                            Integer currentOffset = partition.getInt("currentOffset");
+                            Integer partitionNumber = partition.getInt("partition");
+                            if (endOffset.equals(0) && currentOffset.equals(0)){
+                                continue;
+                            }
+                            partitionMap.put("endOffset", endOffset);
+                            partitionMap.put("currentOffset", currentOffset);
+                            partitionMap.put("partition", partitionNumber);
+                            partitionDataList.add(partitionMap);
+                        }
+                        
+                        consumerMapData.put("state", dataTopic.get("state"));
+                        consumerMapData.put("messagesBehind", dataTopic.get("messagesBehind"));
+                        consumerMapData.put("members", dataTopic.get("members"));
+                        consumerMapData.put("groupId", dataTopic.get("groupId"));
+                        consumerMapData.put("topics", dataTopic.get("topics"));
+                        consumerMapData.put("coordinator", dataTopic.get("coordinator"));
+                        consumerMapData.put("partitions", partitionDataList);
+
+                        dataTopic.put("consumer", consumerMapData);
                         
                         mapConfigTopicDetails.put(key, dataTopic);
                     } catch (InterruptedException e) {
