@@ -770,6 +770,8 @@ public class KafkaClientService {
 
                         HashMap<String, Object> consumerMapData = new HashMap<String, Object>();
 
+                        Integer partitionMessageBehindTotal = 0;
+
                         JSONArray partitionList = consumerData.getJSONArray("partitions");
                         for( int i = 0; i < partitionList.length(); i++){
                             HashMap<String, Object> partitionMap = new HashMap<String, Object>();
@@ -781,12 +783,14 @@ public class KafkaClientService {
                             Integer endOffset = partition.getInt("endOffset");
                             Integer currentOffset = partition.getInt("currentOffset");
                             Integer partitionNumber = partition.getInt("partition");
+                            Integer messageBehind = partition.getInt("messagesBehind");
                             if (endOffset.equals(0) && currentOffset.equals(0)){
                                 continue;
                             }
                             partitionMap.put("endOffset", endOffset);
                             partitionMap.put("currentOffset", currentOffset);
                             partitionMap.put("partition", partitionNumber);
+                            partitionMessageBehindTotal += messageBehind;
                             partitionDataList.add(partitionMap);
                         }
 
@@ -798,7 +802,7 @@ public class KafkaClientService {
                         
                         
                         consumerMapData.put("state", consumerData.getString("state"));
-                        consumerMapData.put("messagesBehind", consumerData.getInt("messagesBehind"));
+                        consumerMapData.put("messagesBehind", partitionMessageBehindTotal);
                         consumerMapData.put("members", consumerData.getInt("members"));
                         consumerMapData.put("groupId", consumerData.getString("groupId"));
                         consumerMapData.put("topics", consumerData.getInt("topics"));
