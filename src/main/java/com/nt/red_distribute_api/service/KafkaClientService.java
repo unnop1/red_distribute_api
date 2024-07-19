@@ -785,13 +785,20 @@ public class KafkaClientService {
                             partitionMap.put("partition", partitionNumber);
                             partitionDataList.add(partitionMap);
                         }
+
+                        HashMap<String, Object> coordinatorData = new HashMap<String, Object>();
+                        JSONObject coordinator = consumerData.getJSONObject("coordinator");
+                        coordinatorData.put("id", coordinator.getInt("id"));
+                        coordinatorData.put("host", coordinator.getString("host"));
+                        coordinatorData.put("port", coordinator.getInt("port"));
+                        
                         
                         consumerMapData.put("state", consumerData.getString("state"));
                         consumerMapData.put("messagesBehind", consumerData.getInt("messagesBehind"));
                         consumerMapData.put("members", consumerData.getInt("members"));
                         consumerMapData.put("groupId", consumerData.getString("groupId"));
                         consumerMapData.put("topics", consumerData.getInt("topics"));
-                        consumerMapData.put("coordinator", consumerData.get("coordinator"));
+                        consumerMapData.put("coordinator", coordinatorData);
                         consumerMapData.put("partitions", partitionDataList);
 
                         dataTopic.put("consumer", consumerMapData);
