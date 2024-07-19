@@ -774,6 +774,10 @@ public class KafkaClientService {
                         for( int i = 0; i < partitionList.length(); i++){
                             HashMap<String, Object> partitionMap = new HashMap<String, Object>();
                             JSONObject partition = partitionList.getJSONObject(i);
+                            String topic = partition.getString("topic");
+                            if (!topic.equals(detailTopicName)){
+                                continue;
+                            }
                             Integer endOffset = partition.getInt("endOffset");
                             Integer currentOffset = partition.getInt("currentOffset");
                             Integer partitionNumber = partition.getInt("partition");
