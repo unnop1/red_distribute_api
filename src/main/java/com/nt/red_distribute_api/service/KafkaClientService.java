@@ -786,12 +786,12 @@ public class KafkaClientService {
                             partitionDataList.add(partitionMap);
                         }
                         
-                        consumerMapData.put("state", dataTopic.get("state"));
-                        consumerMapData.put("messagesBehind", dataTopic.get("messagesBehind"));
-                        consumerMapData.put("members", dataTopic.get("members"));
-                        consumerMapData.put("groupId", dataTopic.get("groupId"));
-                        consumerMapData.put("topics", dataTopic.get("topics"));
-                        consumerMapData.put("coordinator", dataTopic.get("coordinator"));
+                        consumerMapData.put("state", consumerData.getString("state"));
+                        consumerMapData.put("messagesBehind", consumerData.getInt("messagesBehind"));
+                        consumerMapData.put("members", consumerData.getInt("members"));
+                        consumerMapData.put("groupId", consumerData.getString("groupId"));
+                        consumerMapData.put("topics", consumerData.getInt("topics"));
+                        consumerMapData.put("coordinator", consumerData.get("coordinator"));
                         consumerMapData.put("partitions", partitionDataList);
 
                         dataTopic.put("consumer", consumerMapData);
