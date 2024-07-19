@@ -7,5 +7,6 @@ import lombok.Setter;
 @Setter
 public class TopicDetailResp {
     private Object Data=null;
+    // private Object Consumer=null;
     private String error=null;
 }

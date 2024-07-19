@@ -76,6 +76,8 @@ import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -97,6 +99,9 @@ public class KafkaClientService {
 
     @Value("${kafka.bootstrap.server}")
     private String bootstrapServer;
+
+    @Autowired
+    private KafkaUIService kafkaUiService;
 
     private AdminClient client = null;
 
@@ -752,41 +757,47 @@ public class KafkaClientService {
                 result.values().forEach((key, value) -> {
                     try {
                         String detailTopicName = value.get().name();
-                        Map<TopicPartition, Long> topicBehinds = calculateConsumerLag(consumerGroupID, Collections.singletonList(detailTopicName));
-                        List<Object> selectTopicBehindsList = new ArrayList<>();
+                        // Map<TopicPartition, Long> topicBehinds = calculateConsumerLag(consumerGroupID, Collections.singletonList(detailTopicName));
+                        // List<Object> selectTopicBehindsList = new ArrayList<>();
 
-                        for (Map.Entry<TopicPartition, Long> entry : topicBehinds.entrySet()) {
-                            TopicPartition topicPartition = entry.getKey();
-                            Long lag = entry.getValue();
-                            if (lag > 0) {
-                                Map<TopicPartition, Long> selectTopicBehinds = new HashMap<>();
-                                selectTopicBehinds.put(topicPartition, lag); // Use the lag value directly
-                                selectTopicBehindsList.add(selectTopicBehinds);
-                            }
-                        }
+                        // for (Map.Entry<TopicPartition, Long> entry : topicBehinds.entrySet()) {
+                        //     TopicPartition topicPartition = entry.getKey();
+                        //     Long lag = entry.getValue();
+                        //     if (lag > 0) {
+                        //         Map<TopicPartition, Long> selectTopicBehinds = new HashMap<>();
+                        //         selectTopicBehinds.put(topicPartition, lag); // Use the lag value directly
+                        //         selectTopicBehindsList.add(selectTopicBehinds);
+                        //     }
+                        // }
 
                         // System.out.println(key + ": " + value.get());
                         HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
                         dataTopic.put("topic_name", detailTopicName);
                         dataTopic.put("is_internal", value.get().isInternal());
-                        dataTopic.put("message_behinds", selectTopicBehindsList);
+                        // dataTopic.put("message_behinds", selectTopicBehindsList);
                         TopicCount topicCount  = getTopicMessageTotal(username, password,consumerGroupID, detailTopicName);
                         dataTopic.put("message_count", topicCount.getCount());
+
+                        JSONObject consumerData = kafkaUiService.GetConsumerGroupByConsumerGroupId(consumerGroupID);
+                        dataTopic.put("consumer", consumerData.toString());;
                         // dataTopic.put("partition_info", topicCount.getPartition());
-                        if(value.get().partitions() != null){
-                            HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
-                            if(value.get().partitions()!= null){
-                                partitionInfo.put("partition_info", topicCount.getPartition());
-                                partitionInfo.put("partition_total", value.get().partitions().size());
-                            }
-                            dataTopic.put("partition", partitionInfo);
-                        }
+                        // if(value.get().partitions() != null){
+                        //     HashMap<String, Object> partitionInfo = new HashMap<String, Object>();
+                        //     if(value.get().partitions()!= null){
+                        //         partitionInfo.put("partition_info", topicCount.getPartition());
+                        //         partitionInfo.put("partition_total", value.get().partitions().size());
+                        //     }
+                        //     dataTopic.put("partition", partitionInfo);
+                        // }
                         
                         mapConfigTopicDetails.put(key, dataTopic);
                     } catch (InterruptedException e) {
                         topicDetail.setError(e.getMessage());
                     } catch (ExecutionException e) {
                         topicDetail.setError(e.getMessage());
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
                 });
 
@@ -798,7 +809,7 @@ public class KafkaClientService {
                     dataTopicDetails.add(innerMap);
                     
                 }
-                
+                // topicDetail.setConsumer(consumerData);
                 topicDetail.setData(dataTopicDetails);
                 
             } catch (Exception e) {
@@ -806,13 +817,6 @@ public class KafkaClientService {
             }
         }
         return topicDetail;
-    }
-
-    private Collection<TopicListing> getTopicListing(boolean isInternal)
-    throws InterruptedException, ExecutionException {
-        ListTopicsOptions options = new ListTopicsOptions();
-        options.listInternal(isInternal);
-        return client.listTopics(options).listings().get();
     }
 
     public TopicCount getTopicMessageTotal(String username, String password, String groupID,String topic) throws ExecutionException, InterruptedException {

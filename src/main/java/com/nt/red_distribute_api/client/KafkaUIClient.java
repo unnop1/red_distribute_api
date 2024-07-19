@@ -225,4 +225,61 @@ public class KafkaUIClient {
             return null;
         }
     }
+
+    public JSONObject GetConsumerGroupByGroupId(String consumerGroupId){
+        try {
+            // Set up the URL and connection
+            URL url = new URL(String.format("%s/api/clusters/kafka-cluster/consumer-groups/%s", host, consumerGroupId));
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            // Set headers
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Cookie", session);
+
+            // Send the request and get the response code
+            int responseCode = connection.getResponseCode();
+            // System.out.println("Response Code: " + responseCode);
+
+            // Read the response
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+
+            // Print the response body
+            System.out.println("Response code: " + responseCode);
+
+            // Parse the response into a JSONObject
+            if (responseCode == 200) {
+            JSONObject jsonResponse = new JSONObject(response.toString());
+
+            // Extract the "consumerGroups" array
+            // JSONArray consumerGroups = jsonResponse.getJSONArray("consumerGroups");
+
+            // Iterate through the array if needed
+            // for (int i = 0; i < consumerGroups.length(); i++) {
+            //     JSONObject consumerGroup = consumerGroups.getJSONObject(i);
+            //     // Access individual fields in each consumer group object
+            //     String groupId = consumerGroup.getString("groupId");
+            //     int members = consumerGroup.getInt("members");
+            //     int topics = consumerGroup.getInt("topics");
+            //     // Print or process these values as needed
+            //     System.out.println("Consumer Group ID: " + groupId);
+            //     System.out.println("Members: " + members);
+            //     System.out.println("Topics: " + topics);
+            //     // Access more fields as necessary
+            // }
+                return jsonResponse;
+            }
+            return null;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

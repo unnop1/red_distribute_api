@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ import com.nt.red_distribute_api.service.ConsumerOrderTypeService;
 import com.nt.red_distribute_api.service.ConsumerService;
 import com.nt.red_distribute_api.service.GafranaService;
 import com.nt.red_distribute_api.service.KafkaClientService;
+import com.nt.red_distribute_api.service.KafkaUIService;
 import com.nt.red_distribute_api.service.OrderTypeService;
 import com.nt.red_distribute_api.service.UserService;
 
@@ -163,11 +165,6 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
             }
             try{
-                // HashMap<String, Object> rep = new HashMap<String, Object>();
-                // List<Object> topicOffset = kafkaClientService.getTopicOffset();
-                // rep.put("topicOffset", topicOffset);
-                // rep.put("data", data.getData());
-                // resp.setResult(rep);
                 resp.setResult(data.getData());
                 resp.setMessage("Success!");
                 // resp.setMessage(orderTypeTopicNames);

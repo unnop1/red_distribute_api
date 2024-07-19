@@ -817,11 +817,14 @@ public class ManageSystemController {
                 searchField
             );
 
+            // System.out.println("doing ... ");
+
             PaginationDataResp listConsumers = manageSystemService.ListManageConsumers(req);
 
             // Collection<String> topics = Collections.singletonList("PACKAGE_EXPIRE");
             // String groupId = "sms_module.worker.test";
-
+            // System.out.println("counts: " + listConsumers.getCount());
+            // System.out.println("data: " + listConsumers.getData().toString());
             // kafkaClientService.calculateConsumerLag(groupId, topics);
             
             resp.setDraw(draw);

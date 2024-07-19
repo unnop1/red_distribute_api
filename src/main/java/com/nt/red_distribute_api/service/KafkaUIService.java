@@ -26,4 +26,12 @@ public class KafkaUIService {
 
 
     }
+
+    public JSONObject GetConsumerGroupByConsumerGroupId(String consumerGroupID) throws Exception{
+        KafkaUIClient kafkaUIClient = new KafkaUIClient(kafkaUiHost, username, password);
+        kafkaUIClient.loginWithCookieManager();
+        return kafkaUIClient.GetConsumerGroupByGroupId(consumerGroupID);
+
+
+    }
 }
