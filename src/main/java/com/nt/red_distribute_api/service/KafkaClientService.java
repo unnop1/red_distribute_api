@@ -594,6 +594,8 @@ public class KafkaClientService {
         consumeProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumeProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // latest, earliest
+        consumeProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // Disable auto commit
+
 
         // SASL configuration
         consumeProps.put("security.protocol", "SASL_PLAINTEXT");
@@ -850,7 +852,10 @@ public class KafkaClientService {
                             }
                             Integer endOffset = partition.getInt("endOffset");
                             Integer currentOffset = partition.getInt("currentOffset");
-                            if (endOffset.equals(0) && currentOffset.equals(0)){
+                            if (
+                                ( endOffset.equals(0) && currentOffset.equals(0) ) || 
+                                ( endOffset.equals(currentOffset) )
+                            ) {
                                 continue;
                             }
                             partitionMap.put("limit", endOffset - currentOffset);

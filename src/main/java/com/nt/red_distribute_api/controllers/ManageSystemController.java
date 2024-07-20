@@ -1138,16 +1138,30 @@ public class ManageSystemController {
             ConsumerEntity con = consumerService.consumerDetail(consumerID);
             HashMap<String, Object> behindMaps = kafkaClientService.countMessageBehindByTopic(topic, con.getConsumer_group());
             for (String topicName: behindMaps.keySet()) {
-                JSONArray listBehind = new JSONArray(behindMaps.get(topicName).toString());
-                for (int i = 0; i < listBehind.length(); i++){
-                    JSONObject behind = listBehind.getJSONObject(i);
-                    Integer limit = behind.getInt("limit");
-                    Integer beginOffset = behind.getInt("currentOffset");
+                Object value = behindMaps.get(topicName);
+                try {
+                    // Convert the value to a JSON string
+                    ObjectMapper mapper = new ObjectMapper();
+                    String jsonString = mapper.writeValueAsString(value);
 
-                    ListConsumeMsg consumeMsg = kafkaClientService.consumeMessagesAndNack(topicName, con.getConsumer_group(), beginOffset, limit);
-                    if(consumeMsg.getErr()== null){
-                        listBehindMessages.addAll(consumeMsg.getMessages());
+                    // Convert the JSON string to a JSONArray
+                    JSONArray listBehind = new JSONArray(jsonString);
+
+                    // Print the JSONArray (or use it as needed)
+                    // System.out.println("Topic: " + topicName);
+                    // System.out.println("JSONArray: " + listBehind.toString());
+                    for (int i = 0; i < listBehind.length(); i++){
+                        JSONObject behind = listBehind.getJSONObject(i);
+                        Integer limit = behind.getInt("limit");
+                        Integer beginOffset = behind.getInt("currentOffset");
+    
+                        ListConsumeMsg consumeMsg = kafkaClientService.consumeMessagesAndNack(topicName, con.getConsumer_group(), beginOffset, limit);
+                        if(consumeMsg.getErr()== null){
+                            listBehindMessages.addAll(consumeMsg.getMessages());
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }   
             
