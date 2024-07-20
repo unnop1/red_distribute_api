@@ -25,6 +25,9 @@ public class AddMetricNotificationReq {
     @JsonProperty("trigger_noti_json")
     private String TRIGGER_NOTI_JSON = null;
 
+    @JsonProperty("trigger_is_active")
+    private Integer TRIGGER_IS_ACTIVE = null;
+
     @JsonProperty("line_is_active")
     private Integer LINE_IS_ACTIVE = null;
 

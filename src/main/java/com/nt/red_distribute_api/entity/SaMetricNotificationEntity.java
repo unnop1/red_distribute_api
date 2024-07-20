@@ -44,6 +44,9 @@ public class SaMetricNotificationEntity {
     @Column(name = "TRIGGER_NOTI_JSON", unique = false,nullable = true)
     private String TRIGGER_NOTI_JSON = null;
 
+    @Column(name = "TRIGGER_IS_ACTIVE", unique = false,nullable = true)
+    private Integer TRIGGER_IS_ACTIVE = 0;
+
     @Column(name = "UPDATED_DATE", unique = false,nullable = true)
     private Timestamp UPDATED_DATE = null;
 

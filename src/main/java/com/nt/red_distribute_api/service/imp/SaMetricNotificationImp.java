@@ -30,9 +30,9 @@ public class SaMetricNotificationImp implements SaMetricNotificationService {
         newMetric.setOM_NOT_CONNECT(req.getOM_NOT_CONNECT());
         newMetric.setDB_OM_NOT_CONNECT(req.getDB_OM_NOT_CONNECT());
         newMetric.setTOPUP_NOT_CONNECT(req.getTOPUP_NOT_CONNECT());
-        Clob triggerNoti_jsonClob;
         // triggerNoti_jsonClob = new javax.sql.rowset.serial.SerialClob(req.getTRIGGER_NOTI_JSON().toCharArray());
-        newMetric.setTRIGGER_NOTI_JSON(req.getTRIGGER_NOTI_JSON());
+        newMetric.setTRIGGER_IS_ACTIVE(req.getTRIGGER_IS_ACTIVE());
+        newMetric.setTRIGGER_NOTI_JSON(createdBy);
         newMetric.setLINE_IS_ACTIVE(req.getLINE_IS_ACTIVE());
         newMetric.setLINE_TOKEN(req.getLINE_TOKEN());
         newMetric.setUPDATED_DATE(timeNow);
@@ -69,6 +69,10 @@ public class SaMetricNotificationImp implements SaMetricNotificationService {
                 // triggerNoti_jsonClob = new javax.sql.rowset.serial.SerialClob(updates.getTRIGGER_NOTI_JSON().toCharArray());
                 existingEntity.setTRIGGER_NOTI_JSON(updates.getTRIGGER_NOTI_JSON());
                 
+            }
+
+            if (updates.getTRIGGER_IS_ACTIVE() != null ){
+                existingEntity.setTRIGGER_IS_ACTIVE(updates.getTRIGGER_IS_ACTIVE());
             }
 
             if (updates.getLINE_IS_ACTIVE() != null ){
