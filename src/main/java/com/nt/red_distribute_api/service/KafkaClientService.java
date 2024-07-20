@@ -132,16 +132,6 @@ public class KafkaClientService {
         client = AdminClient.create(props);
     }
 
-    // public KafkaClientService() {
-    //     // Ideally, you would import these settings from a properties file or the like
-    //     // props.setProperty("ssl.endpoint.identification.algorithm", "https");
-    //     // props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "34.142.215.79:9092,34.142.251.254:9092");
-    //     props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-    //     props.setProperty("security.protocol", "SASL_PLAINTEXT");
-    //     props.setProperty("sasl.mechanism", "SCRAM-SHA-256");
-    //     props.setProperty("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"admin\" password=\"admin-secret\";");
-    //     client = AdminClient.create(props);
-    // }
     public void teardown() {
         client.close();
     }
@@ -882,6 +872,110 @@ public class KafkaClientService {
         return consumerMapData;
     }
 
+    public TopicDetailResp getTopicDescriptionByConsumerAdmin(String consumerGroupID, String topicNames) {
+        TopicDetailResp topicDetail = new TopicDetailResp();
+        Properties detailProps = new Properties();
+        detailProps.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        detailProps.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        detailProps.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        detailProps.setProperty("security.protocol", "SASL_PLAINTEXT");
+        detailProps.setProperty("sasl.mechanism", "SCRAM-SHA-256");
+        detailProps.setProperty("sasl.jaas.config",
+                "org.apache.kafka.common.security.scram.ScramLoginModule required " +
+                        "username=\"" + adminUsername + "\" " +
+                        "password=\"" + adminPassword + "\";");
+
+        // Create the AdminClient with the new configuration
+        try (AdminClient detailClient = AdminClient.create(detailProps)) {
+        
+            List<String> selectTopics = new ArrayList<>();
+            List<HashMap<String, Object>> dataTopicDetails = new ArrayList<HashMap<String, Object>>();
+            HashMap<String, HashMap<String, Object>> mapConfigTopicDetails = new HashMap<String, HashMap<String, Object>>();
+            
+            try {
+                String[] topics = topicNames.split(",");
+                
+                for(String topic : topics){
+                    selectTopics.add(topic);
+                    mapConfigTopicDetails.put(topic, new HashMap<String, Object>());
+                }
+                
+                // Describe TOPIC
+                DescribeTopicsResult result = detailClient.describeTopics(selectTopics);
+                result.values().forEach((key, value) -> {
+                    try {
+                        String detailTopicName = value.get().name();
+                        // System.out.println(key + ": " + value.get());
+                        List<HashMap<String, Object>> partitionDataList = new ArrayList<HashMap<String, Object>>();
+                        HashMap<String, Object> dataTopic = mapConfigTopicDetails.get(detailTopicName);
+                        dataTopic.put("topic_name", detailTopicName);
+
+                        JSONObject consumerData = kafkaUiService.GetConsumerGroupByConsumerGroupId(consumerGroupID);
+
+                        HashMap<String, Object> consumerMapData = new HashMap<String, Object>();
+
+                        Integer partitionMessageBehindTotal = 0;
+                        Integer partitionSize = 0;
+
+                        JSONArray partitionList = consumerData.getJSONArray("partitions");
+                        for( int i = 0; i < partitionList.length(); i++){
+                            HashMap<String, Object> partitionMap = new HashMap<String, Object>();
+                            JSONObject partition = partitionList.getJSONObject(i);
+                            String topic = partition.getString("topic");
+                            if (!topic.equals(detailTopicName)){
+                                continue;
+                            }
+                            Integer endOffset = partition.getInt("endOffset");
+                            Integer currentOffset = partition.getInt("currentOffset");
+                            // Integer partitionNumber = partition.getInt("partition");
+                            Integer messageBehind = partition.getInt("messagesBehind");
+                            partitionSize +=1;
+                            if (
+                                ( endOffset.equals(0) && currentOffset.equals(0) ) || 
+                                ( endOffset.equals(currentOffset) )
+                            ) {
+                                continue;
+                            }
+                            // partitionMap.put("endOffset", endOffset);
+                            // partitionMap.put("currentOffset", currentOffset);
+                            // partitionMap.put("partition", partitionNumber);
+                            partitionMessageBehindTotal += messageBehind;
+                            partitionDataList.add(partitionMap);
+                        }
+                        
+                        // consumerMapData.put("messagesBehind", partitionMessageBehindTotal);
+                        // consumerMapData.put("partitions", partitionSize);
+
+                        dataTopic.put("messagesBehind", partitionMessageBehindTotal);
+                        dataTopic.put("partitions", partitionSize);
+                        
+                        mapConfigTopicDetails.put(key, dataTopic);
+                    } catch (InterruptedException e) {
+                        topicDetail.setError(e.getMessage());
+                    } catch (ExecutionException e) {
+                        topicDetail.setError(e.getMessage());
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                });
+
+
+                for (String outerKey : mapConfigTopicDetails.keySet()) {
+                    HashMap<String, Object> innerMap = mapConfigTopicDetails.get(outerKey);
+                    dataTopicDetails.add(innerMap);
+                    
+                }
+                // topicDetail.setConsumer(consumerData);
+                topicDetail.setData(dataTopicDetails);
+                
+            } catch (Exception e) {
+                topicDetail.setError(e.getMessage());
+            }
+        }
+        return topicDetail;
+    }
+
     public TopicDetailResp getTopicDescriptionByConsumer(String username, String password, String consumerGroupID, String topicNames) {
         TopicDetailResp topicDetail = new TopicDetailResp();
         Properties detailProps = new Properties();
@@ -941,7 +1035,10 @@ public class KafkaClientService {
                             Integer currentOffset = partition.getInt("currentOffset");
                             Integer partitionNumber = partition.getInt("partition");
                             Integer messageBehind = partition.getInt("messagesBehind");
-                            if (endOffset.equals(0) && currentOffset.equals(0)){
+                            if (
+                                ( endOffset.equals(0) && currentOffset.equals(0) ) || 
+                                ( endOffset.equals(currentOffset) )
+                            ){
                                 continue;
                             }
                             partitionMap.put("endOffset", endOffset);
@@ -962,7 +1059,6 @@ public class KafkaClientService {
                         consumerMapData.put("messagesBehind", partitionMessageBehindTotal);
                         consumerMapData.put("members", consumerData.getInt("members"));
                         consumerMapData.put("groupId", consumerData.getString("groupId"));
-                        consumerMapData.put("topics", consumerData.getInt("topics"));
                         consumerMapData.put("coordinator", coordinatorData);
                         consumerMapData.put("partitions", partitionDataList);
 

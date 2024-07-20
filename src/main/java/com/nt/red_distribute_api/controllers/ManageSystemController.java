@@ -27,6 +27,7 @@ import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
 import com.nt.red_distribute_api.dto.resp.external.ConsumeMessage;
 import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
+import com.nt.red_distribute_api.dto.resp.external.TopicDetailResp;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
@@ -1172,6 +1173,70 @@ public class ManageSystemController {
             resp.setCount(0);
             resp.setData(null);
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while get detail : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/topic_behinds")
+    public ResponseEntity<Object> getTopicByConsumerMessageBehinds(
+        HttpServletRequest request,    
+        @RequestParam(name = "consumer_id")Long consumerID
+    ){
+        
+        DefaultResp resp = new DefaultResp();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
+        String requestHeader = request.getHeader("Authorization");
+            
+        VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+        try {
+            String orderTypeTopicNames = "";
+            ConsumerEntity con = consumerService.consumerDetail(consumerID);
+            if(con == null){
+                resp.setMessage("NOT FOUND CONSUMER ID:" + consumerID);
+                return new ResponseEntity<>( resp, HttpStatus.NOT_FOUND);
+            }
+
+            try{
+                List<ConsumerLJoinOrderType> orderCons = consumerOrderTypeService.ListConsumerOrderType(consumerID);
+                for (ConsumerLJoinOrderType orderTypeData : orderCons){
+                    orderTypeTopicNames+=orderTypeData.getORDERTYPE_NAME().toUpperCase()+",";
+                }
+                
+            } catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while list order type for subscribe: " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            if(orderTypeTopicNames.length()<=0){
+                resp.setMessage("Consumer have not subscribe any topic!");
+                return new ResponseEntity<>( resp, HttpStatus.OK);
+            }
+
+
+            TopicDetailResp data = kafkaClientService.getTopicDescriptionByConsumerAdmin(
+                con.getConsumer_group(),
+                orderTypeTopicNames
+            );
+            if (data.getError() != null){
+                resp.setError(data.getError());
+                resp.setMessage("Error while topic_detail : " + data.getError());
+                return new ResponseEntity<>( resp, HttpStatus.BAD_REQUEST);
+            }
+            try{
+                resp.setResult(data.getData());
+                resp.setMessage("Success!");
+                // resp.setMessage(orderTypeTopicNames);
+                return new ResponseEntity<>( resp, HttpStatus.OK);
+            }catch (Exception e){
+                resp.setError(e.getLocalizedMessage());
+                resp.setMessage("Error while resp topic_detail : " + e.getMessage());
+                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+        }catch (Exception e){
             resp.setMessage("Error while get detail : " + e.getMessage());
             return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
