@@ -1108,9 +1108,12 @@ public class ManageSystemController {
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
         try {
 
-            JSONObject data = kafkaUIService.GetConsumerGroup();
+            List<HashMap<String, Object>> data = kafkaUIService.GetConsumerGroup();
+            HashMap<String, Object> dataResp = new HashMap<String, Object>();
+            dataResp.put("pageCount", 1);
+            dataResp.put("consumerGroups", data);
 
-            return new ResponseEntity<>( data.toString(), HttpStatus.OK);
+            return new ResponseEntity<>( dataResp, HttpStatus.OK);
         }catch (Exception e){
             resp.setDraw(draw);
             resp.setCount(0);

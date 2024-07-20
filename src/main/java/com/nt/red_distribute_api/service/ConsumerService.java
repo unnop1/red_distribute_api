@@ -1,5 +1,7 @@
 package com.nt.red_distribute_api.service;
 
+import java.util.List;
+
 import com.nt.red_distribute_api.dto.req.consumer.AddConsumerReq;
 import com.nt.red_distribute_api.dto.req.consumer.UpdateByConsumerReq;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
@@ -12,4 +14,5 @@ public interface ConsumerService  {
     public void deleteConsumer(Long consumerID, String updatedBy);
     public ConsumerEntity consumerDetail(Long consumerID);
     public ConsumerEntity getConsumerByUsername(String username);
+    public List<ConsumerEntity> getAllConsumer();
 }

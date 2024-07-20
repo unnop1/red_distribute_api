@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.service.imp;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -118,6 +119,11 @@ public class ConsumerImp implements ConsumerService {
     public ConsumerEntity consumerDetail(Long consumerID) {
         ConsumerEntity existingEntity = consumerRepo.findById(consumerID).orElse(null);
         return existingEntity;
+    }
+
+    @Override
+    public List<ConsumerEntity> getAllConsumer() {
+        return consumerRepo.findAll();
     }
     
 

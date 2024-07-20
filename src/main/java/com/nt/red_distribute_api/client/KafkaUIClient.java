@@ -172,7 +172,7 @@ public class KafkaUIClient {
     public JSONObject GetConsumerGroups(){
         try {
             // Set up the URL and connection
-            URL url = new URL(String.format("%s/api/clusters/kafka-cluster/consumer-groups/paged?page=1&perPage=25&search=", host));
+            URL url = new URL(String.format("%s/api/clusters/kafka-cluster/consumer-groups/paged?page=1&perPage=0&search=", host));
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 
