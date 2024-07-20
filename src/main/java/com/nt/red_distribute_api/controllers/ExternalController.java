@@ -354,11 +354,11 @@ public class ExternalController {
                 }else{
                     OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName().toUpperCase());
                     if(orderTypeDetail != null){
-                        orderTypeIDs.add(orderTypeDetail.getID());
-                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName());
                         ConsumerLJoinOrderType existOrderType = consumerOrderTypeService.FindOneConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID());
-                        if (existOrderType==null){
-                            consumerOrderTypeService.registerConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID(), vsp.getConsumerData().getUsername());
+                        if (existOrderType!=null){
+                            // consumerOrderTypeService.registerConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID(), vsp.getConsumerData().getUsername());
+                            orderTypeIDs.add(orderTypeDetail.getID());
+                            orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName());
                         }
                     }
                     
@@ -438,10 +438,10 @@ public class ExternalController {
                 }else{
                     OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName().toUpperCase());
                     if(orderTypeDetail != null){
-                        orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName());
                         ConsumerLJoinOrderType existOrderType = consumerOrderTypeService.FindOneConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID());
                         if (existOrderType!=null){
-                            consumerOrderTypeService.deleteConsumerOrderType(existOrderType.getID());
+                            // consumerOrderTypeService.deleteConsumerOrderType(existOrderType.getID());
+                            orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName());
                         }
                     }
                     
@@ -488,13 +488,13 @@ public class ExternalController {
     ) {
         DefaultListResp resp = new DefaultListResp();
         try{
-            String requestHeader = request.getHeader("Authorization");
-            VerifyConsumerResp vsp = VerifyDistributeUserAuth(requestHeader);
-            if (!vsp.getIsVerify()){
-                resp.setError("Authenticated not you.");
-                resp.setMessage("You don't have permission!!!");
-                return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
-            }
+            // String requestHeader = request.getHeader("Authorization");
+            // VerifyConsumerResp vsp = VerifyDistributeUserAuth(requestHeader);
+            // if (!vsp.getIsVerify()){
+            //     resp.setError("Authenticated not you.");
+            //     resp.setMessage("You don't have permission!!!");
+            //     return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
+            // }
             
             
             try {

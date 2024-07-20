@@ -24,6 +24,8 @@ import com.nt.red_distribute_api.dto.resp.DefaultResp;
 import com.nt.red_distribute_api.dto.resp.PaginationDataResp;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
 import com.nt.red_distribute_api.dto.resp.VerifyAuthResp;
+import com.nt.red_distribute_api.dto.resp.external.ConsumeMessage;
+import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
 import com.nt.red_distribute_api.entity.ConsumerEntity;
 import com.nt.red_distribute_api.entity.OrderTypeEntity;
 import com.nt.red_distribute_api.entity.SaMetricNotificationEntity;
@@ -44,8 +46,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -1107,6 +1111,49 @@ public class ManageSystemController {
             return new ResponseEntity<>( data.toString(), HttpStatus.OK);
         }catch (Exception e){
             resp.setDraw(draw);
+            resp.setCount(0);
+            resp.setData(null);
+            resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            resp.setMessage("Error while get detail : " + e.getMessage());
+            return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/message_behinds")
+    public ResponseEntity<Object> getConsumerMessageBehinds(
+        HttpServletRequest request,    
+        @RequestParam(name = "topic_name")String topic,
+        @RequestParam(name = "consumer_id")Long consumerID
+    ){
+        
+        DefaultControllerResp resp = new DefaultControllerResp();
+        String ipAddress = request.getRemoteAddr();
+        String requestHeader = request.getHeader("Authorization");
+            
+        VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
+        try {
+            List<ConsumeMessage> listBehindMessages = new ArrayList<ConsumeMessage>();
+            ConsumerEntity con = consumerService.consumerDetail(consumerID);
+            HashMap<String, Object> behindMaps = kafkaClientService.countMessageBehindByTopic(topic, con.getConsumer_group());
+            for (String topicName: behindMaps.keySet()) {
+                JSONArray listBehind = new JSONArray(behindMaps.get(topicName));
+                for (int i = 0; i < listBehind.length(); i++){
+                    JSONObject behind = listBehind.getJSONObject(i);
+                    Integer limit = behind.getInt("limit");
+                    Integer beginOffset = behind.getInt("currentOffset");
+
+                    ListConsumeMsg consumeMsg = kafkaClientService.consumeMessagesAndNack(topicName, con.getConsumer_group(), beginOffset, limit);
+                    if(consumeMsg.getErr()== null){
+                        listBehindMessages.addAll(consumeMsg.getMessages());
+                    }
+                }
+            }   
+            
+            
+
+            return new ResponseEntity<>(listBehindMessages, HttpStatus.OK);
+        }catch (Exception e){
             resp.setCount(0);
             resp.setData(null);
             resp.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());

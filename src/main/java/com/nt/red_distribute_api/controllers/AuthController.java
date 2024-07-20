@@ -3,6 +3,7 @@ package com.nt.red_distribute_api.controllers;
 import com.nt.red_distribute_api.Auth.JwtHelper;
 import com.nt.red_distribute_api.Util.Convert;
 import com.nt.red_distribute_api.Util.DateTime;
+import com.nt.red_distribute_api.Util.CustomServlet;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.auth.JwtRequest;
 import com.nt.red_distribute_api.dto.req.user.UserRequestDto;
@@ -123,7 +124,7 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<Object> login(@RequestBody JwtRequest jwtRequest, HttpServletRequest request, BindingResult bindingResult) throws java.io.IOException {
         // Get the IP address from the request
-        // String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         try{
             // logger.info("IP Address: {}", ipAddress);
             logger.info("jwtUsername: {}", jwtRequest.getUsername());
@@ -180,6 +181,7 @@ public class AuthController {
             
             loginResp.setUserLogin(userInfo);
             loginResp.setJwtToken(token);
+            loginResp.setIp(ipAddress);
 
             PermissionMenuEntity permissionMenuEntity = permissionMenuService.getMenuPermission(userDetails.getSa_menu_permission_id());
             String permissionJSonStr;

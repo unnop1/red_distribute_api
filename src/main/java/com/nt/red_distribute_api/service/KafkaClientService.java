@@ -101,6 +101,12 @@ public class KafkaClientService {
     @Value("${kafka.bootstrap.server}")
     private String bootstrapServer;
 
+    @Value("${kafka.bootstrap.username}")
+    private String adminUsername;
+
+    @Value("${kafka.bootstrap.password}")
+    private String adminPassword;
+
     @Autowired
     private KafkaUIService kafkaUiService;
 
@@ -577,6 +583,85 @@ public class KafkaClientService {
         return resp;
     }
 
+    public ListConsumeMsg consumeMessagesAndNack(String topic, String groupConsumerId, long beginOffset, int limit) {
+        ListConsumeMsg resp = new ListConsumeMsg();
+        List<ConsumeMessage> messageList = Collections.synchronizedList(new ArrayList<>());
+        String groupId = groupConsumerId;
+        
+        Properties consumeProps = new Properties();
+        consumeProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        consumeProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        consumeProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumeProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // latest, earliest
+
+        // SASL configuration
+        consumeProps.put("security.protocol", "SASL_PLAINTEXT");
+        consumeProps.put("sasl.mechanism", "SCRAM-SHA-256");
+        consumeProps.put("sasl.jaas.config", String.format(
+                "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
+                adminUsername, adminPassword
+        ));
+
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps);
+
+        try {
+            TopicCount topicCount  = getTopicMessageTotal(adminUsername, adminPassword, groupId, topic);
+            resp.setCount((int) topicCount.getCount());
+
+            consumer.subscribe(Collections.singletonList(topic));
+
+            // Poll to ensure the consumer gets partition assignments
+            while (consumer.assignment().isEmpty()) {
+                consumer.poll(Duration.ofMillis(100));
+            }
+
+            // Assign partitions manually and seek to the given offset
+            Set<TopicPartition> partitions = consumer.assignment();
+            for (TopicPartition partition : partitions) {
+                consumer.seek(partition, beginOffset);
+            }
+
+            int rounds = 1;
+            Boolean isFullMsg = false;
+            // Consume messages
+            while (messageList.size() <= limit) {
+                // System.out.println(" round " + rounds);
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(2));
+                for (ConsumerRecord<String, String> record : records) {
+                    // System.out.println("Offset: " + record.offset() + " key: " + record.key() + " value: " + record.value());
+                    if(beginOffset <= record.offset()){
+                        ConsumeMessage conMsg = new ConsumeMessage();
+                        conMsg.setOffset(record.offset());
+                        conMsg.setKey(record.key());
+                        conMsg.setValue(record.value());
+                        messageList.add(conMsg);
+                    }
+                    if (messageList.size() >= limit) {
+                        isFullMsg = true;
+                        break;
+                    }
+                }
+                rounds++;
+                if (rounds >= (limit/10)+2 || isFullMsg) {
+                    break;
+                }
+            }
+
+
+        } catch (Exception e) {
+            resp.setErr(e.getMessage());
+        } finally {
+            consumer.close();
+        }
+
+        
+
+        resp.setMessages(messageList);
+        return resp;
+    }
+
+
     public String adminPublishMessage(String topic, String message) {
         String errMsg = "";
 
@@ -723,6 +808,73 @@ public class KafkaClientService {
         }
         
         return topicDetail;
+    }
+
+    public HashMap<String, Object> countMessageBehindByTopic(String topicName, String consumerGroupID){
+        HashMap<String, Object> consumerMapData = new HashMap<String, Object>();     
+        Properties detailProps = new Properties();
+        detailProps.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        detailProps.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        detailProps.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        detailProps.setProperty("security.protocol", "SASL_PLAINTEXT");
+        detailProps.setProperty("sasl.mechanism", "SCRAM-SHA-256");
+        detailProps.setProperty("sasl.jaas.config",
+                "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"admin\" password=\"admin-secret\";");
+
+        // Create the AdminClient with the new configuration
+        try (AdminClient detailClient = AdminClient.create(detailProps)) {
+        
+            List<String> selectTopics = new ArrayList<>();
+            try {
+                
+                selectTopics.add(topicName);
+
+                // Describe TOPIC
+                DescribeTopicsResult result = detailClient.describeTopics(selectTopics);
+                result.values().forEach((key, value) -> {
+                    try {
+                        String detailTopicName = value.get().name();
+
+                        List<HashMap<String, Object>> partitionDataList = new ArrayList<HashMap<String, Object>>();
+                        JSONObject consumerData = kafkaUiService.GetConsumerGroupByConsumerGroupId(consumerGroupID);
+
+                                           
+
+                        JSONArray partitionList = consumerData.getJSONArray("partitions");
+                        for( int i = 0; i < partitionList.length(); i++){
+                            HashMap<String, Object> partitionMap = new HashMap<String, Object>();
+                            JSONObject partition = partitionList.getJSONObject(i);
+                            String topic = partition.getString("topic");
+                            if (!topic.equals(detailTopicName)){
+                                continue;
+                            }
+                            Integer endOffset = partition.getInt("endOffset");
+                            Integer currentOffset = partition.getInt("currentOffset");
+                            if (endOffset.equals(0) && currentOffset.equals(0)){
+                                continue;
+                            }
+                            partitionMap.put("limit", endOffset - currentOffset);
+                            partitionMap.put("currentOffset", currentOffset);
+                            partitionDataList.add(partitionMap);
+                        }
+
+                        consumerMapData.put(detailTopicName, partitionDataList);
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return consumerMapData;
     }
 
     public TopicDetailResp getTopicDescriptionByConsumer(String username, String password, String consumerGroupID, String topicNames) {
