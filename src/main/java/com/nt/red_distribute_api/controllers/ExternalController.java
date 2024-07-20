@@ -376,7 +376,7 @@ public class ExternalController {
                 List<UserAclsInfo> userAclsTopics = kafkaClientService.initUserAclsTopicList(vsp.getConsumerData().getUsername(), orderTypeTopicNames);
                 
                 try{
-                    kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group());
+                    kafkaClientService.createAcls(vsp.getConsumerData().getUsername(), userAclsTopics, vsp.getConsumerData().getConsumer_group().toUpperCase());
                     resp.setResult(orderTypeTopicNames);
                     resp.setCount(orderTypeTopicNames.size());
                 }catch (Exception e){

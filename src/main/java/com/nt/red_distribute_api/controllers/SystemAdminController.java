@@ -2,6 +2,7 @@ package com.nt.red_distribute_api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.Auth.JwtHelper;
+import com.nt.red_distribute_api.Util.CustomServlet;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.permission.AddPermissionReq;
@@ -45,7 +46,7 @@ public class SystemAdminController {
         HttpServletRequest request,
         @RequestParam(name = "permission_id")Long permissionID
     ){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -90,7 +91,7 @@ public class SystemAdminController {
         @RequestParam(name = "Search", defaultValue = "")String search,
         @RequestParam(name = "Search_field", defaultValue = "")String searchField
     ){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -126,7 +127,7 @@ public class SystemAdminController {
     @PostMapping("/permission")
     public ResponseEntity<DefaultControllerResp> addSaMenuPermission(HttpServletRequest request, @RequestBody AddPermissionReq  addPermissionReq){
         DefaultControllerResp resp = new DefaultControllerResp();
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -182,7 +183,7 @@ public class SystemAdminController {
     @PutMapping("/permission")
     public ResponseEntity<DefaultControllerResp> updateSaMenuPermission(HttpServletRequest request, @RequestBody UpdateByPermissionReq  updateReq){
         DefaultControllerResp resp = new DefaultControllerResp();
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -237,7 +238,7 @@ public class SystemAdminController {
 
     @DeleteMapping("/permission")
     public ResponseEntity<DefaultControllerResp> DeleteSaMenuPermission(HttpServletRequest request, @RequestParam(name = "permission_id") Long permissionID){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);

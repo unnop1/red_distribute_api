@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.controllers;
 
 import com.nt.red_distribute_api.Auth.JwtHelper;
+import com.nt.red_distribute_api.Util.CustomServlet;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.user.ListUserReq;
 import com.nt.red_distribute_api.dto.req.user.UpdateUserDto;
@@ -55,7 +56,7 @@ public class UserController {
         @RequestParam(name = "Search", defaultValue = "")String search,
         @RequestParam(name = "Search_field", defaultValue = "")String search_field
     ){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -89,7 +90,7 @@ public class UserController {
         HttpServletRequest request,
         @RequestParam(name = "user_id")Long userId
     ){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -118,7 +119,7 @@ public class UserController {
     @PutMapping
     public ResponseEntity<DefaultControllerResp> updateUser(HttpServletRequest request, @RequestBody UpdateUserDto req) throws Exception{
         
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
@@ -172,7 +173,7 @@ public class UserController {
 
     @DeleteMapping("by_id")
     public ResponseEntity<DefaultControllerResp> DeleteUser(HttpServletRequest request, @RequestParam(name = "user_id") Long userID){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);

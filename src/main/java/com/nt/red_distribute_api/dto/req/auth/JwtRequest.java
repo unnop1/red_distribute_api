@@ -19,6 +19,4 @@ public class JwtRequest {
     private String system="UnknownSystem";
     @JsonProperty("browser")
     private String browser="UnknownBrowser";
-    @JsonProperty("ip_address")
-    private String ipAddress="UnknownIpAddress";
 }

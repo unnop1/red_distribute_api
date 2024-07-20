@@ -4,6 +4,7 @@ import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nt.red_distribute_api.Auth.JwtHelper;
+import com.nt.red_distribute_api.Util.CustomServlet;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.DefaultListReq;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
@@ -101,7 +102,7 @@ public class ManageSystemController {
     ){
         
         DefaultControllerResp resp = new DefaultControllerResp();
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -139,7 +140,7 @@ public class ManageSystemController {
     ){
         
         DefaultControllerResp resp = new DefaultControllerResp();
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -177,7 +178,7 @@ public class ManageSystemController {
     @PostMapping("/order_type")
     public ResponseEntity<DefaultControllerResp> createOrderType(HttpServletRequest request, @RequestBody AddOrderTypeReq req) {
         String requestHeader = request.getHeader("Authorization");
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
@@ -247,7 +248,7 @@ public class ManageSystemController {
     @PutMapping("/order_type")
     public ResponseEntity<DefaultControllerResp> updateOrderType(HttpServletRequest request, @RequestBody UpdateOrderTypeReq req) throws Exception{
         
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
@@ -328,7 +329,7 @@ public class ManageSystemController {
     @DeleteMapping("/order_type")
     public ResponseEntity<DefaultControllerResp> deleteOrderType(HttpServletRequest request, @RequestParam(name="order_type_id")Long orderTypeID) throws Exception{
         
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
@@ -398,7 +399,7 @@ public class ManageSystemController {
     @DeleteMapping("/order_type/purge")
     public ResponseEntity<DefaultControllerResp> PurgeOrderTypeData(HttpServletRequest request, @RequestParam(name="order_type_id")Long orderTypeID, @RequestBody String reMark) {
         String requestHeader = request.getHeader("Authorization");
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
@@ -463,7 +464,7 @@ public class ManageSystemController {
         try{
             
             
-            String ipAddress = request.getRemoteAddr();
+            String ipAddress = CustomServlet.getClientIpAddress(request);
             String requestHeader = request.getHeader("Authorization");
                 
             VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -513,7 +514,7 @@ public class ManageSystemController {
     @PostMapping("/consumer")
     public ResponseEntity<DefaultControllerResp> createConsumer(HttpServletRequest request, @RequestBody AddConsumerReq req) {
         String requestHeader = request.getHeader("Authorization");
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
@@ -602,7 +603,7 @@ public class ManageSystemController {
     @PutMapping("/consumer")
     public ResponseEntity<DefaultControllerResp> updateConsumer(HttpServletRequest request, @RequestBody UpdateByConsumerReq req) throws Exception{
         
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
@@ -620,7 +621,7 @@ public class ManageSystemController {
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
 
-            String consumerGroup = updateConsumer.getSystem_name().toLowerCase();
+            String consumerGroup = updateConsumer.getSystem_name().toUpperCase();
 
             // update consumer in kafka server
             List<UserAclsInfo> userAcls = kafkaClientService.ListUserAcls(updateConsumer.getUsername());
@@ -718,7 +719,7 @@ public class ManageSystemController {
     @DeleteMapping("/consumer")
     public ResponseEntity<DefaultControllerResp> updateConsumer(HttpServletRequest request, @RequestParam(name="consumer_id")Long consumerID) throws Exception{
         
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
@@ -806,7 +807,7 @@ public class ManageSystemController {
     ){
         
         DefaultControllerResp resp = new DefaultControllerResp();
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -855,7 +856,7 @@ public class ManageSystemController {
         HttpServletRequest request,
         @RequestParam(name = "consumer_id")Long consumerID
     ){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -913,7 +914,7 @@ public class ManageSystemController {
     @PostMapping("/metric")
     public ResponseEntity<DefaultControllerResp> createManageMetric(HttpServletRequest request, @RequestBody AddMetricNotificationReq req) {
         String requestHeader = request.getHeader("Authorization");
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
@@ -934,7 +935,7 @@ public class ManageSystemController {
     @PutMapping("/metric")
     public ResponseEntity<DefaultControllerResp> updateManageMetric(HttpServletRequest request, @RequestBody UpdateMetricReq req) throws Exception{
         
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
@@ -971,7 +972,7 @@ public class ManageSystemController {
         @RequestParam(name = "Search_field", defaultValue = "")String searchField
     ) {
         String requestHeader = request.getHeader("Authorization");
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
@@ -1019,7 +1020,7 @@ public class ManageSystemController {
         @RequestParam(name = "Search_field", defaultValue = "")String searchField
     ) {
         String requestHeader = request.getHeader("Authorization");
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
@@ -1100,7 +1101,7 @@ public class ManageSystemController {
     ){
         
         DefaultControllerResp resp = new DefaultControllerResp();
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -1128,7 +1129,7 @@ public class ManageSystemController {
     ){
         
         DefaultControllerResp resp = new DefaultControllerResp();
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -1137,7 +1138,7 @@ public class ManageSystemController {
             ConsumerEntity con = consumerService.consumerDetail(consumerID);
             HashMap<String, Object> behindMaps = kafkaClientService.countMessageBehindByTopic(topic, con.getConsumer_group());
             for (String topicName: behindMaps.keySet()) {
-                JSONArray listBehind = new JSONArray(behindMaps.get(topicName));
+                JSONArray listBehind = new JSONArray(behindMaps.get(topicName).toString());
                 for (int i = 0; i < listBehind.length(); i++){
                     JSONObject behind = listBehind.getJSONObject(i);
                     Integer limit = behind.getInt("limit");

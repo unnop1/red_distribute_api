@@ -70,7 +70,7 @@ public class ConsumerImp implements ConsumerService {
             }
 
             if(updates.getConsumer_group()!= null){
-                existingEntity.setConsumer_group(updates.getConsumer_group());
+                existingEntity.setConsumer_group(updates.getConsumer_group().toUpperCase());
             }
 
             if (updates.getEmail() != null ){

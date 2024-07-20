@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.controllers;
 
 import com.nt.red_distribute_api.Auth.JwtHelper;
+import com.nt.red_distribute_api.Util.CustomServlet;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.trigger.DashboardReq;
@@ -47,7 +48,7 @@ public class TriggerController {
         @RequestParam(name = "channel_id", defaultValue = "0")Long channelID
     ){
         
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -91,7 +92,7 @@ public class TriggerController {
         @RequestParam(name = "order_type_id")Long orderTypeID
     ){
         
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -133,7 +134,7 @@ public class TriggerController {
         HttpServletRequest request,
         @RequestParam(name = "trigger_id")Long triggerID
     ){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);
@@ -171,7 +172,7 @@ public class TriggerController {
     public ResponseEntity<DefaultControllerResp> getTriggerOrderTypeCount(
         HttpServletRequest request
     ){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         String requestHeader = request.getHeader("Authorization");
             
         VerifyAuthResp vsf = this.helper.verifyToken(requestHeader);

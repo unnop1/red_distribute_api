@@ -12,8 +12,8 @@ public class LoginResp {
     @JsonProperty("user")
     private UserResp userLogin;
 
-    @JsonProperty("ip")
-    private String ip;
+    // @JsonProperty("ip")
+    // private String ip;
 
     @JsonProperty("access_token")
     private String jwtToken;

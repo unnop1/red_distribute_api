@@ -1,6 +1,7 @@
 package com.nt.red_distribute_api.controllers;
 
 import com.nt.red_distribute_api.Auth.JwtHelper;
+import com.nt.red_distribute_api.Util.CustomServlet;
 import com.nt.red_distribute_api.Util.DateTime;
 import com.nt.red_distribute_api.dto.req.audit.AuditLog;
 import com.nt.red_distribute_api.dto.req.notification.AddNotification;
@@ -40,7 +41,7 @@ public class NotificationController {
     @PostMapping("/create")
     public ResponseEntity<DefaultControllerResp> createManageMetric(HttpServletRequest request, @RequestBody AddNotification req) {
         String requestHeader = request.getHeader("Authorization");
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = CustomServlet.getClientIpAddress(request);
         VerifyAuthResp vsf = helper.verifyToken(requestHeader);
         DefaultControllerResp resp = new DefaultControllerResp();
         try {
