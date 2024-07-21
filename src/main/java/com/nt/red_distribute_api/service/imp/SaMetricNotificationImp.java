@@ -32,7 +32,7 @@ public class SaMetricNotificationImp implements SaMetricNotificationService {
         newMetric.setTOPUP_NOT_CONNECT(req.getTOPUP_NOT_CONNECT());
         // triggerNoti_jsonClob = new javax.sql.rowset.serial.SerialClob(req.getTRIGGER_NOTI_JSON().toCharArray());
         newMetric.setTRIGGER_IS_ACTIVE(req.getTRIGGER_IS_ACTIVE());
-        newMetric.setTRIGGER_NOTI_JSON(createdBy);
+        newMetric.setTRIGGER_NOTI_JSON(req.getTRIGGER_NOTI_JSON());
         newMetric.setLINE_IS_ACTIVE(req.getLINE_IS_ACTIVE());
         newMetric.setLINE_TOKEN(req.getLINE_TOKEN());
         newMetric.setUPDATED_DATE(timeNow);
