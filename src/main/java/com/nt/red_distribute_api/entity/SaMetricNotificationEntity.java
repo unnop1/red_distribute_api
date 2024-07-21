@@ -40,7 +40,6 @@ public class SaMetricNotificationEntity {
     @Column(name = "TOPUP_NOT_CONNECT", unique = false,nullable = true)
     private Integer TOPUP_NOT_CONNECT = 0;
 
-    @Lob
     @Column(name = "TRIGGER_NOTI_JSON", unique = false,nullable = true)
     private String TRIGGER_NOTI_JSON = null;
 
