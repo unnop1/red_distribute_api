@@ -1129,7 +1129,8 @@ public class ManageSystemController {
     public ResponseEntity<Object> getConsumerMessageBehinds(
         HttpServletRequest request,    
         @RequestParam(name = "topic_name")String topic,
-        @RequestParam(name = "consumer_id")Long consumerID
+        @RequestParam(name = "consumer_id")Long consumerID,
+        @RequestParam(name = "is_enable_auto_commit" , defaultValue = "false")String isEnableAutoCommit
     ){
         
         DefaultControllerResp resp = new DefaultControllerResp();
@@ -1159,7 +1160,7 @@ public class ManageSystemController {
                         Integer limit = behind.getInt("limit");
                         Integer beginOffset = behind.getInt("currentOffset");
     
-                        ListConsumeMsg consumeMsg = kafkaClientService.consumeMessagesAndNack(topicName, con.getConsumer_group(), beginOffset, limit);
+                        ListConsumeMsg consumeMsg = kafkaClientService.consumeMessagesAndNack(topicName, con.getConsumer_group(), beginOffset, limit, isEnableAutoCommit);
                         if(consumeMsg.getErr()== null){
                             listBehindMessages.addAll(consumeMsg.getMessages());
                         }

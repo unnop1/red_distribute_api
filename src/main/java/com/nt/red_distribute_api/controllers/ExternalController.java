@@ -356,7 +356,7 @@ public class ExternalController {
                     if(orderTypeDetail != null){
                         ConsumerLJoinOrderType existOrderType = consumerOrderTypeService.FindOneConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID());
                         if (existOrderType!=null){
-                            // consumerOrderTypeService.registerConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID(), vsp.getConsumerData().getUsername());
+                            consumerOrderTypeService.registerConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID(), vsp.getConsumerData().getUsername());
                             orderTypeIDs.add(orderTypeDetail.getID());
                             orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName());
                         }
@@ -440,7 +440,7 @@ public class ExternalController {
                     if(orderTypeDetail != null){
                         ConsumerLJoinOrderType existOrderType = consumerOrderTypeService.FindOneConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID());
                         if (existOrderType!=null){
-                            // consumerOrderTypeService.deleteConsumerOrderType(existOrderType.getID());
+                            consumerOrderTypeService.deleteConsumerOrderType(existOrderType.getID());
                             orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName());
                         }
                     }

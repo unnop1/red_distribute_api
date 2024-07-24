@@ -573,7 +573,7 @@ public class KafkaClientService {
         return resp;
     }
 
-    public ListConsumeMsg consumeMessagesAndNack(String topic, String groupConsumerId, long beginOffset, int limit) {
+    public ListConsumeMsg consumeMessagesAndNack(String topic, String groupConsumerId, long beginOffset, int limit, String isEnableAutoCommit) {
         ListConsumeMsg resp = new ListConsumeMsg();
         List<ConsumeMessage> messageList = Collections.synchronizedList(new ArrayList<>());
         String groupId = groupConsumerId;
@@ -584,7 +584,7 @@ public class KafkaClientService {
         consumeProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumeProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // latest, earliest
-        consumeProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // Disable auto commit
+        consumeProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, isEnableAutoCommit); // Disable auto commit "false" , "true"
 
 
         // SASL configuration
