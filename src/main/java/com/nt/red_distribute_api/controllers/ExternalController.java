@@ -355,7 +355,7 @@ public class ExternalController {
                     OrderTypeEntity orderTypeDetail = orderTypService.getOrderTypeByName(req.getTopicName().toUpperCase());
                     if(orderTypeDetail != null){
                         ConsumerLJoinOrderType existOrderType = consumerOrderTypeService.FindOneConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID());
-                        if (existOrderType!=null){
+                        if (existOrderType==null){
                             consumerOrderTypeService.registerConsumerOrderType(vsp.getConsumerData().getID(), orderTypeDetail.getID(), vsp.getConsumerData().getUsername());
                             orderTypeIDs.add(orderTypeDetail.getID());
                             orderTypeTopicNames.add(orderTypeDetail.getOrderTypeName());
