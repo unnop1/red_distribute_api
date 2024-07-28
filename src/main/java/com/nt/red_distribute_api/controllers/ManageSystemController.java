@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.kafka.common.protocol.types.Field.Bool;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1130,7 +1131,9 @@ public class ManageSystemController {
         HttpServletRequest request,    
         @RequestParam(name = "topic_name")String topic,
         @RequestParam(name = "consumer_id")Long consumerID,
-        @RequestParam(name = "is_enable_auto_commit" , defaultValue = "false")String isEnableAutoCommit
+        @RequestParam(name = "offset" , defaultValue = "-1")Integer offset,
+        @RequestParam(name = "limit", defaultValue = "10")Integer limit,
+        @RequestParam(name = "is_enable_auto_commit" , defaultValue = "false")Boolean isEnableAutoCommit
     ){
         
         DefaultControllerResp resp = new DefaultControllerResp();
@@ -1157,10 +1160,14 @@ public class ManageSystemController {
                     // System.out.println("JSONArray: " + listBehind.toString());
                     for (int i = 0; i < listBehind.length(); i++){
                         JSONObject behind = listBehind.getJSONObject(i);
-                        Integer limit = behind.getInt("limit");
+                        Integer behindLimit = behind.getInt("limit");
                         Integer beginOffset = behind.getInt("currentOffset");
-    
-                        ListConsumeMsg consumeMsg = kafkaClientService.consumeMessagesAndNack(topicName, con.getConsumer_group(), beginOffset, limit, isEnableAutoCommit);
+
+                        if(beginOffset < offset && !offset.equals(-1)){
+                            continue;
+                        }
+
+                        ListConsumeMsg consumeMsg = kafkaClientService.consumeMessagesAndNack(topicName, con.getConsumer_group(), beginOffset, behindLimit, isEnableAutoCommit);
                         if(consumeMsg.getErr()== null){
                             listBehindMessages.addAll(consumeMsg.getMessages());
                         }
@@ -1170,9 +1177,11 @@ public class ManageSystemController {
                 }
             }   
             
-            
+            if(listBehindMessages.size() <= limit){
+                return new ResponseEntity<>(listBehindMessages, HttpStatus.OK);
+            }
 
-            return new ResponseEntity<>(listBehindMessages, HttpStatus.OK);
+            return new ResponseEntity<>(listBehindMessages.subList(0, limit), HttpStatus.OK);
         }catch (Exception e){
             resp.setCount(0);
             resp.setData(null);
