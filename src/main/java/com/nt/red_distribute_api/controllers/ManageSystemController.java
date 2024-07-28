@@ -1160,7 +1160,7 @@ public class ManageSystemController {
                     // System.out.println("JSONArray: " + listBehind.toString());
                     for (int i = 0; i < listBehind.length(); i++){
                         JSONObject behind = listBehind.getJSONObject(i);
-                        Integer behindLimit = behind.getInt("limit");
+                        Integer behindLimit = limit - listBehindMessages.size();
                         Integer beginOffset = behind.getInt("currentOffset");
 
                         if(beginOffset < offset && !offset.equals(-1)){
