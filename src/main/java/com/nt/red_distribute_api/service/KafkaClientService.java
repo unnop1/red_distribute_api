@@ -584,7 +584,7 @@ public class KafkaClientService {
         consumeProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumeProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // latest, earliest
-        // consumeProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, isEnableAutoCommit); // Disable auto commit "false" , "true"
+        consumeProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, isEnableAutoCommit); // Disable auto commit "false" , "true"
 
 
         // SASL configuration
@@ -636,9 +636,6 @@ public class KafkaClientService {
                 }
                 rounds++;
                 if (rounds >= (limit/10)+2 || isFullMsg) {
-                    if(isEnableAutoCommit){
-                        consumer.commitSync();
-                    }
                     break;
                 }
             }
@@ -656,6 +653,66 @@ public class KafkaClientService {
         return resp;
     }
 
+
+    public List<ConsumeMessage> ListConsumeMsgByOffsetLimit(String topic, String groupConsumerId, long beginOffset, int limit){
+        Properties consumeProps = new Properties();
+        consumeProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        consumeProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupConsumerId);
+        consumeProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumeProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumeProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // latest, earliest
+        consumeProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        consumeProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, String.valueOf(limit));
+
+        // SASL configuration
+        consumeProps.put("security.protocol", "SASL_PLAINTEXT");
+        consumeProps.put("sasl.mechanism", "SCRAM-SHA-256");
+        consumeProps.put("sasl.jaas.config", String.format(
+                "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
+                adminUsername, adminPassword
+        ));
+
+        List<ConsumeMessage> messageList = Collections.synchronizedList(new ArrayList<>());
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumeProps);
+
+        try {
+            Boolean isLimit = false;
+            consumer.subscribe(Collections.singletonList(topic));
+            Map<TopicPartition, OffsetAndMetadata> currentOffsets = new HashMap<>();
+            int messageProcessed = 0;
+            int messageLimit = 0;
+            while (!isLimit && messageProcessed > limit * 2) {
+                ConsumerRecords<String, String> messages = consumer.poll(Duration.ofSeconds(100));
+                for (ConsumerRecord<String, String> record : messages) {
+                    // processed one message
+                    messageProcessed++;
+
+                    if(record.offset() >= beginOffset){
+                        ConsumeMessage conMsg = new ConsumeMessage();
+                        conMsg.setOffset(record.offset());
+                        conMsg.setKey(record.key());
+                        conMsg.setValue(record.value());
+
+                        currentOffsets.put(
+                            new TopicPartition(record.topic(), record.partition()),
+                            new OffsetAndMetadata(record.offset() + 1)
+                        );
+                        consumer.commitSync(currentOffsets);
+                        messageList.add(conMsg);
+                        messageLimit++;
+                    }
+                    if (messageLimit>=limit){
+                        isLimit = true;
+                        break;
+                    }
+                }
+            }
+        } finally {
+            consumer.close();
+        }
+        return messageList;
+        
+    }
 
     public String adminPublishMessage(String topic, String message) {
         String errMsg = "";

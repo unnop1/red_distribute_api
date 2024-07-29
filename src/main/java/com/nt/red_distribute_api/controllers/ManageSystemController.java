@@ -1144,44 +1144,52 @@ public class ManageSystemController {
         try {
             List<ConsumeMessage> listBehindMessages = new ArrayList<ConsumeMessage>();
             ConsumerEntity con = consumerService.consumerDetail(consumerID);
-            HashMap<String, Object> behindMaps = kafkaClientService.countMessageBehindByTopic(topic, con.getConsumer_group());
-            for (String topicName: behindMaps.keySet()) {
-                Object value = behindMaps.get(topicName);
-                try {
-                    // Convert the value to a JSON string
-                    ObjectMapper mapper = new ObjectMapper();
-                    String jsonString = mapper.writeValueAsString(value);
 
-                    // Convert the JSON string to a JSONArray
-                    JSONArray listBehind = new JSONArray(jsonString);
-
-                    // Print the JSONArray (or use it as needed)
-                    // System.out.println("Topic: " + topicName);
-                    // System.out.println("JSONArray: " + listBehind.toString());
-                    for (int i = 0; i < listBehind.length(); i++){
-                        JSONObject behind = listBehind.getJSONObject(i);
-                        Integer behindLimit = limit - listBehindMessages.size();
-                        Integer beginOffset = behind.getInt("currentOffset");
-
-                        if(beginOffset < offset && !offset.equals(-1)){
-                            continue;
-                        }
-
-                        ListConsumeMsg consumeMsg = kafkaClientService.consumeMessagesAndNack(topicName, con.getConsumer_group(), beginOffset, behindLimit, isEnableAutoCommit);
-                        if(consumeMsg.getErr()== null){
-                            listBehindMessages.addAll(consumeMsg.getMessages());
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }   
-            
-            if(listBehindMessages.size() <= limit){
-                return new ResponseEntity<>(listBehindMessages, HttpStatus.OK);
+            if(con == null){
+                resp.setMessage("Consumer id :"+consumerID+" not found");
+                return new ResponseEntity<>( resp, HttpStatus.NOT_FOUND);
             }
 
-            return new ResponseEntity<>(listBehindMessages.subList(0, limit), HttpStatus.OK);
+            if(offset <= -1){
+
+                HashMap<String, Object> behindMaps = kafkaClientService.countMessageBehindByTopic(topic, con.getConsumer_group());
+                for (String topicName: behindMaps.keySet()) {
+                    Object value = behindMaps.get(topicName);
+                    try {
+                        // Convert the value to a JSON string
+                        ObjectMapper mapper = new ObjectMapper();
+                        String jsonString = mapper.writeValueAsString(value);
+
+                        // Convert the JSON string to a JSONArray
+                        JSONArray listBehind = new JSONArray(jsonString);
+
+                        // Print the JSONArray (or use it as needed)
+                        // System.out.println("Topic: " + topicName);
+                        // System.out.println("JSONArray: " + listBehind.toString());
+                        for (int i = 0; i < listBehind.length(); i++){
+                            JSONObject behind = listBehind.getJSONObject(i);
+                            Integer behindLimit = behind.getInt("limit");
+                            Integer beginOffset = behind.getInt("currentOffset");
+
+                            ListConsumeMsg consumeMsg = kafkaClientService.consumeMessagesAndNack(topicName, con.getConsumer_group(), beginOffset, behindLimit, isEnableAutoCommit);
+                            if(consumeMsg.getErr()== null){
+                                listBehindMessages.addAll(consumeMsg.getMessages());
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }   
+                
+                if(listBehindMessages.size() <= limit){
+                    return new ResponseEntity<>(listBehindMessages, HttpStatus.OK);
+                }
+
+                return new ResponseEntity<>(listBehindMessages.subList(0, limit), HttpStatus.OK);
+            }else {
+                List<ConsumeMessage> consumeMsg = kafkaClientService.ListConsumeMsgByOffsetLimit(topic, con.getConsumer_group(), offset, limit);
+                return new ResponseEntity<>(consumeMsg, HttpStatus.OK);
+            }
         }catch (Exception e){
             resp.setCount(0);
             resp.setData(null);
