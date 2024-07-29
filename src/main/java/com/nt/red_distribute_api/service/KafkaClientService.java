@@ -692,15 +692,15 @@ public class KafkaClientService {
                         conMsg.setOffset(record.offset());
                         conMsg.setKey(record.key());
                         conMsg.setValue(record.value());
-
-                        currentOffsets.put(
-                            new TopicPartition(record.topic(), record.partition()),
-                            new OffsetAndMetadata(record.offset() + 1)
-                        );
-                        consumer.commitSync(currentOffsets);
                         messageList.add(conMsg);
                         messageLimit++;
                     }
+                    currentOffsets.put(
+                        new TopicPartition(record.topic(), record.partition()),
+                        new OffsetAndMetadata(record.offset() + 1)
+                    );
+                    consumer.commitSync(currentOffsets);
+                    
                     if (messageLimit>=limit){
                         isLimit = true;
                         break;
