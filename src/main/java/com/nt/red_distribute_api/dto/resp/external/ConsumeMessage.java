@@ -10,4 +10,5 @@ public class ConsumeMessage {
     private Long offset;
     private String key;
     private String value;
+    private int partition;
 }
