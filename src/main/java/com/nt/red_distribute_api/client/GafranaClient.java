@@ -43,14 +43,14 @@ public class GafranaClient {
             return alertIds;
         }
 
-    public void writeAlertHistoryToCsv(List<Integer> alertIds, HttpServletResponse response) throws IOException {
+    public void writeAlertHistoryToCsv(List<Integer> alertIds,String from, String to, HttpServletResponse response) throws IOException {
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=\"alert_history.csv\"");
         try (CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(response.getOutputStream()), CSVFormat.DEFAULT.withHeader(
                 "id", "alertId", "dashboardId", "panelId", "userId", "newState", "prevState", "created", "updated"))) {
 
             for (int alertId : alertIds) {
-                String url = grafanaUrl + "/api/annotations?alertId=" + alertId;
+                String url = grafanaUrl + "/api/annotations?alertId=" + alertId +"&from=" + from + "&to=" + to;
                 String jsonResponse = makeApiRequest(url);
 
                 JSONArray alertHistory = new JSONArray(jsonResponse);
@@ -72,7 +72,7 @@ public class GafranaClient {
         }
     }
 
-    public void writeAlertHistoryToTextFile(List<Integer> alertIds, HttpServletResponse response) throws IOException {
+    public void writeAlertHistoryToTextFile(List<Integer> alertIds,String from, String to, HttpServletResponse response) throws IOException {
         response.setContentType("text/plain");
         response.setHeader("Content-Disposition", "attachment;filename=alert_history.txt");
         try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(response.getOutputStream()))) {
@@ -80,7 +80,7 @@ public class GafranaClient {
             writer.println("id\talertId\tdashboardId\tpanelId\tuserId\tnewState\tprevState\tcreated\tupdated");
 
             for (int alertId : alertIds) {
-                String url = grafanaUrl + "/api/annotations?alertId=" + alertId;
+                String url = grafanaUrl + "/api/annotations?alertId=" + alertId +"&from=" + from + "&to=" + to;
                 String jsonResponse = makeApiRequest(url);
 
                 JSONArray alertHistory = new JSONArray(jsonResponse);

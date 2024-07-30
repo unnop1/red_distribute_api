@@ -19,7 +19,7 @@ public class GafranaService {
     @Value("${grafana.url}")
     private String grafanaUrl;
 
-    public void ExportAlertAlarm(HttpServletResponse response, String exportType) throws IOException{
+    public void ExportAlertAlarm(HttpServletResponse response,String from, String to , String exportType) throws IOException{
         GafranaClient client = new GafranaClient(grafanaUrl, apiKey );
 
         // Step 1: Retrieve all alert IDs
@@ -28,10 +28,10 @@ public class GafranaService {
         // Step 2: Retrieve alert history for each alert ID and write to type file
         switch (exportType) {
             case "csv":
-                client.writeAlertHistoryToCsv(alertIds, response);
+                client.writeAlertHistoryToCsv(alertIds,from, to, response);
                 break;
             case "text":
-                client.writeAlertHistoryToTextFile(alertIds, response);
+                client.writeAlertHistoryToTextFile(alertIds,from, to, response);
                 break;
             default:
                 break;

@@ -484,7 +484,9 @@ public class ExternalController {
     public ResponseEntity<Object> exportAlarm(
         HttpServletRequest request,
         HttpServletResponse response,
-        @RequestParam(name="type", defaultValue ="csv") String exportType
+        @RequestParam(name="type", defaultValue ="csv") String exportType,
+        @RequestParam(name="from") String from,
+        @RequestParam(name="to") String to
     ) {
         DefaultListResp resp = new DefaultListResp();
         try{
@@ -498,7 +500,7 @@ public class ExternalController {
             
             
             try {
-                gafranaService.ExportAlertAlarm(response, exportType);
+                gafranaService.ExportAlertAlarm(response,from, to, exportType);
     
                 return ResponseEntity.ok(null);
             } catch (IOException e) {
