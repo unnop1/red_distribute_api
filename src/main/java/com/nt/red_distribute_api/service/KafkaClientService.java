@@ -684,6 +684,9 @@ public class KafkaClientService {
     
             // Seek to the specified offset
             for (TopicPartition partition : consumer.assignment()) {
+                if(beginOffset <= 0L){
+                    beginOffset = 1;
+                }
                 consumer.seek(partition, beginOffset);
             }
     
