@@ -1186,6 +1186,44 @@ public class ManageSystemController {
                 }
 
                 return new ResponseEntity<>(listBehindMessages.subList(0, limit), HttpStatus.OK);
+            }else if(offset == 0){
+
+                HashMap<String, Object> behindMaps = kafkaClientService.countMessageBehindByTopic(topic, con.getConsumer_group());
+                for (String topicName: behindMaps.keySet()) {
+                    Object value = behindMaps.get(topicName);
+                    try {
+                        // Convert the value to a JSON string
+                        ObjectMapper mapper = new ObjectMapper();
+                        String jsonString = mapper.writeValueAsString(value);
+
+                        // Convert the JSON string to a JSONArray
+                        JSONArray listBehind = new JSONArray(jsonString);
+
+                        // Print the JSONArray (or use it as needed)
+                        // System.out.println("Topic: " + topicName);
+                        // System.out.println("JSONArray: " + listBehind.toString());
+                        for (int i = 0; i < listBehind.length(); i++){
+                            JSONObject behind = listBehind.getJSONObject(i);
+                            Integer behindLimit = behind.getInt("limit");
+                            if(limit < behindLimit){
+                                behindLimit = limit;
+                            }
+                            Integer beginOffset = behind.getInt("currentOffset");
+
+                            List<ConsumeMessage> consumeMsg = kafkaClientService.ListConsumeMsgByOffsetLimit(topic, con.getConsumer_group(), beginOffset, behindLimit);
+                            if(consumeMsg.size()>0){
+                                listBehindMessages.addAll(consumeMsg);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }   
+                
+
+                return new ResponseEntity<>(listBehindMessages, HttpStatus.OK);
+
+                // return new ResponseEntity<>(listBehindMessages.subList(0, limit), HttpStatus.OK);
             }else {
                 List<ConsumeMessage> consumeMsg = kafkaClientService.ListConsumeMsgByOffsetLimit(topic, con.getConsumer_group(), offset, limit);
                 return new ResponseEntity<>(consumeMsg, HttpStatus.OK);
