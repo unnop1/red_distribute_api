@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import com.nt.red_distribute_api.dto.req.external.SubAndUnsubscribeReq;
 import com.nt.red_distribute_api.dto.resp.DefaultListResp;
 import com.nt.red_distribute_api.dto.resp.DefaultResp;
 import com.nt.red_distribute_api.dto.resp.UserAclsInfo;
+import com.nt.red_distribute_api.dto.resp.external.ConsumeMessage;
 import com.nt.red_distribute_api.dto.resp.external.ListConsumeMsg;
 import com.nt.red_distribute_api.dto.resp.external.TopicDetailResp;
 import com.nt.red_distribute_api.dto.resp.external.VerifyConsumerResp;
@@ -264,49 +267,72 @@ public class ExternalController {
                 return new ResponseEntity<>( resp, HttpStatus.UNAUTHORIZED);
             }
 
-            ListConsumeMsg consumeMsgs= new ListConsumeMsg();
+            List<ConsumeMessage> listBehindMessages = new ArrayList<ConsumeMessage>();
             try{
 
-                consumeMsgs = kafkaClientService.consumeMessages(
-                    vsp.getConsumerData().getUsername(),
-                    vsp.getRealPassword(),
-                    req.getTopicName(), 
-                    vsp.getConsumerData().getConsumer_group().toUpperCase(),
-                    req.getOffset(),
-                    req.getLimit()
-                );
-                try{
-                    if (consumeMsgs.getErr() != null){
-                        resp.setError(consumeMsgs.getErr());
-                        resp.setMessage("Error while consuming messages");
-                        return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
-                    } 
-                }catch (Exception e){
-                    consumeMsgs.setErr(e.getMessage());
-                    resp.setMessage("Error while response in case1:"+ e.getMessage());
-                    return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
+                // consumeMsgs = kafkaClientService.consumeMessages(
+                //     vsp.getConsumerData().getUsername(),
+                //     vsp.getRealPassword(),
+                //     req.getTopicName(), 
+                //     vsp.getConsumerData().getConsumer_group().toUpperCase(),
+                //     req.getOffset(),
+                //     req.getLimit()
+                // );
+                Integer offset= req.getOffset();
+                Integer limit= req.getLimit();
+                String topic = req.getTopicName();
+                String consumerGroup = vsp.getConsumerData().getConsumer_group().toUpperCase();
+                
+
+                if(offset == 0){
+
+                    HashMap<String, Object> behindMaps = kafkaClientService.countMessageBehindByTopic(topic, consumerGroup);
+                    for (String topicName: behindMaps.keySet()) {
+                        Object value = behindMaps.get(topicName);
+                        try {
+                            // Convert the value to a JSON string
+                            ObjectMapper mapper = new ObjectMapper();
+                            String jsonString = mapper.writeValueAsString(value);
+
+                            // Convert the JSON string to a JSONArray
+                            JSONArray listBehind = new JSONArray(jsonString);
+
+                            // Print the JSONArray (or use it as needed)
+                            // System.out.println("Topic: " + topicName);
+                            // System.out.println("JSONArray: " + listBehind.toString());
+                            for (int i = 0; i < listBehind.length(); i++){
+                                JSONObject behind = listBehind.getJSONObject(i);
+                                Integer behindLimit = behind.getInt("limit");
+                                if(limit < behindLimit){
+                                    behindLimit = limit;
+                                }
+                                Integer beginOffset = behind.getInt("currentOffset");
+
+                                List<ConsumeMessage> consumeMsg = kafkaClientService.ListConsumeMsgByOffsetLimit(topic, consumerGroup, beginOffset, behindLimit);
+                                if(consumeMsg.size()>0){
+                                    listBehindMessages.addAll(consumeMsg);
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }   
+                    
+
+                    return new ResponseEntity<>(listBehindMessages, HttpStatus.OK);
+
+                }else {
+                    List<ConsumeMessage> consumeMsg = kafkaClientService.ListConsumeMsgByOffsetLimit(topic, consumerGroup, offset, limit);
+                    return new ResponseEntity<>(consumeMsg, HttpStatus.OK);
                 }
+
             }catch (Exception e){
-                consumeMsgs.setErr(e.getMessage());
-                resp.setMessage("Error while consuming case1:"+ e.getMessage());
+                resp.setCount(0);
+                resp.setMessage("Error while get detail : " + e.getMessage());
                 return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            try{
-                if(consumeMsgs.getErr() != null){
-                    // if(consumeMsgs.getMessages() != null){
-                        resp.setError(consumeMsgs.getErr());
-                        // resp.setCount(consumeMsgs.getMessages().size());
-                        return new ResponseEntity<>( resp, HttpStatus.BAD_GATEWAY);
-                }
-                resp.setCount(consumeMsgs.getCount());
-                resp.setResult(consumeMsgs.getMessages());
-            }catch (Exception e){
-                resp.setMessage("Error while consuming case2:"+ e.getMessage());
-                return new ResponseEntity<>( resp, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
 
-            return new ResponseEntity<>( resp, HttpStatus.OK);
         }catch (Exception e){
             resp.setError(e.getLocalizedMessage());
             resp.setMessage("Error while consume : " + e.getMessage());

@@ -12,7 +12,7 @@ public class ConsumerMessageReq {
     private String topicName;
 
     @JsonProperty("offset")
-    private long offset=0;
+    private Integer offset=-1;
 
     @JsonProperty("limit")
     private Integer limit=10;
