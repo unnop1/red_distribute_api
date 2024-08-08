@@ -98,19 +98,7 @@ public class OrderTypeImp implements OrderTypeService {
 
     @Override
     public void deleteOrderType(Long orderTypeID, String deletedBy) {
-        OrderTypeEntity existingEntity = orderTypeRepo.findById(orderTypeID).orElse(null);
-        
-        if (existingEntity != null) {
-            Timestamp timeNow = DateTime.getTimeStampNow();
-            existingEntity.setIs_Delete(1);
-            existingEntity.setIs_Delete_By(deletedBy);
-            existingEntity.setIs_Delete_Date(timeNow);
-            existingEntity.setUpdated_By(deletedBy);
-            existingEntity.setUpdated_Date(timeNow);
-
-            // Save the updated entity back to the database
-            orderTypeRepo.save(existingEntity);
-        }
+        orderTypeRepo.deleteById(orderTypeID);
     }
 
     @Override
