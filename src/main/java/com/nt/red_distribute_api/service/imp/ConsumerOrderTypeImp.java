@@ -85,6 +85,12 @@ public class ConsumerOrderTypeImp implements ConsumerOrderTypeService {
         return null;
     }
 
+    @Override
+    public Error deleteOrderTypeAllConsumer(Long orderTypeID) {
+        consumerOrderTypeRepo.deleteConsumerOrderTypeByOrderTypeID(orderTypeID);
+        return null;
+    }
+
     
 
     

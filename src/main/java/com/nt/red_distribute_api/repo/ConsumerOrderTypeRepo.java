@@ -67,6 +67,15 @@ public interface ConsumerOrderTypeRepo extends JpaRepository<ConsumerOrderTypeEn
                    """,
            nativeQuery = true)
     public void deleteConsumerOrderTypeByConsumerID(@Param(value = "consumer_id") Long consumerID);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+                      DELETE FROM consumer_ordertype cod
+                      WHERE cod.ORDERTYPE_ID=:ordertype_id
+                   """,
+           nativeQuery = true)
+    public void deleteConsumerOrderTypeByOrderTypeID(@Param(value = "ordertype_id") Long orderTypeID);
     
 
 }

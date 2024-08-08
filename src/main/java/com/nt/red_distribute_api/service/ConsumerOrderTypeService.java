@@ -13,4 +13,5 @@ public interface ConsumerOrderTypeService  {
     public Error updateConsumerOrderType(Long consumerID, List<Long> orderTypeIDs, String updatedBy);
     public Error upsertConsumerOrderType(Long consumerID, List<Long> orderTypeIDs, String updatedBy);
     public Error deleteConsumerOrderType(Long ID);
+    public Error deleteOrderTypeAllConsumer(Long ordertypeID);
 }

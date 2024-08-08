@@ -351,6 +351,9 @@ public class ManageSystemController {
             // delete order_type in database
             orderTypeService.deleteOrderType(orderTypeID, vsf.getUsername());
 
+            // delete order type consumer in database
+            consumerOrderTypeService.deleteOrderTypeAllConsumer(orderTypeID);
+
             // delete topic in kafka
             if (orderType != null){
                 kafkaClientService.deleteTopic(orderType.getOrderTypeName().toUpperCase());
